@@ -1,23 +1,28 @@
 package com.andrewlalis.perfin;
 
+import com.andrewlalis.perfin.view.SplashScreenStage;
 import javafx.application.Application;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 
+import java.nio.file.Path;
+
+/**
+ * The class from which the JavaFX-based application starts.
+ */
 public class PerfinApp extends Application {
+    public static final Path APP_DIR = Path.of(System.getProperty("user.home", "."), ".perfin");
+
     public static void main(String[] args) {
         launch(args);
     }
 
     @Override
     public void start(Stage stage) {
+        SplashScreenStage splashStage = new SplashScreenStage("Loading", SceneUtil.load("/startup-splash-screen.fxml"));
+        splashStage.show();
         initMainScreen(stage);
-        Stage splashStage = showStartupSplashScreen();
-        // Once the splash stage is hidden, show the main stage.
-        splashStage.showingProperty().not().addListener((v, old, hidden) -> {
-            if (hidden) {
-                showMainScreen(stage);
-            }
+        splashStage.stateProperty().addListener((v, oldState, state) -> {
+            if (state == SplashScreenStage.State.DONE) stage.show();
         });
     }
 
@@ -25,25 +30,5 @@ public class PerfinApp extends Application {
         stage.hide();
         stage.setScene(SceneUtil.load("/main.fxml"));
         stage.setTitle("Perfin");
-    }
-
-    private void showMainScreen(Stage stage) {
-        System.out.println("Showing the main application.");
-//        stage.setMaximized(true);
-        stage.show();
-    }
-
-    /**
-     * Shows a startup "splash" screen for a short time.
-     * @return The stage in which the splash screen is shown.
-     */
-    private Stage showStartupSplashScreen() {
-        Stage stage = new Stage();
-        stage.initStyle(StageStyle.UNDECORATED);
-        stage.setScene(SceneUtil.load("/startup-splash-screen.fxml"));
-        stage.setTitle("Loading");
-        stage.setResizable(false);
-        stage.show();
-        return stage;
     }
 }
