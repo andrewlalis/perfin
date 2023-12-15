@@ -2,9 +2,7 @@ package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.perfin.model.Account;
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.value.ObservableValue;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
