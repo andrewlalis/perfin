@@ -1,0 +1,31 @@
+#sceneRoot {
+    -fx-background-image: url("images/splash-screen.png");
+    -fx-background-repeat: stretch;
+    -fx-background-size: 400 200;
+    -fx-background-color: transparent;
+    -fx-padding: 10;
+}
+
+#content {
+    -fx-font-family: monospace;
+    -fx-font-size: small;
+    -fx-background-insets: 0;
+    -fx-background-color: transparent;
+    -fx-border-style: none;
+    -fx-border-color: transparent;
+    -fx-text-fill: white;
+    -fx-padding: 0;
+}
+
+#content .content {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+#content .scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+#content .scroll-pane .content {
+    -fx-background-color: transparent;
+}

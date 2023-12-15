@@ -34,7 +34,7 @@ public class StartupSplashScreenController {
                 }
 
                 printlnLater("Perfin initialized. Starting the app now.");
-                Thread.sleep(2000);
+                Thread.sleep(50000);
 
                 Platform.runLater(() -> getSplashStage().setDone());
             } catch (Exception e) {
