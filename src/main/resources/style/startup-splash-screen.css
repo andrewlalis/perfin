@@ -1,5 +1,5 @@
 #sceneRoot {
-    -fx-background-image: url("images/splash-screen.png");
+    -fx-background-image: url("../images/splash-screen.png");
     -fx-background-repeat: stretch;
     -fx-background-size: 400 200;
     -fx-background-color: transparent;

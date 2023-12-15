@@ -1,24 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-
-
-<BorderPane xmlns="http://javafx.com/javafx/17.0.2-ea"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.andrewlalis.perfin.control.MainController"
-            minWidth="600.0" minHeight="400.0">
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<BorderPane
+        minHeight="400.0"
+        minWidth="600.0"
+        xmlns="http://javafx.com/javafx/17.0.2-ea"
+        xmlns:fx="http://javafx.com/fxml/1"
+        fx:controller="com.andrewlalis.perfin.control.MainController"
+        fx:id="mainContainer"
+        stylesheets="@style/main.css"
+>
    <top>
        <MenuBar BorderPane.alignment="CENTER">
            <Menu mnemonicParsing="false" text="File">
-               <MenuItem mnemonicParsing="false" text="Close"/>
+               <MenuItem mnemonicParsing="false" text="Close" />
            </Menu>
            <Menu mnemonicParsing="false" text="Edit">
-               <MenuItem mnemonicParsing="false" text="Delete"/>
+               <MenuItem mnemonicParsing="false" text="Delete" />
            </Menu>
            <Menu mnemonicParsing="false" text="Help">
-               <MenuItem mnemonicParsing="false" text="About"/>
+               <MenuItem mnemonicParsing="false" text="About" />
            </Menu>
        </MenuBar>
    </top>
+   <center>
+       <FlowPane fx:id="accountsPane" BorderPane.alignment="TOP_LEFT" vgap="5" hgap="5"/>
+   </center>
 </BorderPane>

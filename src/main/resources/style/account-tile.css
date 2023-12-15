@@ -1,0 +1,24 @@
+.account-tile-container {
+    -fx-border-color: lightgray;
+    -fx-border-width: 1px;
+    -fx-border-style: solid;
+    -fx-padding: 5px;
+}
+
+.account-tile-container:hover {
+    -fx-cursor: hand;
+}
+
+.main-label {
+    -fx-font-weight: bold;
+    -fx-font-size: large;
+}
+
+.property-label {
+    -fx-font-weight: bold;
+}
+
+.property-value {
+    -fx-font-family: monospace;
+    -fx-font-size: large;
+}

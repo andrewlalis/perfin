@@ -8,7 +8,7 @@
         xmlns="http://javafx.com/javafx/17.0.2-ea"
         xmlns:fx="http://javafx.com/fxml/1"
         fx:controller="com.andrewlalis.perfin.control.StartupSplashScreenController"
-        stylesheets="/startup-splash-screen.css"
+        stylesheets="@style/startup-splash-screen.css"
 >
     <center>
         <TextArea fx:id="content" wrapText="true" editable="false" focusTraversable="false"/>
