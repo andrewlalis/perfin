@@ -1,5 +1,6 @@
 package com.andrewlalis.perfin.control;
 
+import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.view.SplashScreenStage;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -29,9 +30,21 @@ public class StartupSplashScreenController {
             try {
                 printlnLater("Initializing application files...");
                 if (!initAppDir()) {
+                    Thread.sleep(3000);
                     Platform.runLater(() -> getSplashStage().setError());
                     return;
                 }
+
+                printlnLater("Loading the last profile...");
+                try {
+                    Profile.loadLast();
+                } catch (Exception e) {
+                    printlnLater("Failed to load profile: " + e.getMessage());
+                    Thread.sleep(3000);
+                    Platform.runLater(() -> getSplashStage().setError());
+                    return;
+                }
+
 
                 printlnLater("Perfin initialized. Starting the app now.");
                 Thread.sleep(500);

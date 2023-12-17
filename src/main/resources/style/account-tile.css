@@ -2,6 +2,7 @@
     -fx-border-color: lightgray;
     -fx-border-width: 1px;
     -fx-border-style: solid;
+    -fx-border-radius: 5px;
     -fx-padding: 5px;
 }
 

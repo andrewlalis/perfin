@@ -8,9 +8,9 @@
         minWidth="600.0"
         xmlns="http://javafx.com/javafx/17.0.2-ea"
         xmlns:fx="http://javafx.com/fxml/1"
-        fx:controller="com.andrewlalis.perfin.control.MainController"
+        fx:controller="com.andrewlalis.perfin.control.AccountsViewController"
         fx:id="mainContainer"
-        stylesheets="@style/main.css"
+        stylesheets="@style/accounts-view.css"
 >
    <top>
        <MenuBar BorderPane.alignment="CENTER">

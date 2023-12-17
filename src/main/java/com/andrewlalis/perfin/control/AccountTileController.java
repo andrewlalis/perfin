@@ -33,7 +33,7 @@ public class AccountTileController {
         this.account = account;
         Platform.runLater(() -> {
             accountNumberLabel.setText(account.getAccountNumber());
-            accountBalanceLabel.setText(account.getCurrency().getSymbol() + " " + account.getCurrentBalance().toPlainString());
+            accountBalanceLabel.setText(account.getCurrency().getSymbol());
             accountNameLabel.setText(account.getName());
             container.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
                 System.out.println("Clicked on " + account.getAccountNumber());

@@ -1,6 +1,5 @@
 package com.andrewlalis.perfin.model;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Currency;
 
@@ -14,14 +13,21 @@ public class Account {
 
     private AccountType type;
     private String accountNumber;
-    private BigDecimal currentBalance;
     private String name;
     private Currency currency;
 
-    public Account(AccountType type, String accountNumber, BigDecimal currentBalance, String name, Currency currency) {
+    public Account(long id, LocalDateTime createdAt, AccountType type, String accountNumber, String name, Currency currency) {
+        this.id = id;
+        this.createdAt = createdAt;
         this.type = type;
         this.accountNumber = accountNumber;
-        this.currentBalance = currentBalance;
+        this.name = name;
+        this.currency = currency;
+    }
+
+    public Account(AccountType type, String accountNumber, String name, Currency currency) {
+        this.type = type;
+        this.accountNumber = accountNumber;
         this.name = name;
         this.currency = currency;
     }
@@ -32,10 +38,6 @@ public class Account {
 
     public String getAccountNumber() {
         return accountNumber;
-    }
-
-    public BigDecimal getCurrentBalance() {
-        return currentBalance;
     }
 
     public String getName() {

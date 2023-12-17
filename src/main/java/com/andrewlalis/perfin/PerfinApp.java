@@ -23,12 +23,13 @@ public class PerfinApp extends Application {
         initMainScreen(stage);
         splashStage.stateProperty().addListener((v, oldState, state) -> {
             if (state == SplashScreenStage.State.DONE) stage.show();
+            if (state == SplashScreenStage.State.ERROR) System.out.println("ERROR!");
         });
     }
 
     private void initMainScreen(Stage stage) {
         stage.hide();
-        stage.setScene(SceneUtil.load("/main.fxml"));
+        stage.setScene(SceneUtil.load("/accounts-view.fxml"));
         stage.setTitle("Perfin");
     }
 }
