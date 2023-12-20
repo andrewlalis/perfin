@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1">
+    <top>
+        <Label text="Edit Account"/>
+    </top>
+    <center>
+        <GridPane BorderPane.alignment="CENTER">
+            <columnConstraints>
+                <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
+                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+            </columnConstraints>
+            <Label GridPane.columnIndex="0" GridPane.rowIndex="0" text="Name"/>
+            <TextField GridPane.columnIndex="1" GridPane.rowIndex="0" text="Bleh"/>
+
+            <Label GridPane.columnIndex="0" GridPane.rowIndex="1" text="Account Number"/>
+            <TextField GridPane.columnIndex="1" GridPane.rowIndex="1" text="1234"/>
+
+            <Label GridPane.columnIndex="0" GridPane.rowIndex="2" text="Currency"/>
+            <ChoiceBox GridPane.columnIndex="1" GridPane.rowIndex="2">
+            </ChoiceBox>
+        </GridPane>
+    </center>
+    <bottom>
+        <FlowPane BorderPane.alignment="CENTER_RIGHT">
+            <Button text="Save" />
+            <Button text="Cancel" />
+        </FlowPane>
+    </bottom>
+</BorderPane>

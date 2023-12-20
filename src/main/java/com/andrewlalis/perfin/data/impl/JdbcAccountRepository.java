@@ -5,6 +5,7 @@ import com.andrewlalis.perfin.data.DbUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.AccountType;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -37,6 +38,12 @@ public record JdbcAccountRepository(Connection conn) implements AccountRepositor
     @Override
     public Optional<Account> findById(long id) {
         return DbUtil.findById(conn, "SELECT * FROM account WHERE id = ?", id, JdbcAccountRepository::parseAccount);
+    }
+
+    @Override
+    public BigDecimal deriveCurrentBalance(long id) {
+        // TODO: Implement this!
+        return BigDecimal.valueOf(0, 4);
     }
 
     private static Account parseAccount(ResultSet rs) throws SQLException {

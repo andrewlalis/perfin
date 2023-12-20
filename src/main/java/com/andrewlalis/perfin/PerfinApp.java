@@ -1,10 +1,14 @@
 package com.andrewlalis.perfin;
 
+import com.andrewlalis.perfin.control.MainViewController;
+import com.andrewlalis.perfin.view.SceneRouter;
 import com.andrewlalis.perfin.view.SplashScreenStage;
 import javafx.application.Application;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.nio.file.Path;
+import java.util.function.Consumer;
 
 /**
  * The class from which the JavaFX-based application starts.
@@ -29,7 +33,12 @@ public class PerfinApp extends Application {
 
     private void initMainScreen(Stage stage) {
         stage.hide();
-        stage.setScene(SceneUtil.load("/accounts-view.fxml"));
+        Scene mainViewScene = SceneUtil.load("/main-view.fxml", (Consumer<MainViewController>) c -> {
+            c.router = new SceneRouter(c.mainContainer::setCenter)
+                    .map("accounts", "/accounts-view.fxml")
+                    .map("edit-account", "/edit-account.fxml");
+        });
+        stage.setScene(mainViewScene);
         stage.setTitle("Perfin");
     }
 }

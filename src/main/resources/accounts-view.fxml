@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Button?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
 <BorderPane
         minHeight="400.0"
         minWidth="600.0"
@@ -12,20 +16,26 @@
         fx:id="mainContainer"
         stylesheets="@style/accounts-view.css"
 >
-   <top>
-       <MenuBar BorderPane.alignment="CENTER">
-           <Menu mnemonicParsing="false" text="File">
-               <MenuItem mnemonicParsing="false" text="Close" />
-           </Menu>
-           <Menu mnemonicParsing="false" text="Edit">
-               <MenuItem mnemonicParsing="false" text="Delete" />
-           </Menu>
-           <Menu mnemonicParsing="false" text="Help">
-               <MenuItem mnemonicParsing="false" text="About" />
-           </Menu>
-       </MenuBar>
-   </top>
+<!--   <top>-->
+<!--       <MenuBar BorderPane.alignment="CENTER">-->
+<!--           <Menu mnemonicParsing="false" text="File">-->
+<!--               <MenuItem mnemonicParsing="false" text="Close" />-->
+<!--           </Menu>-->
+<!--           <Menu mnemonicParsing="false" text="Edit">-->
+<!--               <MenuItem mnemonicParsing="false" text="Delete" />-->
+<!--           </Menu>-->
+<!--           <Menu mnemonicParsing="false" text="Help">-->
+<!--               <MenuItem mnemonicParsing="false" text="About" />-->
+<!--           </Menu>-->
+<!--       </MenuBar>-->
+<!--   </top>-->
    <center>
-       <FlowPane fx:id="accountsPane" BorderPane.alignment="TOP_LEFT" vgap="5" hgap="5"/>
+       <VBox>
+           <HBox styleClass="actionsBar">
+               <Button text="Add an Account" onAction="#createNewAccount"/>
+           </HBox>
+           <FlowPane fx:id="accountsPane" BorderPane.alignment="TOP_LEFT" vgap="5" hgap="5"/>
+           <Label fx:id="noAccountsLabel" BorderPane.alignment="TOP_LEFT" text="No accounts have been added to this profile."/>
+       </VBox>
    </center>
 </BorderPane>
