@@ -1,12 +1,13 @@
 package com.andrewlalis.perfin.control;
 
-import com.andrewlalis.perfin.view.SceneRouter;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 
+import static com.andrewlalis.perfin.PerfinApp.router;
+
 public class MainViewController {
-    public SceneRouter router;
     @FXML
     public BorderPane mainContainer;
     @FXML
@@ -14,11 +15,21 @@ public class MainViewController {
 
     @FXML
     public void goToAccounts() {
-        router.goTo("accounts");
+        router.navigate("accounts");
     }
 
     @FXML
     public void goToEditAccounts() {
-        router.goTo("edit-account");
+        router.navigate("edit-account");
+    }
+
+    @FXML
+    public void goBack() {
+        router.navigateBack();
+    }
+
+    @FXML
+    public void goForward() {
+        router.navigateForward();
     }
 }

@@ -13,6 +13,8 @@
     <top>
         <HBox fx:id="mainHeader">
             <Label text="TODO: Add breadcrumb navigation/header here!"/>
+            <Button text="Back" onAction="#goBack"/>
+            <Button text="Forward" onAction="#goForward"/>
             <Button text="Go to accounts!" onAction="#goToAccounts"/>
             <Button text="Go to edit accounts!" onAction="#goToEditAccounts"/>
         </HBox>
