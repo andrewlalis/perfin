@@ -1,14 +1,12 @@
 package com.andrewlalis.perfin;
 
 import com.andrewlalis.javafx_scene_router.SceneRouter;
-import com.andrewlalis.perfin.control.MainViewController;
 import com.andrewlalis.perfin.view.SplashScreenStage;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.nio.file.Path;
-import java.util.function.Consumer;
 
 /**
  * The class from which the JavaFX-based application starts.
@@ -39,16 +37,14 @@ public class PerfinApp extends Application {
 
     private void initMainScreen(Stage stage) {
         stage.hide();
-        Scene mainViewScene = SceneUtil.load("/main-view.fxml", (Consumer<MainViewController>) c -> {
-            c.mainContainer.setCenter(router.getViewPane());
-            router.navigate("accounts");
-        });
+        Scene mainViewScene = SceneUtil.load("/main-view.fxml");
         stage.setScene(mainViewScene);
         stage.setTitle("Perfin");
     }
 
     private static void defineRoutes() {
-        router.map("accounts", SceneUtil.loadNode("/accounts-view.fxml"));
-        router.map("edit-account", SceneUtil.loadNode("/edit-account.fxml"));
+        router.map("accounts", PerfinApp.class.getResource("/accounts-view.fxml"));
+        router.map("account", PerfinApp.class.getResource("/account-view.fxml"));
+        router.map("edit-account", PerfinApp.class.getResource("/edit-account.fxml"));
     }
 }

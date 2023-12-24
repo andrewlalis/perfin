@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<BorderPane
+        xmlns="http://javafx.com/javafx"
+        xmlns:fx="http://javafx.com/fxml"
+        fx:controller="com.andrewlalis.perfin.control.AccountViewController"
+        stylesheets="@style/account-view.css"
+        styleClass="main-container"
+>
+    <top>
+        <Label fx:id="titleLabel"/>
+    </top>
+    <center>
+        <VBox>
+            <VBox styleClass="account-property-box">
+                <Label text="Name"/>
+                <TextField fx:id="accountNameField" editable="false"/>
+            </VBox>
+            <VBox styleClass="account-property-box">
+                <Label text="Number"/>
+                <TextField fx:id="accountNumberField" editable="false"/>
+            </VBox>
+            <VBox styleClass="account-property-box">
+                <Label text="Currency"/>
+                <TextField fx:id="accountCurrencyField" editable="false"/>
+            </VBox>
+            <VBox styleClass="account-property-box">
+                <Label text="Created At"/>
+                <TextField fx:id="accountCreatedAtField" editable="false"/>
+            </VBox>
+        </VBox>
+    </center>
+</BorderPane>

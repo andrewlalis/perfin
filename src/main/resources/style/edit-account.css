@@ -1,0 +1,14 @@
+.main-container {
+    -fx-padding: 5px;
+}
+
+.fields-grid {
+    -fx-hgap: 3px;
+    -fx-vgap: 3px;
+    -fx-padding: 5px;
+}
+
+#titleLabel {
+    -fx-font-size: large;
+    -fx-font-weight: bold;
+}

@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.*?>
 <BorderPane
         xmlns="http://javafx.com/javafx"
         xmlns:fx="http://javafx.com/fxml"
@@ -11,13 +10,16 @@
         stylesheets="@style/main-view.css"
 >
     <top>
-        <HBox fx:id="mainHeader">
-            <Label text="TODO: Add breadcrumb navigation/header here!"/>
-            <Button text="Back" onAction="#goBack"/>
-            <Button text="Forward" onAction="#goForward"/>
-            <Button text="Go to accounts!" onAction="#goToAccounts"/>
-            <Button text="Go to edit accounts!" onAction="#goToEditAccounts"/>
-        </HBox>
+        <VBox>
+            <HBox fx:id="mainHeader">
+                <Button text="Back" onAction="#goBack"/>
+                <Button text="Forward" onAction="#goForward"/>
+                <Button text="Accounts" onAction="#goToAccounts"/>
+            </HBox>
+            <HBox fx:id="breadcrumbHBox"/>
+            <Separator/>
+        </VBox>
+
     </top>
     <bottom>
         <HBox fx:id="mainFooter" spacing="5">

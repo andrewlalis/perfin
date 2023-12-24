@@ -1,23 +1,23 @@
 package com.andrewlalis.perfin.control;
 
+import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
 import com.andrewlalis.perfin.SceneUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.view.BindingUtil;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
-import javafx.stage.Stage;
 
 import java.util.function.Consumer;
 
-public class AccountsViewController {
+import static com.andrewlalis.perfin.PerfinApp.router;
+
+public class AccountsViewController implements RouteSelectionListener {
     @FXML
     public BorderPane mainContainer;
     @FXML
@@ -47,17 +47,21 @@ public class AccountsViewController {
         noAccountsLabel.managedProperty().bind(noAccountsLabel.visibleProperty());
         accountsPane.visibleProperty().bind(listProp.emptyProperty().not());
         accountsPane.managedProperty().bind(accountsPane.visibleProperty());
-
-        // Populate the list of accounts once a profile is available.
-        Profile.whenLoaded(profile -> {
-            accountsList.setAll(profile.getDataSource().getAccountRepository().findAll());
-        });
     }
 
     @FXML
     public void createNewAccount() {
-        Stage mainStage = (Stage) mainContainer.getScene().getWindow();
-        Scene editAccountScene = SceneUtil.load("/edit-account.fxml");
-        mainStage.setScene(editAccountScene);
+        router.navigate("edit-account");
+    }
+
+    @Override
+    public void onRouteSelected(Object context) {
+        refreshAccounts();
+    }
+
+    public void refreshAccounts() {
+        Profile.whenLoaded(profile -> {
+            accountsList.setAll(profile.getDataSource().getAccountRepository().findAll());
+        });
     }
 }

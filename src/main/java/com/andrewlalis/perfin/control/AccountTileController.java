@@ -8,6 +8,8 @@ import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 
+import static com.andrewlalis.perfin.PerfinApp.router;
+
 public class AccountTileController {
     private Account account;
 
@@ -37,6 +39,7 @@ public class AccountTileController {
             accountNameLabel.setText(account.getName());
             container.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
                 System.out.println("Clicked on " + account.getAccountNumber());
+                router.navigate("account", account);
             });
         });
     }

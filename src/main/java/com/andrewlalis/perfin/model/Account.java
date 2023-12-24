@@ -47,4 +47,12 @@ public class Account {
     public Currency getCurrency() {
         return currency;
     }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public long getId() {
+        return id;
+    }
 }

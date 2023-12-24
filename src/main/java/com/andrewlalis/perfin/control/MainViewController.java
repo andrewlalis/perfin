@@ -1,7 +1,8 @@
 package com.andrewlalis.perfin.control;
 
-import javafx.event.ActionEvent;
+import com.andrewlalis.perfin.view.BindingUtil;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 
@@ -12,15 +13,30 @@ public class MainViewController {
     public BorderPane mainContainer;
     @FXML
     public HBox mainFooter;
+    @FXML
+    public HBox breadcrumbHBox;
 
     @FXML
-    public void goToAccounts() {
+    public void initialize() {
+        mainContainer.setCenter(router.getViewPane());
+        BindingUtil.mapContent(
+                breadcrumbHBox.getChildren(),
+                router.getBreadCrumbs(),
+                breadCrumb -> {
+                    Label label = new Label("> " + breadCrumb.route());
+                    if (breadCrumb.current()) {
+                        label.setStyle("-fx-font-weight: bold");
+                    }
+                    return label;
+                }
+        );
+
         router.navigate("accounts");
     }
 
     @FXML
-    public void goToEditAccounts() {
-        router.navigate("edit-account");
+    public void goToAccounts() {
+        router.navigate("accounts");
     }
 
     @FXML
