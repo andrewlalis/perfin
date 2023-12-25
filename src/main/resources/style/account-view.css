@@ -17,7 +17,8 @@
 }
 
 .account-property-box > TextField {
-    -fx-min-width: 200px;
+    -fx-min-width: 100px;
+    -fx-max-width: 300px;
 }
 
 #accountNumberField {

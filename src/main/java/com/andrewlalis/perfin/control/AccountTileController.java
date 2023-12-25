@@ -37,10 +37,7 @@ public class AccountTileController {
             accountNumberLabel.setText(account.getAccountNumber());
             accountBalanceLabel.setText(account.getCurrency().getSymbol());
             accountNameLabel.setText(account.getName());
-            container.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
-                System.out.println("Clicked on " + account.getAccountNumber());
-                router.navigate("account", account);
-            });
+            container.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> router.navigate("account", account));
         });
     }
 }

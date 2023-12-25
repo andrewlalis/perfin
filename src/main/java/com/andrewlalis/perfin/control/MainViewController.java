@@ -1,5 +1,6 @@
 package com.andrewlalis.perfin.control;
 
+import com.andrewlalis.javafx_scene_router.AnchorPaneRouterView;
 import com.andrewlalis.perfin.view.BindingUtil;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -18,7 +19,10 @@ public class MainViewController {
 
     @FXML
     public void initialize() {
-        mainContainer.setCenter(router.getViewPane());
+        AnchorPaneRouterView routerView = (AnchorPaneRouterView) router.getView();
+        mainContainer.setCenter(routerView.getAnchorPane());
+        routerView.getAnchorPane().setStyle("-fx-border-color: orange;");
+        // Set up a simple breadcrumb display in the top bar.
         BindingUtil.mapContent(
                 breadcrumbHBox.getChildren(),
                 router.getBreadCrumbs(),

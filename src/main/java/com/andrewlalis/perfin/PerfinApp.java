@@ -1,5 +1,6 @@
 package com.andrewlalis.perfin;
 
+import com.andrewlalis.javafx_scene_router.AnchorPaneRouterView;
 import com.andrewlalis.javafx_scene_router.SceneRouter;
 import com.andrewlalis.perfin.view.SplashScreenStage;
 import javafx.application.Application;
@@ -17,7 +18,7 @@ public class PerfinApp extends Application {
     /**
      * The router that's used for navigating between different "pages" in the application.
      */
-    public static final SceneRouter router = new SceneRouter();
+    public static final SceneRouter router = new SceneRouter(new AnchorPaneRouterView(true));
 
     public static void main(String[] args) {
         launch(args);

@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.*?>
 <BorderPane
         xmlns="http://javafx.com/javafx"
         xmlns:fx="http://javafx.com/fxml"
         fx:controller="com.andrewlalis.perfin.control.AccountViewController"
         stylesheets="@style/account-view.css"
         styleClass="main-container"
+        style="-fx-border-color: green;"
 >
     <top>
         <Label fx:id="titleLabel"/>
     </top>
     <center>
-        <VBox>
+        <VBox style="-fx-border-color: blue;" >
             <VBox styleClass="account-property-box">
                 <Label text="Name"/>
                 <TextField fx:id="accountNameField" editable="false"/>
@@ -33,4 +33,10 @@
             </VBox>
         </VBox>
     </center>
+    <right>
+        <VBox style="-fx-border-color: red;">
+            <Button text="Edit"/>
+            <Button text="Delete"/>
+        </VBox>
+    </right>
 </BorderPane>
