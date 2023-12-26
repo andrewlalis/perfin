@@ -1,6 +1,7 @@
 package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.AccountRepository;
+import com.andrewlalis.perfin.data.BalanceRecordRepository;
 import com.andrewlalis.perfin.data.DataSource;
 import com.andrewlalis.perfin.data.UncheckedSqlException;
 
@@ -30,5 +31,10 @@ public class JdbcDataSource implements DataSource {
     @Override
     public AccountRepository getAccountRepository() {
         return new JdbcAccountRepository(getConnection());
+    }
+
+    @Override
+    public BalanceRecordRepository getBalanceRecordRepository() {
+        return new JdbcBalanceRecordRepository(getConnection());
     }
 }
