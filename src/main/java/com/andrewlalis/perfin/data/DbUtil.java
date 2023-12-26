@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public final class DbUtil {
     private DbUtil() {}
@@ -89,5 +90,13 @@ public final class DbUtil {
 
     public static LocalDateTime utcLDTFromTimestamp(Timestamp ts) {
         return ts.toInstant().atOffset(ZoneOffset.UTC).toLocalDateTime();
+    }
+
+    public static <T extends AutoCloseable> void useClosable(Supplier<T> supplier, ThrowableConsumer<T> consumer) {
+        try (T t = supplier.get()) {
+            consumer.accept(t);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

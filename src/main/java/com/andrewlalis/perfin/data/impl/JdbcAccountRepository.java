@@ -2,6 +2,7 @@ package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.AccountRepository;
 import com.andrewlalis.perfin.data.DbUtil;
+import com.andrewlalis.perfin.data.UncheckedSqlException;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.AccountType;
 
@@ -46,6 +47,32 @@ public record JdbcAccountRepository(Connection conn) implements AccountRepositor
         return BigDecimal.valueOf(0, 4);
     }
 
+    @Override
+    public void update(Account account) {
+        DbUtil.updateOne(
+                conn,
+                "UPDATE account SET name = ?, account_number = ?, currency = ?, account_type = ? WHERE id = ?",
+                List.of(
+                        account.getName(),
+                        account.getAccountNumber(),
+                        account.getCurrency().getCurrencyCode(),
+                        account.getType().name(),
+                        account.getId()
+                )
+        );
+    }
+
+    @Override
+    public void delete(Account account) {
+        try (var stmt = conn.prepareStatement("DELETE FROM account WHERE id = ?")) {
+            stmt.setLong(1, account.getId());
+            int rows = stmt.executeUpdate();
+            if (rows != 1) throw new SQLException("Affected " + rows + " rows instead of expected 1.");
+        } catch (SQLException e) {
+            throw new UncheckedSqlException(e);
+        }
+    }
+
     private static Account parseAccount(ResultSet rs) throws SQLException {
         long id = rs.getLong("id");
         LocalDateTime createdAt = DbUtil.utcLDTFromTimestamp(rs.getTimestamp("created_at"));
@@ -54,5 +81,10 @@ public record JdbcAccountRepository(Connection conn) implements AccountRepositor
         String name = rs.getString("name");
         Currency currency = Currency.getInstance(rs.getString("currency"));
         return new Account(id, createdAt, type, accountNumber, name, currency);
+    }
+
+    @Override
+    public void close() throws Exception {
+        conn.close();
     }
 }

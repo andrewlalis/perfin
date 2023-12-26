@@ -8,13 +8,12 @@
         fx:controller="com.andrewlalis.perfin.control.AccountViewController"
         stylesheets="@style/account-view.css"
         styleClass="main-container"
-        style="-fx-border-color: green;"
 >
     <top>
         <Label fx:id="titleLabel"/>
     </top>
     <center>
-        <VBox style="-fx-border-color: blue;" >
+        <VBox>
             <VBox styleClass="account-property-box">
                 <Label text="Name"/>
                 <TextField fx:id="accountNameField" editable="false"/>
@@ -34,9 +33,10 @@
         </VBox>
     </center>
     <right>
-        <VBox style="-fx-border-color: red;">
-            <Button text="Edit"/>
-            <Button text="Delete"/>
+        <VBox styleClass="actions-box">
+            <Label text="Actions" style="-fx-font-weight: bold;"/>
+            <Button text="Edit" onAction="#goToEditPage"/>
+            <Button text="Delete" onAction="#deleteAccount"/>
         </VBox>
     </right>
 </BorderPane>

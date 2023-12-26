@@ -8,7 +8,6 @@
         fx:id="mainContainer"
         fx:controller="com.andrewlalis.perfin.control.MainViewController"
         stylesheets="@style/main-view.css"
-        style="-fx-border-color: purple;"
 >
     <top>
         <VBox>

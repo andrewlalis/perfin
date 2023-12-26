@@ -21,7 +21,6 @@ public class MainViewController {
     public void initialize() {
         AnchorPaneRouterView routerView = (AnchorPaneRouterView) router.getView();
         mainContainer.setCenter(routerView.getAnchorPane());
-        routerView.getAnchorPane().setStyle("-fx-border-color: orange;");
         // Set up a simple breadcrumb display in the top bar.
         BindingUtil.mapContent(
                 breadcrumbHBox.getChildren(),
@@ -40,6 +39,7 @@ public class MainViewController {
 
     @FXML
     public void goToAccounts() {
+        router.getHistory().clear();
         router.navigate("accounts");
     }
 

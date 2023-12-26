@@ -48,6 +48,22 @@ public class Account {
         return currency;
     }
 
+    public void setType(AccountType type) {
+        this.type = type;
+    }
+
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setCurrency(Currency currency) {
+        this.currency = currency;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }

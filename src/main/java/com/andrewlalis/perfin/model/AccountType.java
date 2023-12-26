@@ -1,9 +1,20 @@
 package com.andrewlalis.perfin.model;
 
 public enum AccountType {
-    CHECKING,
-    SAVINGS,
-    CREDIT_CARD;
+    CHECKING("Checking"),
+    SAVINGS("Savings"),
+    CREDIT_CARD("Credit Card");
+
+    private final String name;
+
+    AccountType(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 
     public static AccountType parse(String s) {
         s = s.strip().toUpperCase();

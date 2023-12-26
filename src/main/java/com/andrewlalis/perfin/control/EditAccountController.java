@@ -25,7 +25,11 @@ public class EditAccountController implements RouteSelectionListener {
     @FXML
     public ComboBox<Currency> accountCurrencyComboBox;
     @FXML
-    public ChoiceBox<String> accountTypeChoiceBox;
+    public ChoiceBox<AccountType> accountTypeChoiceBox;
+
+    private boolean editingNewAccount() {
+        return account == null;
+    }
 
     @FXML
     public void initialize() {
@@ -39,16 +43,16 @@ public class EditAccountController implements RouteSelectionListener {
         }
         accountCurrencyComboBox.getSelectionModel().select(Currency.getInstance("USD"));
 
-        accountTypeChoiceBox.getItems().add("Checking");
-        accountTypeChoiceBox.getItems().add("Savings");
-        accountTypeChoiceBox.getItems().add("Credit Card");
-        accountTypeChoiceBox.getSelectionModel().select("Checking");
+        accountTypeChoiceBox.getItems().add(AccountType.CHECKING);
+        accountTypeChoiceBox.getItems().add(AccountType.SAVINGS);
+        accountTypeChoiceBox.getItems().add(AccountType.CREDIT_CARD);
+        accountTypeChoiceBox.getSelectionModel().select(AccountType.CHECKING);
     }
 
     @Override
     public void onRouteSelected(Object context) {
         this.account = (Account) context;
-        if (account == null) {
+        if (editingNewAccount()) {
             titleLabel.setText("Editing New Account");
         } else {
             titleLabel.setText("Editing Account: " + account.getName());
@@ -58,26 +62,38 @@ public class EditAccountController implements RouteSelectionListener {
 
     @FXML
     public void save() {
-        if (account == null) {
-            // If we're editing a new account.
-            String name = accountNameField.getText().strip();
-            String number = accountNumberField.getText().strip();
-            AccountType type = AccountType.parse(accountTypeChoiceBox.getValue());
-            Currency currency = accountCurrencyComboBox.getValue();
-            Account newAccount = new Account(type, number, name, currency);
-            Profile.getCurrent().getDataSource().getAccountRepository().insert(newAccount);
+        try (var accountRepo = Profile.getCurrent().getDataSource().getAccountRepository()) {
+            if (editingNewAccount()) {
+                String name = accountNameField.getText().strip();
+                String number = accountNumberField.getText().strip();
+                AccountType type = accountTypeChoiceBox.getValue();
+                Currency currency = accountCurrencyComboBox.getValue();
+                Account newAccount = new Account(type, number, name, currency);
+                long id = accountRepo.insert(newAccount);
+                Account savedAccount = accountRepo.findById(id).orElseThrow();
 
-            // Once we create the new account, go to the account.
-            router.getHistory().clear();
-            router.navigate("accounts");
-        } else {
-            throw new IllegalStateException("Not implemented.");
+                // Once we create the new account, go to the account.
+                router.getHistory().clear();
+                router.navigate("account", savedAccount);
+            } else {
+                System.out.println("Updating account " + account.getName());
+                account.setName(accountNameField.getText().strip());
+                account.setAccountNumber(accountNumberField.getText().strip());
+                account.setType(accountTypeChoiceBox.getValue());
+                account.setCurrency(accountCurrencyComboBox.getValue());
+                accountRepo.update(account);
+                Account updatedAccount = accountRepo.findById(account.getId()).orElseThrow();
+                router.getHistory().clear();
+                router.navigate("account", updatedAccount);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     @FXML
     public void cancel() {
-        router.navigateBack();
+        router.navigateBackAndClear();
     }
 
     public void resetForm() {
@@ -87,7 +103,10 @@ public class EditAccountController implements RouteSelectionListener {
             accountTypeChoiceBox.getSelectionModel().selectFirst();
             accountCurrencyComboBox.getSelectionModel().select(Currency.getInstance("USD"));
         } else {
-            // TODO: Set to original account.
+            accountNameField.setText(account.getName());
+            accountNumberField.setText(account.getAccountNumber());
+            accountTypeChoiceBox.getSelectionModel().select(account.getType());
+            accountCurrencyComboBox.getSelectionModel().select(account.getCurrency());
         }
     }
 }

@@ -24,3 +24,11 @@
 #accountNumberField {
     -fx-font-family: monospace;
 }
+
+.actions-box {
+    -fx-spacing: 3px;
+}
+
+.actions-box > Button {
+    -fx-max-width: 500px;
+}
