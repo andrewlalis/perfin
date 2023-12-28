@@ -11,7 +11,7 @@
 >
     <top>
         <VBox>
-            <HBox fx:id="mainHeader">
+            <HBox>
                 <Button text="Back" onAction="#goBack"/>
                 <Button text="Forward" onAction="#goForward"/>
                 <Button text="Accounts" onAction="#goToAccounts"/>

@@ -1,6 +1,5 @@
 package com.andrewlalis.perfin.control.component;
 
-import com.andrewlalis.perfin.data.DateUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.AccountType;
 import com.andrewlalis.perfin.model.Profile;
@@ -10,7 +9,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
@@ -77,9 +75,7 @@ public class AccountTile extends BorderPane {
             accountBalanceLabel.setDisable(false);
         });
 
-        this.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
-            router.navigate("account", account);
-        });
+        this.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> router.navigate("account", account));
     }
 
     private static Label newPropertyLabel(String text) {

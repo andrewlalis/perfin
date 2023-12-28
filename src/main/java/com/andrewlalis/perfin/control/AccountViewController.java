@@ -8,8 +8,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
-import java.time.format.DateTimeFormatter;
-
 import static com.andrewlalis.perfin.PerfinApp.router;
 
 public class AccountViewController implements RouteSelectionListener {
@@ -47,9 +45,7 @@ public class AccountViewController implements RouteSelectionListener {
 
     @FXML
     public void deleteAccount() {
-        Profile.getCurrent().getDataSource().useAccountRepository(repo -> {
-            repo.delete(account);
-        });
+        Profile.getCurrent().getDataSource().useAccountRepository(repo -> repo.delete(account));
         router.getHistory().clear();
         router.navigate("accounts");
     }
