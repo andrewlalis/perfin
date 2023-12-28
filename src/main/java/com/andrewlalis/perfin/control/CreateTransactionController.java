@@ -2,16 +2,25 @@ package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
 import com.andrewlalis.perfin.data.DateUtil;
-import com.andrewlalis.perfin.model.Account;
-import com.andrewlalis.perfin.model.AccountEntry;
-import com.andrewlalis.perfin.model.Profile;
-import com.andrewlalis.perfin.model.Transaction;
+import com.andrewlalis.perfin.data.FileUtil;
+import com.andrewlalis.perfin.model.*;
 import com.andrewlalis.perfin.view.AccountComboBoxCellFactory;
+import com.andrewlalis.perfin.view.BindingUtil;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleListProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -33,6 +42,10 @@ public class CreateTransactionController implements RouteSelectionListener {
     @FXML public ComboBox<Account> linkDebitAccountComboBox;
     @FXML public ComboBox<Account> linkCreditAccountComboBox;
     @FXML public Label linkedAccountsErrorLabel;
+
+    private final ObservableList<File> selectedAttachmentFiles = FXCollections.observableArrayList();
+    @FXML public VBox selectedFilesVBox;
+    @FXML public Label noSelectedFilesLabel;
 
     @FXML public void initialize() {
         // Setup error field validation.
@@ -67,6 +80,41 @@ public class CreateTransactionController implements RouteSelectionListener {
         currencyChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> {
             updateLinkAccountComboBoxes(newValue);
         });
+
+        // Show the "no files selected" label when the list is empty. And sync the vbox with the selected files.
+        noSelectedFilesLabel.managedProperty().bind(noSelectedFilesLabel.visibleProperty());
+        var filesListProp = new SimpleListProperty<>(selectedAttachmentFiles);
+        noSelectedFilesLabel.visibleProperty().bind(filesListProp.emptyProperty());
+        BindingUtil.mapContent(selectedFilesVBox.getChildren(), selectedAttachmentFiles, file -> {
+            Label filenameLabel = new Label(file.getName());
+            Button removeButton = new Button("Remove");
+            removeButton.setOnAction(event -> {
+                selectedAttachmentFiles.remove(file);
+            });
+            AnchorPane fileBox = new AnchorPane(filenameLabel, removeButton);
+            AnchorPane.setLeftAnchor(filenameLabel, 0.0);
+            AnchorPane.setRightAnchor(removeButton, 0.0);
+            return fileBox;
+        });
+    }
+
+    @FXML public void selectAttachmentFile() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Transaction Attachment(s)");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter(
+                        "Attachment Files",
+                        "*.pdf", "*.docx", "*.odt", "*.html", "*.txt", "*.md", "*.xml", "*.json",
+                        "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.bmp", "*.tiff"
+                )
+        );
+        List<File> files = fileChooser.showOpenMultipleDialog(amountField.getScene().getWindow());
+        if (files == null) return;
+        for (var file : files) {
+            if (selectedAttachmentFiles.stream().noneMatch(f -> !f.equals(file) && f.getName().equals(file.getName()))) {
+                selectedAttachmentFiles.add(file);
+            }
+        }
     }
 
     @FXML public void save() {
@@ -86,9 +134,31 @@ public class CreateTransactionController implements RouteSelectionListener {
             Currency currency = currencyChoiceBox.getValue();
             String description = descriptionField.getText() == null ? null : descriptionField.getText().strip();
             Map<Long, AccountEntry.Type> affectedAccounts = getSelectedAccounts();
+            List<TransactionAttachment> attachments = selectedAttachmentFiles.stream()
+                    .map(file -> {
+                        String filename = file.getName();
+                        String filetypeSuffix = filename.substring(filename.lastIndexOf('.'));
+                        String mimeType = FileUtil.MIMETYPES.get(filetypeSuffix);
+                        return new TransactionAttachment(filename, mimeType);
+                    }).toList();
             Transaction transaction = new Transaction(timestamp, amount, currency, description);
             Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
-                repo.insert(transaction, affectedAccounts);
+                long txId = repo.insert(transaction, affectedAccounts);
+                repo.addAttachments(txId, attachments);
+                // Copy the actual attachment files to their new locations.
+                for (var attachment : repo.findAttachments(txId)) {
+                    Path filePath = attachment.getPath();
+                    Path dirPath = filePath.getParent();
+                    Path originalFilePath = selectedAttachmentFiles.stream()
+                            .filter(file -> file.getName().equals(attachment.getFilename()))
+                            .findFirst().orElseThrow().toPath();
+                    try {
+                        Files.createDirectories(dirPath);
+                        Files.copy(originalFilePath, filePath);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
             });
             router.navigateBackAndClear();
         }
@@ -107,6 +177,7 @@ public class CreateTransactionController implements RouteSelectionListener {
         timestampField.setText(LocalDateTime.now().format(DateUtil.DEFAULT_DATETIME_FORMAT));
         amountField.setText("0");
         descriptionField.setText(null);
+        selectedAttachmentFiles.clear();
         Thread.ofVirtual().start(() -> {
             Profile.getCurrent().getDataSource().useAccountRepository(repo -> {
                 var currencies = repo.findAllUsedCurrencies().stream()

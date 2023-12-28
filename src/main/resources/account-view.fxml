@@ -16,7 +16,7 @@
         <VBox>
             <HBox>
                 <!-- Main account properties. -->
-                <VBox HBox.hgrow="SOMETIMES">
+                <VBox HBox.hgrow="SOMETIMES" style="-fx-border-color: blue">
                     <VBox styleClass="account-property-box">
                         <Label text="Name"/>
                         <TextField fx:id="accountNameField" editable="false"/>
@@ -37,6 +37,9 @@
                         <Label text="Current Balance"/>
                         <TextField fx:id="accountBalanceField" editable="false"/>
                     </VBox>
+                </VBox>
+                <VBox HBox.hgrow="SOMETIMES" style="-fx-border-color: red">
+                    <Label text="Panel 2"/>
                 </VBox>
             </HBox>
         </VBox>

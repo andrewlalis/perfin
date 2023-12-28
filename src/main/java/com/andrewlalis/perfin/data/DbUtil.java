@@ -125,10 +125,10 @@ public final class DbUtil {
         }
     }
 
-    public static void doTransaction(Connection conn, SQLRunnable runnable) {
+    public static <T> T doTransaction(Connection conn, SQLSupplier<T> supplier) {
         try {
             conn.setAutoCommit(false);
-            runnable.run();
+            return supplier.offer();
         } catch (Exception e) {
             try {
                 conn.rollback();
@@ -146,5 +146,12 @@ public final class DbUtil {
                 e.printStackTrace(System.err);
             }
         }
+    }
+
+    public static void doTransaction(Connection conn, SQLRunnable runnable) {
+        doTransaction(conn, () -> {
+            runnable.run();
+            return null;
+        });
     }
 }

@@ -36,11 +36,13 @@ CREATE TABLE transaction_attachment (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     uploaded_at TIMESTAMP NOT NULL,
     transaction_id BIGINT NOT NULL,
-    content_path VARCHAR(1024) NOT NULL,
+    filename VARCHAR(255) NOT NULL,
     content_type VARCHAR(255) NOT NULL,
     CONSTRAINT fk_transaction_attachment_transaction
         FOREIGN KEY (transaction_id) REFERENCES transaction(id)
-            ON UPDATE CASCADE ON DELETE CASCADE
+            ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT uq_transaction_attachment_filename
+        UNIQUE(transaction_id, filename)
 );
 
 CREATE TABLE balance_record (

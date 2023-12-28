@@ -7,52 +7,81 @@ import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.AccountEntry;
 import com.andrewlalis.perfin.model.Transaction;
+import com.andrewlalis.perfin.model.TransactionAttachment;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 public record JdbcTransactionRepository(Connection conn) implements TransactionRepository {
     @Override
     public long insert(Transaction transaction, Map<Long, AccountEntry.Type> accountsMap) {
         final Timestamp timestamp = DbUtil.timestampFromUtcNow();
-        AtomicLong transactionId = new AtomicLong(-1);
+        return DbUtil.doTransaction(conn, () -> {
+            long txId = insertTransaction(timestamp, transaction);
+            insertAccountEntriesForTransaction(timestamp, txId, transaction, accountsMap);
+            return txId;
+        });
+    }
+
+    @Override
+    public void addAttachments(long transactionId, List<TransactionAttachment> attachments) {
+        final Timestamp timestamp = DbUtil.timestampFromUtcNow();
         DbUtil.doTransaction(conn, () -> {
-            // First insert the transaction itself, then add account entries, referencing this transaction.
-            transactionId.set(DbUtil.insertOne(
-                    conn,
-                    "INSERT INTO transaction (timestamp, amount, currency, description) VALUES (?, ?, ?, ?)",
-                    List.of(
-                            timestamp,
-                            transaction.getAmount(),
-                            transaction.getCurrency().getCurrencyCode(),
-                            transaction.getDescription()
-                    )
-            ));
-            // Now insert an account entry for each affected account.
-            try (var stmt = conn.prepareStatement(
-                    "INSERT INTO account_entry (timestamp, account_id, transaction_id, amount, type, currency) VALUES (?, ?, ?, ?, ?, ?)"
-            )) {
-                for (var entry : accountsMap.entrySet()) {
-                    long accountId = entry.getKey();
-                    AccountEntry.Type entryType = entry.getValue();
-                    DbUtil.setArgs(stmt, List.of(
-                            timestamp,
-                            accountId,
-                            transactionId.get(),
-                            transaction.getAmount(),
-                            entryType.name(),
-                            transaction.getCurrency().getCurrencyCode()
-                    ));
-                    stmt.executeUpdate();
-                }
+            for (var attachment : attachments) {
+                DbUtil.insertOne(
+                        conn,
+                        "INSERT INTO transaction_attachment (uploaded_at, transaction_id, filename, content_type) VALUES (?, ?, ?, ?)",
+                        List.of(
+                                timestamp,
+                                transactionId,
+                                attachment.getFilename(),
+                                attachment.getContentType()
+                        )
+                );
             }
         });
-        return transactionId.get();
+    }
+
+    private long insertTransaction(Timestamp timestamp, Transaction transaction) {
+        return DbUtil.insertOne(
+                conn,
+                "INSERT INTO transaction (timestamp, amount, currency, description) VALUES (?, ?, ?, ?)",
+                List.of(
+                        timestamp,
+                        transaction.getAmount(),
+                        transaction.getCurrency().getCurrencyCode(),
+                        transaction.getDescription()
+                )
+        );
+    }
+
+    private void insertAccountEntriesForTransaction(
+            Timestamp timestamp,
+            long txId,
+            Transaction transaction,
+            Map<Long, AccountEntry.Type> accountsMap
+    ) throws SQLException {
+        try (var stmt = conn.prepareStatement(
+                "INSERT INTO account_entry (timestamp, account_id, transaction_id, amount, type, currency) VALUES (?, ?, ?, ?, ?, ?)"
+        )) {
+            for (var entry : accountsMap.entrySet()) {
+                long accountId = entry.getKey();
+                AccountEntry.Type entryType = entry.getValue();
+                DbUtil.setArgs(stmt, List.of(
+                        timestamp,
+                        accountId,
+                        txId,
+                        transaction.getAmount(),
+                        entryType.name(),
+                        transaction.getCurrency().getCurrencyCode()
+                ));
+                stmt.executeUpdate();
+            }
+        }
     }
 
     @Override
@@ -99,6 +128,16 @@ public record JdbcTransactionRepository(Connection conn) implements TransactionR
     }
 
     @Override
+    public List<TransactionAttachment> findAttachments(long transactionId) {
+        return DbUtil.findAll(
+                conn,
+                "SELECT * FROM transaction_attachment WHERE transaction_id = ? ORDER BY filename ASC",
+                List.of(transactionId),
+                JdbcTransactionRepository::parseAttachment
+        );
+    }
+
+    @Override
     public void delete(long transactionId) {
         DbUtil.updateOne(conn, "DELETE FROM transaction WHERE id = ?", List.of(transactionId));
     }
@@ -115,6 +154,16 @@ public record JdbcTransactionRepository(Connection conn) implements TransactionR
                 rs.getBigDecimal("amount"),
                 Currency.getInstance(rs.getString("currency")),
                 rs.getString("description")
+        );
+    }
+
+    public static TransactionAttachment parseAttachment(ResultSet rs) throws SQLException {
+        return new TransactionAttachment(
+                rs.getLong("id"),
+                DbUtil.utcLDTFromTimestamp(rs.getTimestamp("uploaded_at")),
+                rs.getLong("transaction_id"),
+                rs.getString("filename"),
+                rs.getString("content_type")
         );
     }
 }

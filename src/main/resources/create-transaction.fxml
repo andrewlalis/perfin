@@ -10,6 +10,7 @@
     <center>
         <ScrollPane fitToWidth="true" fitToHeight="true">
             <VBox styleClass="form-container">
+                <!-- Basic properties -->
                 <VBox>
                     <Label text="Timestamp" labelFor="${timestampField}" styleClass="bold-text"/>
                     <TextField fx:id="timestampField" styleClass="mono-font"/>
@@ -30,6 +31,7 @@
                     <TextArea fx:id="descriptionField" styleClass="mono-font" wrapText="true"/>
                     <Label fx:id="descriptionErrorLabel" styleClass="error-text" wrapText="true"/>
                 </VBox>
+                <!-- Container for linked accounts -->
                 <VBox>
                     <HBox spacing="3">
                         <VBox>
@@ -53,6 +55,14 @@
                             wrapText="true"
                             VBox.vgrow="NEVER"
                     />
+                </VBox>
+                <!-- Container for attachments -->
+                <VBox>
+                    <Label text="Attachments" styleClass="bold-text"/>
+                    <Label text="Attach receipts, invoices, or other content to this transaction." styleClass="small-text" wrapText="true"/>
+                    <VBox fx:id="selectedFilesVBox" style="-fx-spacing: 3px; -fx-padding: 3px;" VBox.vgrow="NEVER"/>
+                    <Label text="No attachments selected." fx:id="noSelectedFilesLabel"/>
+                    <Button text="Select attachments" onAction="#selectAttachmentFile"/>
                 </VBox>
             </VBox>
         </ScrollPane>
