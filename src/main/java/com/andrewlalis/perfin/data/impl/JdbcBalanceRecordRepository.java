@@ -12,6 +12,20 @@ import java.util.List;
 
 public record JdbcBalanceRecordRepository(Connection conn) implements BalanceRecordRepository {
     @Override
+    public long insert(BalanceRecord record) {
+        return DbUtil.insertOne(
+                conn,
+                "INSERT INTO balance_record (timestamp, account_id, balance, currency) VALUES (?, ?, ?, ?)",
+                List.of(
+                        DbUtil.timestampFromUtcNow(),
+                        record.getAccountId(),
+                        record.getBalance(),
+                        record.getCurrency().getCurrencyCode()
+                )
+        );
+    }
+
+    @Override
     public BalanceRecord findLatestByAccountId(long accountId) {
         return DbUtil.findOne(
                 conn,
@@ -26,7 +40,7 @@ public record JdbcBalanceRecordRepository(Connection conn) implements BalanceRec
         conn.close();
     }
 
-    private static BalanceRecord parse(ResultSet rs) throws SQLException {
+    public static BalanceRecord parse(ResultSet rs) throws SQLException {
         return new BalanceRecord(
                 rs.getLong("id"),
                 DbUtil.utcLDTFromTimestamp(rs.getTimestamp("timestamp")),

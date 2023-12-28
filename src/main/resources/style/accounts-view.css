@@ -1,11 +1,11 @@
 #accountsPane {
-    -fx-padding: 5px;
+    -fx-padding: 3px;
 }
 
 #noAccountsLabel {
-    -fx-padding: 5px;
+    -fx-padding: 3px;
 }
 
 .actionsBar {
-    -fx-padding: 5px;
+    -fx-padding: 3px;
 }

@@ -21,6 +21,7 @@ public class MainViewController {
     public void initialize() {
         AnchorPaneRouterView routerView = (AnchorPaneRouterView) router.getView();
         mainContainer.setCenter(routerView.getAnchorPane());
+
         // Set up a simple breadcrumb display in the top bar.
         BindingUtil.mapContent(
                 breadcrumbHBox.getChildren(),
@@ -38,12 +39,6 @@ public class MainViewController {
     }
 
     @FXML
-    public void goToAccounts() {
-        router.getHistory().clear();
-        router.navigate("accounts");
-    }
-
-    @FXML
     public void goBack() {
         router.navigateBack();
     }
@@ -51,5 +46,17 @@ public class MainViewController {
     @FXML
     public void goForward() {
         router.navigateForward();
+    }
+
+    @FXML
+    public void goToAccounts() {
+        router.getHistory().clear();
+        router.navigate("accounts");
+    }
+
+    @FXML
+    public void goToTransactions() {
+        router.getHistory().clear();
+        router.navigate("transactions");
     }
 }

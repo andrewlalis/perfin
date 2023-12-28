@@ -24,4 +24,30 @@ public class BalanceRecord {
         this.balance = balance;
         this.currency = currency;
     }
+
+    public BalanceRecord(long accountId, BigDecimal balance, Currency currency) {
+        this.accountId = accountId;
+        this.balance = balance;
+        this.currency = currency;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public long getAccountId() {
+        return accountId;
+    }
+
+    public BigDecimal getBalance() {
+        return balance;
+    }
+
+    public Currency getCurrency() {
+        return currency;
+    }
 }

@@ -6,6 +6,7 @@
     -fx-hgap: 3px;
     -fx-vgap: 3px;
     -fx-padding: 5px;
+    -fx-max-width: 500px;
 }
 
 #titleLabel {

@@ -1,52 +1,41 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
-import com.andrewlalis.perfin.SceneUtil;
-import com.andrewlalis.perfin.model.Account;
+import com.andrewlalis.perfin.control.component.AccountTile;
+import com.andrewlalis.perfin.data.CurrencyUtil;
+import com.andrewlalis.perfin.data.pagination.PageRequest;
+import com.andrewlalis.perfin.data.pagination.Sort;
 import com.andrewlalis.perfin.model.Profile;
-import com.andrewlalis.perfin.view.BindingUtil;
-import javafx.beans.property.SimpleListProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 
-import java.util.function.Consumer;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Currency;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
 public class AccountsViewController implements RouteSelectionListener {
     @FXML
-    public BorderPane mainContainer;
-    @FXML
     public FlowPane accountsPane;
     @FXML
     public Label noAccountsLabel;
+    @FXML
+    public Label totalLabel;
 
-    private final ObservableList<Account> accountsList = FXCollections.observableArrayList();
+    private final BooleanProperty noAccounts = new SimpleBooleanProperty(false);
 
     @FXML
     public void initialize() {
-        // Sync the size of the accounts pane to its container.
-        accountsPane.minWidthProperty().bind(mainContainer.widthProperty());
-        accountsPane.prefWidthProperty().bind(mainContainer.widthProperty());
-        accountsPane.prefWrapLengthProperty().bind(mainContainer.widthProperty());
-        accountsPane.maxWidthProperty().bind(mainContainer.widthProperty());
-
-        // Map each account in our list to an account tile element.
-        BindingUtil.mapContent(accountsPane.getChildren(), accountsList, account -> SceneUtil.loadNode(
-                "/account-tile.fxml",
-                (Consumer<AccountTileController>) c -> c.setAccount(account)
-        ));
-
         // Show the "no accounts" label when the accountsList is empty.
-        var listProp = new SimpleListProperty<>(accountsList);
-        noAccountsLabel.visibleProperty().bind(listProp.emptyProperty());
-        noAccountsLabel.managedProperty().bind(noAccountsLabel.visibleProperty());
-        accountsPane.visibleProperty().bind(listProp.emptyProperty().not());
-        accountsPane.managedProperty().bind(accountsPane.visibleProperty());
+        noAccountsLabel.visibleProperty().bind(noAccounts);
+        noAccountsLabel.managedProperty().bind(noAccounts);
+        accountsPane.visibleProperty().bind(noAccounts.not());
+        accountsPane.managedProperty().bind(noAccounts.not());
     }
 
     @FXML
@@ -61,7 +50,26 @@ public class AccountsViewController implements RouteSelectionListener {
 
     public void refreshAccounts() {
         Profile.whenLoaded(profile -> {
-            accountsList.setAll(profile.getDataSource().getAccountRepository().findAll());
+            Thread.ofVirtual().start(() -> {
+                profile.getDataSource().useAccountRepository(repo -> {
+                    var page = repo.findAll(PageRequest.unpaged(Sort.asc("created_at")));
+                    Platform.runLater(() -> {
+                        accountsPane.getChildren().setAll(page.items().stream().map(AccountTile::new).toList());
+                    });
+                });
+            });
+            // Compute grand totals!
+            Thread.ofVirtual().start(() -> {
+                var totals = profile.getDataSource().getCombinedAccountBalances();
+                StringBuilder sb = new StringBuilder("Totals: ");
+                for (var entry : totals.entrySet()) {
+                    Currency cur = entry.getKey();
+                    BigDecimal value = entry.getValue().setScale(cur.getDefaultFractionDigits(), RoundingMode.HALF_UP);
+                    sb.append(cur.getCurrencyCode()).append(' ').append(CurrencyUtil.formatMoney(value, cur)).append(' ');
+                }
+                Platform.runLater(() -> totalLabel.setText(sb.toString().strip()));
+            });
         });
+
     }
 }

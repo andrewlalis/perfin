@@ -13,22 +13,28 @@
         <Label fx:id="titleLabel" text="Edit Account"/>
     </top>
     <center>
-        <GridPane BorderPane.alignment="CENTER" styleClass="fields-grid">
+        <GridPane BorderPane.alignment="TOP_LEFT" styleClass="fields-grid">
             <columnConstraints>
                 <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
                 <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
             </columnConstraints>
             <Label GridPane.columnIndex="0" GridPane.rowIndex="0" text="Name"/>
-            <TextField fx:id="accountNameField" GridPane.columnIndex="1" GridPane.rowIndex="0" text="Bleh"/>
+            <TextField fx:id="accountNameField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
 
             <Label GridPane.columnIndex="0" GridPane.rowIndex="1" text="Account Number"/>
-            <TextField fx:id="accountNumberField" GridPane.columnIndex="1" GridPane.rowIndex="1" text="1234"/>
+            <TextField fx:id="accountNumberField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
             <Label GridPane.columnIndex="0" GridPane.rowIndex="2" text="Currency"/>
             <ComboBox fx:id="accountCurrencyComboBox" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
 
             <Label GridPane.columnIndex="0" GridPane.rowIndex="3" text="Account Type"/>
             <ChoiceBox fx:id="accountTypeChoiceBox" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+            <VBox fx:id="initialBalanceContent" GridPane.columnIndex="0" GridPane.rowIndex="4" GridPane.columnSpan="2">
+                <Separator/>
+                <Label text="Initial Balance" style="-fx-font-weight: bold;"/>
+                <TextField fx:id="initialBalanceField"/>
+            </VBox>
         </GridPane>
     </center>
     <bottom>

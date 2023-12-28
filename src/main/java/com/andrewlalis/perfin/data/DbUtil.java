@@ -1,5 +1,8 @@
 package com.andrewlalis.perfin.data;
 
+import com.andrewlalis.perfin.data.pagination.Page;
+import com.andrewlalis.perfin.data.pagination.PageRequest;
+
 import java.sql.*;
 import java.time.Clock;
 import java.time.Instant;
@@ -40,6 +43,15 @@ public final class DbUtil {
 
     public static <T> List<T> findAll(Connection conn, String query, ResultSetMapper<T> mapper) {
         return findAll(conn, query, Collections.emptyList(), mapper);
+    }
+
+    public static <T> Page<T> findAll(Connection conn, String query, PageRequest pagination, List<Object> args, ResultSetMapper<T> mapper) {
+        List<T> items = findAll(conn, query + ' ' + pagination.toSQL(), args, mapper);
+        return new Page<>(items, pagination);
+    }
+
+    public static <T> Page<T> findAll(Connection conn, String query, PageRequest pagination, ResultSetMapper<T> mapper) {
+        return findAll(conn, query, pagination, Collections.emptyList(), mapper);
     }
 
     public static <T> Optional<T> findOne(Connection conn, String query, List<Object> args, ResultSetMapper<T> mapper) {
@@ -88,6 +100,10 @@ public final class DbUtil {
         return Timestamp.from(Instant.now(Clock.systemUTC()));
     }
 
+    public static Timestamp timestampFromInstant(Instant i) {
+        return Timestamp.from(i);
+    }
+
     public static LocalDateTime utcLDTFromTimestamp(Timestamp ts) {
         return ts.toInstant().atOffset(ZoneOffset.UTC).toLocalDateTime();
     }
@@ -97,6 +113,29 @@ public final class DbUtil {
             consumer.accept(t);
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static void doTransaction(Connection conn, SQLRunnable runnable) {
+        try {
+            conn.setAutoCommit(false);
+            runnable.run();
+        } catch (Exception e) {
+            try {
+                conn.rollback();
+            } catch (SQLException se) {
+                System.err.println("ERROR: Failed to rollback after a failed transaction!");
+                se.printStackTrace(System.err);
+                throw new UncheckedSqlException(se);
+            }
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                conn.setAutoCommit(true);
+            } catch (SQLException e) {
+                System.err.println("ERROR: Failed to set auto-commit to true after transaction!");
+                e.printStackTrace(System.err);
+            }
         }
     }
 }

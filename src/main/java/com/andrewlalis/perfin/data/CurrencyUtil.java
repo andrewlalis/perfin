@@ -1,0 +1,17 @@
+package com.andrewlalis.perfin.data;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.NumberFormat;
+import java.util.Currency;
+
+public class CurrencyUtil {
+    public static String formatMoney(BigDecimal amount, Currency currency) {
+        NumberFormat nf = NumberFormat.getCurrencyInstance();
+        nf.setCurrency(currency);
+        nf.setMaximumFractionDigits(currency.getDefaultFractionDigits());
+        nf.setMinimumFractionDigits(currency.getDefaultFractionDigits());
+        BigDecimal displayValue = amount.setScale(currency.getDefaultFractionDigits(), RoundingMode.HALF_UP);
+        return nf.format(displayValue);
+    }
+}

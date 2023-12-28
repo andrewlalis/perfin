@@ -1,6 +1,7 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
+import com.andrewlalis.perfin.data.DateUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.Profile;
 import javafx.fxml.FXML;
@@ -24,6 +25,8 @@ public class AccountViewController implements RouteSelectionListener {
     public TextField accountCreatedAtField;
     @FXML
     public TextField accountCurrencyField;
+    @FXML
+    public TextField accountBalanceField;
 
     @Override
     public void onRouteSelected(Object context) {
@@ -33,7 +36,8 @@ public class AccountViewController implements RouteSelectionListener {
         accountNameField.setText(account.getName());
         accountNumberField.setText(account.getAccountNumber());
         accountCurrencyField.setText(account.getCurrency().getDisplayName());
-        accountCreatedAtField.setText(account.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        accountCreatedAtField.setText(account.getCreatedAt().format(DateUtil.DEFAULT_DATETIME_FORMAT));
+        Profile.getCurrent().getDataSource().getAccountBalanceText(account, accountBalanceField::setText);
     }
 
     @FXML

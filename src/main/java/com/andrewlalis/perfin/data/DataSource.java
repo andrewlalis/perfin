@@ -1,5 +1,18 @@
 package com.andrewlalis.perfin.data;
 
+import com.andrewlalis.perfin.data.pagination.PageRequest;
+import com.andrewlalis.perfin.model.Account;
+import javafx.application.Platform;
+
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
+import java.util.Currency;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+
 public interface DataSource {
     AccountRepository getAccountRepository();
     default void useAccountRepository(ThrowableConsumer<AccountRepository> repoConsumer) {
@@ -9,5 +22,35 @@ public interface DataSource {
     BalanceRecordRepository getBalanceRecordRepository();
     default void useBalanceRecordRepository(ThrowableConsumer<BalanceRecordRepository> repoConsumer) {
         DbUtil.useClosable(this::getBalanceRecordRepository, repoConsumer);
+    }
+
+    TransactionRepository getTransactionRepository();
+    default void useTransactionRepository(ThrowableConsumer<TransactionRepository> repoConsumer) {
+        DbUtil.useClosable(this::getTransactionRepository, repoConsumer);
+    }
+
+    // Utility methods:
+
+    default void getAccountBalanceText(Account account, Consumer<String> balanceConsumer) {
+        Thread.ofVirtual().start(() -> {
+            useAccountRepository(repo -> {
+                BigDecimal balance = repo.deriveCurrentBalance(account.getId());
+                Platform.runLater(() -> balanceConsumer.accept(CurrencyUtil.formatMoney(balance, account.getCurrency())));
+            });
+        });
+    }
+
+    default Map<Currency, BigDecimal> getCombinedAccountBalances() {
+        try (var accountRepo = getAccountRepository()) {
+            List<Account> accounts = accountRepo.findAll(PageRequest.unpaged()).items();
+            Map<Currency, BigDecimal> totals = new HashMap<>();
+            for (var account : accounts) {
+                BigDecimal currencyTotal = totals.computeIfAbsent(account.getCurrency(), c -> BigDecimal.ZERO);
+                totals.put(account.getCurrency(), currencyTotal.add(accountRepo.deriveCurrentBalance(account.getId())));
+            }
+            return totals;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

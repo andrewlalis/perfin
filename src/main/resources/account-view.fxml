@@ -30,6 +30,10 @@
                 <Label text="Created At"/>
                 <TextField fx:id="accountCreatedAtField" editable="false"/>
             </VBox>
+            <VBox styleClass="account-property-box">
+                <Label text="Current Balance"/>
+                <TextField fx:id="accountBalanceField" editable="false"/>
+            </VBox>
         </VBox>
     </center>
     <right>

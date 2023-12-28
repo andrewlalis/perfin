@@ -53,4 +53,44 @@ public class AccountEntry {
         this.type = type;
         this.currency = currency;
     }
+
+    public AccountEntry(long accountId, long transactionId, BigDecimal amount, Type type, Currency currency) {
+        this.accountId = accountId;
+        this.transactionId = transactionId;
+        this.amount = amount;
+        this.type = type;
+        this.currency = currency;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public long getAccountId() {
+        return accountId;
+    }
+
+    public long getTransactionId() {
+        return transactionId;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public Currency getCurrency() {
+        return currency;
+    }
+
+    public BigDecimal getSignedAmount() {
+        return type == Type.DEBIT ? amount : amount.negate();
+    }
 }

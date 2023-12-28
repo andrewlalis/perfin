@@ -1,9 +1,6 @@
 package com.andrewlalis.perfin.data.impl;
 
-import com.andrewlalis.perfin.data.AccountRepository;
-import com.andrewlalis.perfin.data.BalanceRecordRepository;
-import com.andrewlalis.perfin.data.DataSource;
-import com.andrewlalis.perfin.data.UncheckedSqlException;
+import com.andrewlalis.perfin.data.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -36,5 +33,10 @@ public class JdbcDataSource implements DataSource {
     @Override
     public BalanceRecordRepository getBalanceRecordRepository() {
         return new JdbcBalanceRecordRepository(getConnection());
+    }
+
+    @Override
+    public TransactionRepository getTransactionRepository() {
+        return new JdbcTransactionRepository(getConnection());
     }
 }

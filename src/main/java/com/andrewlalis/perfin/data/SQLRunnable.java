@@ -2,7 +2,6 @@ package com.andrewlalis.perfin.data;
 
 import java.sql.SQLException;
 
-@FunctionalInterface
-public interface SqlRunnable {
+public interface SQLRunnable {
     void run() throws SQLException;
 }

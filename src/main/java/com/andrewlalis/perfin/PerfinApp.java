@@ -26,6 +26,7 @@ public class PerfinApp extends Application {
 
     @Override
     public void start(Stage stage) {
+        // TODO: Cleanup the splash screen logic!
         SplashScreenStage splashStage = new SplashScreenStage("Loading", SceneUtil.load("/startup-splash-screen.fxml"));
         splashStage.show();
         defineRoutes();
@@ -43,9 +44,15 @@ public class PerfinApp extends Application {
         stage.setTitle("Perfin");
     }
 
+    private static void mapResourceRoute(String route, String resource) {
+        router.map(route, PerfinApp.class.getResource(resource));
+    }
+
     private static void defineRoutes() {
-        router.map("accounts", PerfinApp.class.getResource("/accounts-view.fxml"));
-        router.map("account", PerfinApp.class.getResource("/account-view.fxml"));
-        router.map("edit-account", PerfinApp.class.getResource("/edit-account.fxml"));
+        mapResourceRoute("accounts", "/accounts-view.fxml");
+        mapResourceRoute("account", "/account-view.fxml");
+        mapResourceRoute("edit-account", "/edit-account.fxml");
+        mapResourceRoute("transactions", "/transactions-view.fxml");
+        mapResourceRoute("create-transaction", "/create-transaction.fxml");
     }
 }

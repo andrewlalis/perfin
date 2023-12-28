@@ -40,6 +40,16 @@ public class Account {
         return accountNumber;
     }
 
+    public String getAccountNumberSuffix() {
+        int suffixLength = Math.min(4, accountNumber.length());
+        return "..." + accountNumber.substring(accountNumber.length() - suffixLength);
+    }
+
+    public String getShortName() {
+        String numberSuffix = getAccountNumberSuffix();
+        return name + " (" + numberSuffix + ")";
+    }
+
     public String getName() {
         return name;
     }
