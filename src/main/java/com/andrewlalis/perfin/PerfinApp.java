@@ -26,7 +26,6 @@ public class PerfinApp extends Application {
 
     @Override
     public void start(Stage stage) {
-        // TODO: Cleanup the splash screen logic!
         SplashScreenStage splashStage = new SplashScreenStage("Loading", SceneUtil.load("/startup-splash-screen.fxml"));
         splashStage.show();
         defineRoutes();

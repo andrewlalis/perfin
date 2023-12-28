@@ -26,8 +26,9 @@
                 </VBox>
                 <VBox>
                     <Label text="Description" labelFor="${descriptionField}" styleClass="bold-text"/>
-                    <Label text="Maximum of 256 characters." styleClass="small-text"/>
-                    <TextArea fx:id="descriptionField" styleClass="mono-font"/>
+                    <Label text="Maximum of 255 characters." styleClass="small-text"/>
+                    <TextArea fx:id="descriptionField" styleClass="mono-font" wrapText="true"/>
+                    <Label fx:id="descriptionErrorLabel" styleClass="error-text" wrapText="true"/>
                 </VBox>
                 <VBox>
                     <HBox spacing="3">

@@ -16,6 +16,7 @@ import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
@@ -27,6 +28,7 @@ public class CreateTransactionController implements RouteSelectionListener {
     @FXML public TextField amountField;
     @FXML public ChoiceBox<Currency> currencyChoiceBox;
     @FXML public TextArea descriptionField;
+    @FXML public Label descriptionErrorLabel;
 
     @FXML public ComboBox<Account> linkDebitAccountComboBox;
     @FXML public ComboBox<Account> linkCreditAccountComboBox;
@@ -40,6 +42,15 @@ public class CreateTransactionController implements RouteSelectionListener {
             LocalDateTime parsedTimestamp = parseTimestamp();
             timestampInvalidLabel.setVisible(parsedTimestamp == null);
             timestampFutureLabel.setVisible(parsedTimestamp != null && parsedTimestamp.isAfter(LocalDateTime.now()));
+        });
+        descriptionErrorLabel.managedProperty().bind(descriptionErrorLabel.visibleProperty());
+        descriptionErrorLabel.visibleProperty().bind(descriptionErrorLabel.textProperty().isNotEmpty());
+        descriptionField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null && newValue.length() > 255) {
+                descriptionErrorLabel.setText("Description is too long.");
+            } else {
+                descriptionErrorLabel.setText(null);
+            }
         });
         linkedAccountsErrorLabel.managedProperty().bind(linkedAccountsErrorLabel.visibleProperty());
         linkedAccountsErrorLabel.visibleProperty().bind(linkedAccountsErrorLabel.textProperty().isNotEmpty());
@@ -59,18 +70,28 @@ public class CreateTransactionController implements RouteSelectionListener {
     }
 
     @FXML public void save() {
-        // TODO: Validate data!
-
-        LocalDateTime timestamp = parseTimestamp();
-        BigDecimal amount = new BigDecimal(amountField.getText());
-        Currency currency = currencyChoiceBox.getValue();
-        String description = descriptionField.getText().strip();
-        Map<Long, AccountEntry.Type> affectedAccounts = getSelectedAccounts();
-        Transaction transaction = new Transaction(timestamp, amount, currency, description);
-        Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
-            repo.insert(transaction, affectedAccounts);
-        });
-        router.navigateBackAndClear();
+        var validationMessages = validateFormData();
+        if (!validationMessages.isEmpty()) {
+            Alert alert = new Alert(
+                    Alert.AlertType.WARNING,
+                    "There are some issues with your data:\n\n" +
+                            validationMessages.stream()
+                                    .map(s -> "- " + s)
+                                    .collect(Collectors.joining("\n\n"))
+            );
+            alert.show();
+        } else {
+            LocalDateTime timestamp = parseTimestamp();
+            BigDecimal amount = new BigDecimal(amountField.getText());
+            Currency currency = currencyChoiceBox.getValue();
+            String description = descriptionField.getText() == null ? null : descriptionField.getText().strip();
+            Map<Long, AccountEntry.Type> affectedAccounts = getSelectedAccounts();
+            Transaction transaction = new Transaction(timestamp, amount, currency, description);
+            Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
+                repo.insert(transaction, affectedAccounts);
+            });
+            router.navigateBackAndClear();
+        }
     }
 
     @FXML public void cancel() {
@@ -85,6 +106,7 @@ public class CreateTransactionController implements RouteSelectionListener {
     private void resetForm() {
         timestampField.setText(LocalDateTime.now().format(DateUtil.DEFAULT_DATETIME_FORMAT));
         amountField.setText("0");
+        descriptionField.setText(null);
         Thread.ofVirtual().start(() -> {
             Profile.getCurrent().getDataSource().useAccountRepository(repo -> {
                 var currencies = repo.findAllUsedCurrencies().stream()
@@ -92,7 +114,6 @@ public class CreateTransactionController implements RouteSelectionListener {
                         .toList();
                 Platform.runLater(() -> {
                     currencyChoiceBox.getItems().setAll(currencies);
-                    // TODO: cache most-recent currency for the app (maybe for different contexts).
                     currencyChoiceBox.getSelectionModel().selectFirst();
                 });
             });
@@ -158,5 +179,30 @@ public class CreateTransactionController implements RouteSelectionListener {
         } else {
             linkedAccountsErrorLabel.setText(null);
         }
+    }
+
+    private List<String> validateFormData() {
+        List<String> errorMessages = new ArrayList<>();
+        if (parseTimestamp() == null) errorMessages.add("Invalid or missing timestamp.");
+        if (descriptionField.getText() != null && descriptionField.getText().strip().length() > 255) {
+            errorMessages.add("Description is too long.");
+        }
+        try {
+            BigDecimal value = new BigDecimal(amountField.getText());
+            if (value.compareTo(BigDecimal.ZERO) <= 0) {
+                errorMessages.add("Amount should be a positive number.");
+            }
+        } catch (NumberFormatException e) {
+            errorMessages.add("Invalid or missing amount.");
+        }
+        Account debitAccount = linkDebitAccountComboBox.getValue();
+        Account creditAccount = linkCreditAccountComboBox.getValue();
+        if (debitAccount == null && creditAccount == null) {
+            errorMessages.add("At least one account must be linked to this transaction.");
+        }
+        if (debitAccount != null && creditAccount != null && debitAccount.getId() == creditAccount.getId()) {
+            errorMessages.add("Credit and debit accounts cannot be the same.");
+        }
+        return errorMessages;
     }
 }
