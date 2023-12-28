@@ -11,7 +11,7 @@
 >
     <top>
         <VBox>
-            <HBox>
+            <HBox style="-fx-spacing: 3px; -fx-padding: 3px;">
                 <Button text="Back" onAction="#goBack"/>
                 <Button text="Forward" onAction="#goForward"/>
                 <Button text="Accounts" onAction="#goToAccounts"/>

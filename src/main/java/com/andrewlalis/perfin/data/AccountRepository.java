@@ -19,6 +19,7 @@ public interface AccountRepository extends AutoCloseable {
     Optional<Account> findById(long id);
     void update(Account account);
     void delete(Account account);
+    void archive(Account account);
 
     BigDecimal deriveBalance(long id, Instant timestamp);
     default BigDecimal deriveCurrentBalance(long id) {

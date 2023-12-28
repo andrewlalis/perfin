@@ -69,6 +69,15 @@ public final class DbUtil {
         return findOne(conn, query, List.of(id), mapper);
     }
 
+    public static int update(Connection conn, String query, List<Object> args) {
+        try (var stmt = conn.prepareStatement(query)) {
+            setArgs(stmt, args);
+            return stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new UncheckedSqlException(e);
+        }
+    }
+
     public static void updateOne(Connection conn, String query, List<Object> args) {
         try (var stmt = conn.prepareStatement(query)) {
             setArgs(stmt, args);

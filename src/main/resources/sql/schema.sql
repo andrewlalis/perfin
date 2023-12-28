@@ -1,6 +1,7 @@
 CREATE TABLE account (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     created_at TIMESTAMP NOT NULL,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
     account_type VARCHAR(31) NOT NULL,
     account_number VARCHAR(255) NOT NULL UNIQUE,
     name VARCHAR(63) NOT NULL,
@@ -27,6 +28,17 @@ CREATE TABLE account_entry (
         FOREIGN KEY (account_id) REFERENCES account(id)
             ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT fk_account_entry_transaction
+        FOREIGN KEY (transaction_id) REFERENCES transaction(id)
+            ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE transaction_attachment (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    uploaded_at TIMESTAMP NOT NULL,
+    transaction_id BIGINT NOT NULL,
+    content_path VARCHAR(1024) NOT NULL,
+    content_type VARCHAR(255) NOT NULL,
+    CONSTRAINT fk_transaction_attachment_transaction
         FOREIGN KEY (transaction_id) REFERENCES transaction(id)
             ON UPDATE CASCADE ON DELETE CASCADE
 );

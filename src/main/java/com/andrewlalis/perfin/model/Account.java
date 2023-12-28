@@ -10,15 +10,17 @@ import java.util.Currency;
 public class Account {
     private long id;
     private LocalDateTime createdAt;
+    private boolean archived;
 
     private AccountType type;
     private String accountNumber;
     private String name;
     private Currency currency;
 
-    public Account(long id, LocalDateTime createdAt, AccountType type, String accountNumber, String name, Currency currency) {
+    public Account(long id, LocalDateTime createdAt, boolean archived, AccountType type, String accountNumber, String name, Currency currency) {
         this.id = id;
         this.createdAt = createdAt;
+        this.archived = archived;
         this.type = type;
         this.accountNumber = accountNumber;
         this.name = name;
@@ -26,6 +28,7 @@ public class Account {
     }
 
     public Account(AccountType type, String accountNumber, String name, Currency currency) {
+        this.archived = false;
         this.type = type;
         this.accountNumber = accountNumber;
         this.name = name;
@@ -80,5 +83,9 @@ public class Account {
 
     public long getId() {
         return id;
+    }
+
+    public boolean isArchived() {
+        return archived;
     }
 }

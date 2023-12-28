@@ -2,7 +2,6 @@ package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.AccountRepository;
 import com.andrewlalis.perfin.data.DbUtil;
-import com.andrewlalis.perfin.data.UncheckedSqlException;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.model.Account;
@@ -36,14 +35,14 @@ public record JdbcAccountRepository(Connection conn) implements AccountRepositor
 
     @Override
     public Page<Account> findAll(PageRequest pagination) {
-        return DbUtil.findAll(conn, "SELECT * FROM account", pagination, JdbcAccountRepository::parseAccount);
+        return DbUtil.findAll(conn, "SELECT * FROM account WHERE NOT archived", pagination, JdbcAccountRepository::parseAccount);
     }
 
     @Override
     public List<Account> findAllByCurrency(Currency currency) {
         return DbUtil.findAll(
                 conn,
-                "SELECT * FROM account WHERE currency = ? ORDER BY created_at",
+                "SELECT * FROM account WHERE currency = ? AND NOT archived ORDER BY created_at",
                 List.of(currency.getCurrencyCode()),
                 JdbcAccountRepository::parseAccount
         );
@@ -115,7 +114,7 @@ public record JdbcAccountRepository(Connection conn) implements AccountRepositor
     public Set<Currency> findAllUsedCurrencies() {
         return new HashSet<>(DbUtil.findAll(
                 conn,
-                "SELECT currency FROM account ORDER BY currency ASC",
+                "SELECT currency FROM account WHERE NOT archived ORDER BY currency ASC",
                 rs -> Currency.getInstance(rs.getString(1))
         ));
     }
@@ -137,23 +136,23 @@ public record JdbcAccountRepository(Connection conn) implements AccountRepositor
 
     @Override
     public void delete(Account account) {
-        try (var stmt = conn.prepareStatement("DELETE FROM account WHERE id = ?")) {
-            stmt.setLong(1, account.getId());
-            int rows = stmt.executeUpdate();
-            if (rows != 1) throw new SQLException("Affected " + rows + " rows instead of expected 1.");
-        } catch (SQLException e) {
-            throw new UncheckedSqlException(e);
-        }
+        DbUtil.updateOne(conn, "DELETE FROM account WHERE id = ?", List.of(account.getId()));
+    }
+
+    @Override
+    public void archive(Account account) {
+        DbUtil.updateOne(conn, "UPDATE account SET archived = TRUE WHERE id = ?", List.of(account.getId()));
     }
 
     public static Account parseAccount(ResultSet rs) throws SQLException {
         long id = rs.getLong("id");
         LocalDateTime createdAt = DbUtil.utcLDTFromTimestamp(rs.getTimestamp("created_at"));
+        boolean archived = rs.getBoolean("archived");
         AccountType type = AccountType.valueOf(rs.getString("account_type").toUpperCase());
         String accountNumber = rs.getString("account_number");
         String name = rs.getString("name");
         Currency currency = Currency.getInstance(rs.getString("currency"));
-        return new Account(id, createdAt, type, accountNumber, name, currency);
+        return new Account(id, createdAt, archived, type, accountNumber, name, currency);
     }
 
     @Override

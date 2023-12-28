@@ -14,32 +14,38 @@
     </top>
     <center>
         <VBox>
-            <VBox styleClass="account-property-box">
-                <Label text="Name"/>
-                <TextField fx:id="accountNameField" editable="false"/>
-            </VBox>
-            <VBox styleClass="account-property-box">
-                <Label text="Number"/>
-                <TextField fx:id="accountNumberField" editable="false"/>
-            </VBox>
-            <VBox styleClass="account-property-box">
-                <Label text="Currency"/>
-                <TextField fx:id="accountCurrencyField" editable="false"/>
-            </VBox>
-            <VBox styleClass="account-property-box">
-                <Label text="Created At"/>
-                <TextField fx:id="accountCreatedAtField" editable="false"/>
-            </VBox>
-            <VBox styleClass="account-property-box">
-                <Label text="Current Balance"/>
-                <TextField fx:id="accountBalanceField" editable="false"/>
-            </VBox>
+            <HBox>
+                <!-- Main account properties. -->
+                <VBox HBox.hgrow="SOMETIMES">
+                    <VBox styleClass="account-property-box">
+                        <Label text="Name"/>
+                        <TextField fx:id="accountNameField" editable="false"/>
+                    </VBox>
+                    <VBox styleClass="account-property-box">
+                        <Label text="Number"/>
+                        <TextField fx:id="accountNumberField" editable="false"/>
+                    </VBox>
+                    <VBox styleClass="account-property-box">
+                        <Label text="Currency"/>
+                        <TextField fx:id="accountCurrencyField" editable="false"/>
+                    </VBox>
+                    <VBox styleClass="account-property-box">
+                        <Label text="Created At"/>
+                        <TextField fx:id="accountCreatedAtField" editable="false"/>
+                    </VBox>
+                    <VBox styleClass="account-property-box">
+                        <Label text="Current Balance"/>
+                        <TextField fx:id="accountBalanceField" editable="false"/>
+                    </VBox>
+                </VBox>
+            </HBox>
         </VBox>
     </center>
     <right>
         <VBox styleClass="actions-box">
             <Label text="Actions" style="-fx-font-weight: bold;"/>
             <Button text="Edit" onAction="#goToEditPage"/>
+            <Button text="Archive" onAction="#archiveAccount"/>
             <Button text="Delete" onAction="#deleteAccount"/>
         </VBox>
     </right>
