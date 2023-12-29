@@ -92,6 +92,11 @@ public record JdbcTransactionRepository(Connection conn) implements TransactionR
     }
 
     @Override
+    public long countAll() {
+        return DbUtil.findOne(conn, "SELECT COUNT(id) FROM transaction", Collections.emptyList(), rs -> rs.getLong(1)).orElse(0L);
+    }
+
+    @Override
     public Page<Transaction> findAllByAccounts(Set<Long> accountIds, PageRequest pagination) {
         String idsStr = accountIds.stream().map(String::valueOf).collect(Collectors.joining(","));
         String query = String.format("""

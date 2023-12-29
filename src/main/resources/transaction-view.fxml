@@ -8,49 +8,44 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.andrewlalis.perfin.control.TransactionViewController"
 >
-    <top>
-        <HBox styleClass="std-padding,std-spacing">
-            <Label text="Transaction" styleClass="large-text,bold-text"/>
-        </HBox>
-    </top>
     <center>
-        <VBox styleClass="std-padding,std-spacing">
-            <VBox>
-                <Label text="Amount" styleClass="bold-text"/>
-                <Label fx:id="amountLabel" styleClass="mono-font"/>
+        <ScrollPane fitToHeight="true" fitToWidth="true">
+            <VBox styleClass="std-padding,std-spacing">
+                <VBox>
+                    <Label text="Amount" styleClass="bold-text"/>
+                    <Label fx:id="amountLabel" styleClass="mono-font"/>
+                </VBox>
+                <VBox>
+                    <Label text="Timestamp" styleClass="bold-text"/>
+                    <Label fx:id="timestampLabel" styleClass="mono-font"/>
+                </VBox>
+                <VBox>
+                    <Label text="Description" styleClass="bold-text"/>
+                    <Label fx:id="descriptionLabel" wrapText="true" style="-fx-min-height: 100px;" alignment="TOP_LEFT"/>
+                </VBox>
+                <Separator/>
+                <VBox>
+                    <TextFlow>
+                        <Text text="Debited to"/>
+                        <Hyperlink fx:id="debitAccountLink"/>
+                    </TextFlow>
+                    <TextFlow>
+                        <Text text="Credited from"/>
+                        <Hyperlink fx:id="creditAccountLink"/>
+                    </TextFlow>
+                </VBox>
+                <Separator/>
+                <VBox fx:id="attachmentsContainer">
+                    <Label text="Attachments" styleClass="bold-text"/>
+                    <ScrollPane fitToWidth="true" fitToHeight="true">
+                        <HBox fx:id="attachmentsHBox" styleClass="std-padding,std-spacing"/>
+                    </ScrollPane>
+                </VBox>
+                <Separator/>
+                <FlowPane styleClass="std-padding, std-spacing">
+                    <Button text="Delete" onAction="#deleteTransaction"/>
+                </FlowPane>
             </VBox>
-            <VBox>
-                <Label text="Timestamp" styleClass="bold-text"/>
-                <Label fx:id="timestampLabel" styleClass="mono-font"/>
-            </VBox>
-            <VBox>
-                <Label text="Description" styleClass="bold-text"/>
-                <Label fx:id="descriptionLabel" wrapText="true"/>
-            </VBox>
-            <Separator/>
-            <VBox>
-                <TextFlow>
-                    <Text text="Debited to"/>
-                    <Hyperlink fx:id="debitAccountLink"/>
-                </TextFlow>
-                <TextFlow>
-                    <Text text="Credited from"/>
-                    <Hyperlink fx:id="creditAccountLink"/>
-                </TextFlow>
-            </VBox>
-            <Separator/>
-            <VBox fx:id="attachmentsContainer">
-                <Label text="Attachments" styleClass="bold-text"/>
-                <ScrollPane fitToWidth="true" fitToHeight="true">
-                    <HBox fx:id="attachmentsHBox" styleClass="std-padding,std-spacing"/>
-                </ScrollPane>
-            </VBox>
-        </VBox>
+        </ScrollPane>
     </center>
-    <right>
-        <VBox styleClass="std-padding,std-spacing">
-            <Label text="Actions" styleClass="bold-text"/>
-            <Button text="Delete" onAction="#deleteTransaction"/>
-        </VBox>
-    </right>
 </BorderPane>

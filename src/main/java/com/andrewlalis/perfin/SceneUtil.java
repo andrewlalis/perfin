@@ -10,6 +10,17 @@ import java.net.URL;
 import java.util.function.Consumer;
 
 public class SceneUtil {
+    public static <N, C> Pair<N, C> loadNodeAndController(String fxml) {
+        FXMLLoader loader = new FXMLLoader(SceneUtil.class.getResource(fxml));
+        try {
+            N node = loader.load();
+            C controller = loader.getController();
+            return Pair.of(node, controller);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public static <T> Parent loadNode(String fxml, Consumer<T> controllerConfig) {
         FXMLLoader loader = new FXMLLoader(SceneUtil.class.getResource(fxml));
         try {

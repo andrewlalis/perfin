@@ -12,6 +12,7 @@ public interface TransactionRepository extends AutoCloseable {
     long insert(Transaction transaction, Map<Long, AccountEntry.Type> accountsMap);
     void addAttachments(long transactionId, List<TransactionAttachment> attachments);
     Page<Transaction> findAll(PageRequest pagination);
+    long countAll();
     Page<Transaction> findAllByAccounts(Set<Long> accountIds, PageRequest pagination);
     Map<AccountEntry, Account> findEntriesWithAccounts(long transactionId);
     CreditAndDebitAccounts findLinkedAccounts(long transactionId);

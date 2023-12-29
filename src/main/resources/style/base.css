@@ -26,3 +26,24 @@
 .std-spacing {
     -fx-spacing: 3px;
 }
+
+.spacing-extra {
+    -fx-spacing: 6px;
+}
+
+/* DEBUG BORDERS */
+.debug-border-1 {
+    -fx-border-color: red;
+}
+
+.debug-border-2 {
+    -fx-border-color: lime;
+}
+
+.debug-border-3 {
+    -fx-border-color: blue;
+}
+
+.debug-border-4 {
+    -fx-border-color: magenta;
+}

@@ -1,24 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.*?>
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.andrewlalis.perfin.control.TransactionsViewController"
 >
     <top>
-        <HBox style="-fx-padding: 3px;">
+        <HBox styleClass="std-padding,std-spacing">
             <Button text="Add Transaction" onAction="#addTransaction"/>
         </HBox>
     </top>
     <center>
-        <Label text="Center"/>
-        <ScrollPane fitToHeight="true" fitToWidth="true">
-            <VBox fx:id="transactionsVBox" style="-fx-padding: 3px; -fx-spacing: 5px;"/>
-        </ScrollPane>
+        <HBox>
+            <BorderPane fx:id="transactionsListBorderPane" HBox.hgrow="ALWAYS">
+                <center>
+                    <ScrollPane fitToHeight="true" fitToWidth="true">
+                        <VBox fx:id="transactionsVBox" styleClass="std-padding,spacing-extra"/>
+                    </ScrollPane>
+                </center>
+            </BorderPane>
+            <VBox fx:id="detailPanel"/>
+        </HBox>
     </center>
 </BorderPane>

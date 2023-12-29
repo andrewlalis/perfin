@@ -1,6 +1,5 @@
 package com.andrewlalis.perfin.control;
 
-import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
 import com.andrewlalis.perfin.data.CurrencyUtil;
 import com.andrewlalis.perfin.data.DateUtil;
 import com.andrewlalis.perfin.model.CreditAndDebitAccounts;
@@ -23,7 +22,7 @@ import java.util.List;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
-public class TransactionViewController implements RouteSelectionListener {
+public class TransactionViewController {
     private Transaction transaction;
 
     @FXML public Label amountLabel;
@@ -37,9 +36,9 @@ public class TransactionViewController implements RouteSelectionListener {
     @FXML public HBox attachmentsHBox;
     private final ObservableList<TransactionAttachment> attachmentsList = FXCollections.observableArrayList();
 
-    @Override
-    public void onRouteSelected(Object context) {
-        this.transaction = (Transaction) context;
+    public void setTransaction(Transaction transaction) {
+        this.transaction = transaction;
+        if (transaction == null) return;
         amountLabel.setText(CurrencyUtil.formatMoney(transaction.getAmount(), transaction.getCurrency()));
         timestampLabel.setText(DateUtil.formatUTCAsLocalWithZone(transaction.getTimestamp()));
         descriptionLabel.setText(transaction.getDescription());
@@ -75,6 +74,7 @@ public class TransactionViewController implements RouteSelectionListener {
                     new Label(attachment.getFilename()),
                     new Label(attachment.getContentType())
             );
+            // TODO: Custom attachment preview element.
             return vbox;
         });
     }

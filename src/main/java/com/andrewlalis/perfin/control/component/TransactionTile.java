@@ -2,20 +2,21 @@ package com.andrewlalis.perfin.control.component;
 
 import com.andrewlalis.perfin.data.CurrencyUtil;
 import com.andrewlalis.perfin.data.DateUtil;
-import com.andrewlalis.perfin.model.*;
+import com.andrewlalis.perfin.model.CreditAndDebitAccounts;
+import com.andrewlalis.perfin.model.Profile;
+import com.andrewlalis.perfin.model.Transaction;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
-import javafx.util.Pair;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -25,21 +26,32 @@ import static com.andrewlalis.perfin.PerfinApp.router;
  * A tile that displays a transaction's basic information.
  */
 public class TransactionTile extends BorderPane {
-    public TransactionTile(Transaction transaction, Runnable refresh) {
-        setStyle("""
-                -fx-border-color: lightgray;
-                -fx-border-width: 1px;
-                -fx-border-style: solid;
-                -fx-border-radius: 5px;
-                -fx-padding: 5px;
-                -fx-max-width: 500px;
-                -fx-cursor: hand;
-                """);
+    public final BooleanProperty selected = new SimpleBooleanProperty(false);
+    private static final String UNSELECTED_STYLE = """
+            -fx-border-color: lightgray;
+            -fx-border-width: 1px;
+            -fx-border-style: solid;
+            -fx-border-radius: 5px;
+            -fx-padding: 5px;
+            -fx-cursor: hand;
+            """;
+    private static final String SELECTED_STYLE = """
+            -fx-border-color: white;
+            -fx-border-width: 1px;
+            -fx-border-style: solid;
+            -fx-border-radius: 5px;
+            -fx-padding: 5px;
+            -fx-cursor: hand;
+            """;
+
+    public TransactionTile(Transaction transaction) {
+        setStyle(UNSELECTED_STYLE);
 
         setTop(getHeader(transaction));
         setCenter(getBody(transaction));
-        setBottom(getFooter(transaction, refresh));
-        addEventHandler(MouseEvent.MOUSE_CLICKED, event -> router.navigate("transaction", transaction));
+        setBottom(getFooter(transaction));
+
+        styleProperty().bind(selected.map(value -> value ? SELECTED_STYLE : UNSELECTED_STYLE));
     }
 
     private Node getHeader(Transaction transaction) {
@@ -64,31 +76,23 @@ public class TransactionTile extends BorderPane {
             accounts.ifCredit(acc -> {
                 Hyperlink link = new Hyperlink(acc.getShortName());
                 link.setOnAction(event -> router.navigate("account", acc));
-                TextFlow text = new TextFlow(new Text("Credited from"), link);
-                Platform.runLater(() -> bodyVBox.getChildren().add(text));
+                Text prefix = new Text("Credited from");
+                prefix.setFill(Color.RED);
+                Platform.runLater(() -> bodyVBox.getChildren().add(new TextFlow(prefix, link)));
             });
             accounts.ifDebit(acc -> {
                 Hyperlink link = new Hyperlink(acc.getShortName());
                 link.setOnAction(event -> router.navigate("account", acc));
-                TextFlow text = new TextFlow(new Text("Debited to"), link);
-                Platform.runLater(() -> bodyVBox.getChildren().add(text));
+                Text prefix = new Text("Debited to");
+                prefix.setFill(Color.GREEN);
+                Platform.runLater(() -> bodyVBox.getChildren().add(new TextFlow(prefix, link)));
             });
         });
         return bodyVBox;
     }
 
-    private Node getFooter(Transaction transaction, Runnable refresh) {
+    private Node getFooter(Transaction transaction) {
         Label timestampLabel = new Label(DateUtil.formatUTCAsLocalWithZone(transaction.getTimestamp()));
-        Hyperlink deleteLink = new Hyperlink("Delete this transaction");
-        deleteLink.setOnAction(event -> {
-            var confirmResult = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you want to delete this transaction?").showAndWait();
-            if (confirmResult.isPresent() && confirmResult.get() == ButtonType.OK) {
-                Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
-                    repo.delete(transaction.getId());
-                });
-                refresh.run();
-            }
-        });
         HBox footerHBox = new HBox(
                 timestampLabel
         );
