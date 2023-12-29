@@ -1,5 +1,6 @@
 package com.andrewlalis.perfin.control;
 
+import com.andrewlalis.perfin.control.component.AttachmentPreview;
 import com.andrewlalis.perfin.data.CurrencyUtil;
 import com.andrewlalis.perfin.data.DateUtil;
 import com.andrewlalis.perfin.model.CreditAndDebitAccounts;
@@ -69,14 +70,7 @@ public class TransactionViewController {
                 Platform.runLater(() -> attachmentsList.setAll(attachments));
             });
         });
-        BindingUtil.mapContent(attachmentsHBox.getChildren(), attachmentsList, attachment -> {
-            VBox vbox = new VBox(
-                    new Label(attachment.getFilename()),
-                    new Label(attachment.getContentType())
-            );
-            // TODO: Custom attachment preview element.
-            return vbox;
-        });
+        BindingUtil.mapContent(attachmentsHBox.getChildren(), attachmentsList, AttachmentPreview::new);
     }
 
     @FXML public void deleteTransaction() {
