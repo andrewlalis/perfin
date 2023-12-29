@@ -12,8 +12,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
 import java.math.BigDecimal;
-import java.util.Currency;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Stream;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
@@ -38,15 +38,18 @@ public class EditAccountController implements RouteSelectionListener {
 
     @FXML
     public void initialize() {
-        final String[] currencies = {
-                "USD",
-                "EUR",
-                "GBP"
-        };
-        for (String currencyCode : currencies) {
-            accountCurrencyComboBox.getItems().add(Currency.getInstance(currencyCode));
-        }
-        accountCurrencyComboBox.getSelectionModel().select(Currency.getInstance("USD"));
+        List<Currency> priorityCurrencies = Stream.of("USD", "EUR", "GBP", "CAD", "AUD")
+                .map(Currency::getInstance)
+                .toList();
+        List<Currency> availableCurrencies = Currency.getAvailableCurrencies().stream()
+                .filter(c -> !priorityCurrencies.contains(c))
+                .sorted(Comparator.comparing(Currency::getCurrencyCode))
+                .toList();
+        List<Currency> allCurrencies = new ArrayList<>();
+        allCurrencies.addAll(priorityCurrencies);
+        allCurrencies.addAll(availableCurrencies);
+        accountCurrencyComboBox.getItems().addAll(allCurrencies);
+        accountCurrencyComboBox.getSelectionModel().selectFirst();
 
         accountTypeChoiceBox.getItems().add(AccountType.CHECKING);
         accountTypeChoiceBox.getItems().add(AccountType.SAVINGS);
