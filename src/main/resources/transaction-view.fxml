@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.andrewlalis.perfin.control.TransactionViewController"
+>
+    <top>
+        <HBox styleClass="std-padding,std-spacing">
+            <Label text="Transaction" styleClass="large-text,bold-text"/>
+        </HBox>
+    </top>
+    <center>
+        <VBox styleClass="std-padding,std-spacing">
+            <VBox>
+                <Label text="Amount" styleClass="bold-text"/>
+                <Label fx:id="amountLabel" styleClass="mono-font"/>
+            </VBox>
+            <VBox>
+                <Label text="Timestamp" styleClass="bold-text"/>
+                <Label fx:id="timestampLabel" styleClass="mono-font"/>
+            </VBox>
+            <VBox>
+                <Label text="Description" styleClass="bold-text"/>
+                <Label fx:id="descriptionLabel" wrapText="true"/>
+            </VBox>
+            <Separator/>
+            <VBox>
+                <TextFlow>
+                    <Text text="Debited to"/>
+                    <Hyperlink fx:id="debitAccountLink"/>
+                </TextFlow>
+                <TextFlow>
+                    <Text text="Credited from"/>
+                    <Hyperlink fx:id="creditAccountLink"/>
+                </TextFlow>
+            </VBox>
+            <Separator/>
+            <VBox fx:id="attachmentsContainer">
+                <Label text="Attachments" styleClass="bold-text"/>
+                <ScrollPane fitToWidth="true" fitToHeight="true">
+                    <HBox fx:id="attachmentsHBox" styleClass="std-padding,std-spacing"/>
+                </ScrollPane>
+            </VBox>
+        </VBox>
+    </center>
+    <right>
+        <VBox styleClass="std-padding,std-spacing">
+            <Label text="Actions" styleClass="bold-text"/>
+            <Button text="Delete" onAction="#deleteTransaction"/>
+        </VBox>
+    </right>
+</BorderPane>

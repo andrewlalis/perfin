@@ -6,14 +6,15 @@
         xmlns="http://javafx.com/javafx/17.0.2-ea"
         xmlns:fx="http://javafx.com/fxml/1"
         fx:controller="com.andrewlalis.perfin.control.EditAccountController"
-        stylesheets="@style/edit-account.css"
-        styleClass="main-container"
+        stylesheets="@style/edit-account.css,@style/base.css"
 >
     <top>
-        <Label fx:id="titleLabel" text="Edit Account"/>
+        <HBox styleClass="std-padding,std-spacing">
+            <Label text="Edit Account" styleClass="large-text,bold-text"/>
+        </HBox>
     </top>
     <center>
-        <GridPane BorderPane.alignment="TOP_LEFT" styleClass="fields-grid">
+        <GridPane BorderPane.alignment="TOP_LEFT" styleClass="fields-grid,std-padding">
             <columnConstraints>
                 <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
                 <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
@@ -32,7 +33,7 @@
 
             <VBox fx:id="initialBalanceContent" GridPane.columnIndex="0" GridPane.rowIndex="4" GridPane.columnSpan="2">
                 <Separator/>
-                <Label text="Initial Balance" style="-fx-font-weight: bold;"/>
+                <Label text="Initial Balance" styleClass="bold-text"/>
                 <TextField fx:id="initialBalanceField"/>
             </VBox>
         </GridPane>

@@ -7,22 +7,21 @@
         xmlns:fx="http://javafx.com/fxml"
         fx:id="mainContainer"
         fx:controller="com.andrewlalis.perfin.control.MainViewController"
-        stylesheets="@style/main-view.css"
+        stylesheets="@style/base.css"
 >
     <top>
         <VBox>
-            <HBox style="-fx-spacing: 3px; -fx-padding: 3px;">
+            <HBox styleClass="std-padding,std-spacing">
                 <Button text="Back" onAction="#goBack"/>
                 <Button text="Forward" onAction="#goForward"/>
                 <Button text="Accounts" onAction="#goToAccounts"/>
                 <Button text="Transactions" onAction="#goToTransactions"/>
             </HBox>
-            <HBox fx:id="breadcrumbHBox"/>
-            <Separator/>
+            <HBox fx:id="breadcrumbHBox" styleClass="std-spacing,small-text"/>
         </VBox>
     </top>
     <bottom>
-        <HBox fx:id="mainFooter" spacing="5">
+        <HBox styleClass="std-padding,std-spacing">
             <Label text="Perfin v0.0.1"/>
         </HBox>
     </bottom>

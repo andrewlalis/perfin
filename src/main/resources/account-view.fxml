@@ -6,14 +6,15 @@
         xmlns="http://javafx.com/javafx"
         xmlns:fx="http://javafx.com/fxml"
         fx:controller="com.andrewlalis.perfin.control.AccountViewController"
-        stylesheets="@style/account-view.css"
-        styleClass="main-container"
+        stylesheets="@style/account-view.css,@style/base.css"
 >
     <top>
-        <Label fx:id="titleLabel"/>
+        <HBox styleClass="std-padding,std-spacing">
+            <Label fx:id="titleLabel" styleClass="large-text,bold-text"/>
+        </HBox>
     </top>
     <center>
-        <VBox>
+        <VBox styleClass="std-padding,std-spacing">
             <HBox>
                 <!-- Main account properties. -->
                 <VBox HBox.hgrow="SOMETIMES" style="-fx-border-color: blue">
@@ -23,7 +24,7 @@
                     </VBox>
                     <VBox styleClass="account-property-box">
                         <Label text="Number"/>
-                        <TextField fx:id="accountNumberField" editable="false"/>
+                        <TextField fx:id="accountNumberField" editable="false" styleClass="mono-font"/>
                     </VBox>
                     <VBox styleClass="account-property-box">
                         <Label text="Currency"/>
@@ -45,8 +46,8 @@
         </VBox>
     </center>
     <right>
-        <VBox styleClass="actions-box">
-            <Label text="Actions" style="-fx-font-weight: bold;"/>
+        <VBox styleClass="std-padding,std-spacing">
+            <Label text="Actions" styleClass="bold-text"/>
             <Button text="Edit" onAction="#goToEditPage"/>
             <Button text="Archive" onAction="#archiveAccount"/>
             <Button text="Delete" onAction="#deleteAccount"/>

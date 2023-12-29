@@ -1,12 +1,3 @@
-.main-container {
-    -fx-padding: 5px;
-}
-
-#titleLabel {
-    -fx-font-weight: bold;
-    -fx-font-size: large;
-}
-
 .account-property-box {
     -fx-padding: 5px 0 5px 0;
     -fx-spacing: 3px;
@@ -19,14 +10,6 @@
 .account-property-box > TextField {
     -fx-min-width: 100px;
     -fx-max-width: 300px;
-}
-
-#accountNumberField {
-    -fx-font-family: monospace;
-}
-
-.actions-box {
-    -fx-spacing: 3px;
 }
 
 .actions-box > Button {

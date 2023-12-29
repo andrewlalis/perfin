@@ -8,10 +8,10 @@
         xmlns="http://javafx.com/javafx/17.0.2-ea"
         xmlns:fx="http://javafx.com/fxml/1"
         fx:controller="com.andrewlalis.perfin.control.AccountsViewController"
-        stylesheets="@style/accounts-view.css"
+        stylesheets="@style/base.css"
 >
     <top>
-        <HBox styleClass="actionsBar">
+        <HBox styleClass="std-padding,std-spacing">
             <Button text="Add an Account" onAction="#createNewAccount"/>
             <Label fx:id="totalLabel"/>
         </HBox>
@@ -19,9 +19,9 @@
     <center>
         <VBox>
             <ScrollPane fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
-                <FlowPane fx:id="accountsPane" BorderPane.alignment="TOP_LEFT" vgap="5" hgap="5"/>
+                <FlowPane fx:id="accountsPane" BorderPane.alignment="TOP_LEFT" vgap="5" hgap="5" styleClass="std-padding"/>
             </ScrollPane>
-            <Label fx:id="noAccountsLabel" BorderPane.alignment="TOP_LEFT" text="No accounts have been added to this profile."/>
+            <Label fx:id="noAccountsLabel" BorderPane.alignment="TOP_LEFT" styleClass="std-padding" text="No accounts have been added to this profile."/>
         </VBox>
     </center>
 </BorderPane>

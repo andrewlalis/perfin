@@ -1,0 +1,28 @@
+.mono-font {
+    -fx-font-family: monospace;
+}
+
+.error-text {
+    -fx-font-size: small;
+    -fx-text-fill: red;
+}
+
+.bold-text {
+    -fx-font-weight: bold;
+}
+
+.small-text {
+    -fx-font-size: small;
+}
+
+.large-text {
+    -fx-font-size: large;
+}
+
+.std-padding {
+    -fx-padding: 3px;
+}
+
+.std-spacing {
+    -fx-spacing: 3px;
+}

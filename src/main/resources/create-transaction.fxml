@@ -5,11 +5,11 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.andrewlalis.perfin.control.CreateTransactionController"
-            stylesheets="@style/create-transaction.css"
+            stylesheets="@style/base.css"
 >
     <center>
         <ScrollPane fitToWidth="true" fitToHeight="true">
-            <VBox styleClass="form-container">
+            <VBox styleClass="std-spacing,std-padding" style="-fx-max-width: 500px;">
                 <!-- Basic properties -->
                 <VBox>
                     <Label text="Timestamp" labelFor="${timestampField}" styleClass="bold-text"/>
@@ -28,12 +28,17 @@
                 <VBox>
                     <Label text="Description" labelFor="${descriptionField}" styleClass="bold-text"/>
                     <Label text="Maximum of 255 characters." styleClass="small-text"/>
-                    <TextArea fx:id="descriptionField" styleClass="mono-font" wrapText="true"/>
+                    <TextArea
+                            fx:id="descriptionField"
+                            styleClass="mono-font"
+                            wrapText="true"
+                            style="-fx-pref-height: 100px;-fx-min-height: 100px;"
+                    />
                     <Label fx:id="descriptionErrorLabel" styleClass="error-text" wrapText="true"/>
                 </VBox>
                 <!-- Container for linked accounts -->
                 <VBox>
-                    <HBox spacing="3">
+                    <HBox styleClass="std-spacing">
                         <VBox>
                             <Label text="Debited Account" labelFor="${linkDebitAccountComboBox}" styleClass="bold-text"/>
                             <ComboBox fx:id="linkDebitAccountComboBox">
@@ -60,7 +65,7 @@
                 <VBox>
                     <Label text="Attachments" styleClass="bold-text"/>
                     <Label text="Attach receipts, invoices, or other content to this transaction." styleClass="small-text" wrapText="true"/>
-                    <VBox fx:id="selectedFilesVBox" style="-fx-spacing: 3px; -fx-padding: 3px;" VBox.vgrow="NEVER"/>
+                    <VBox fx:id="selectedFilesVBox" styleClass="std-padding,std-spacing" VBox.vgrow="NEVER"/>
                     <Label text="No attachments selected." fx:id="noSelectedFilesLabel"/>
                     <Button text="Select attachments" onAction="#selectAttachmentFile"/>
                 </VBox>
@@ -68,7 +73,7 @@
         </ScrollPane>
     </center>
     <bottom>
-        <HBox styleClass="buttons-container">
+        <HBox styleClass="std-padding,std-spacing">
             <Button text="Save" onAction="#save"/>
             <Button text="Cancel" onAction="#cancel"/>
         </HBox>

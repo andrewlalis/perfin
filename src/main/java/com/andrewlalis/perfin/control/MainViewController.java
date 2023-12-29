@@ -13,8 +13,6 @@ public class MainViewController {
     @FXML
     public BorderPane mainContainer;
     @FXML
-    public HBox mainFooter;
-    @FXML
     public HBox breadcrumbHBox;
 
     @FXML

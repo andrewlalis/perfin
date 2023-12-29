@@ -2,16 +2,14 @@ package com.andrewlalis.perfin.control.component;
 
 import com.andrewlalis.perfin.data.CurrencyUtil;
 import com.andrewlalis.perfin.data.DateUtil;
-import com.andrewlalis.perfin.model.Account;
-import com.andrewlalis.perfin.model.AccountEntry;
-import com.andrewlalis.perfin.model.Profile;
-import com.andrewlalis.perfin.model.Transaction;
+import com.andrewlalis.perfin.model.*;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -35,11 +33,13 @@ public class TransactionTile extends BorderPane {
                 -fx-border-radius: 5px;
                 -fx-padding: 5px;
                 -fx-max-width: 500px;
+                -fx-cursor: hand;
                 """);
 
         setTop(getHeader(transaction));
         setCenter(getBody(transaction));
         setBottom(getFooter(transaction, refresh));
+        addEventHandler(MouseEvent.MOUSE_CLICKED, event -> router.navigate("transaction", transaction));
     }
 
     private Node getHeader(Transaction transaction) {
@@ -61,19 +61,18 @@ public class TransactionTile extends BorderPane {
                 descriptionLabel
         );
         getCreditAndDebitAccounts(transaction).thenAccept(accounts -> {
-            Account creditAccount = accounts.getKey();
-            Account debitAccount = accounts.getValue();
-            if (creditAccount != null) {
-                Hyperlink link = new Hyperlink(creditAccount.getShortName());
-                link.setOnAction(event -> router.navigate("account", creditAccount));
+            accounts.ifCredit(acc -> {
+                Hyperlink link = new Hyperlink(acc.getShortName());
+                link.setOnAction(event -> router.navigate("account", acc));
                 TextFlow text = new TextFlow(new Text("Credited from"), link);
                 Platform.runLater(() -> bodyVBox.getChildren().add(text));
-            } if (debitAccount != null) {
-                Hyperlink link = new Hyperlink(debitAccount.getShortName());
-                link.setOnAction(event -> router.navigate("account", debitAccount));
+            });
+            accounts.ifDebit(acc -> {
+                Hyperlink link = new Hyperlink(acc.getShortName());
+                link.setOnAction(event -> router.navigate("account", acc));
                 TextFlow text = new TextFlow(new Text("Debited to"), link);
                 Platform.runLater(() -> bodyVBox.getChildren().add(text));
-            }
+            });
         });
         return bodyVBox;
     }
@@ -91,8 +90,7 @@ public class TransactionTile extends BorderPane {
             }
         });
         HBox footerHBox = new HBox(
-                timestampLabel,
-                deleteLink
+                timestampLabel
         );
         footerHBox.setStyle("""
                 -fx-spacing: 3px;
@@ -101,18 +99,12 @@ public class TransactionTile extends BorderPane {
         return footerHBox;
     }
 
-    private CompletableFuture<Pair<Account, Account>> getCreditAndDebitAccounts(Transaction transaction) {
-        CompletableFuture<Pair<Account, Account>> cf = new CompletableFuture<>();
+    private CompletableFuture<CreditAndDebitAccounts> getCreditAndDebitAccounts(Transaction transaction) {
+        CompletableFuture<CreditAndDebitAccounts> cf = new CompletableFuture<>();
         Thread.ofVirtual().start(() -> {
             Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
-                var entriesAndAccounts = repo.findEntriesWithAccounts(transaction.getId());
-                AccountEntry creditEntry = entriesAndAccounts.keySet().stream()
-                        .filter(entry -> entry.getType() == AccountEntry.Type.CREDIT)
-                        .findFirst().orElse(null);
-                AccountEntry debitEntry = entriesAndAccounts.keySet().stream()
-                        .filter(entry -> entry.getType() == AccountEntry.Type.DEBIT)
-                        .findFirst().orElse(null);
-                cf.complete(new Pair<>(entriesAndAccounts.get(creditEntry), entriesAndAccounts.get(debitEntry)));
+                CreditAndDebitAccounts accounts = repo.findLinkedAccounts(transaction.getId());
+                cf.complete(accounts);
             });
         });
         return cf;

@@ -53,5 +53,6 @@ public class PerfinApp extends Application {
         mapResourceRoute("edit-account", "/edit-account.fxml");
         mapResourceRoute("transactions", "/transactions-view.fxml");
         mapResourceRoute("create-transaction", "/create-transaction.fxml");
+        mapResourceRoute("transaction", "/transaction-view.fxml");
     }
 }

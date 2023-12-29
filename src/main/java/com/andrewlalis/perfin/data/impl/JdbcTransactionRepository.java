@@ -4,10 +4,7 @@ import com.andrewlalis.perfin.data.DbUtil;
 import com.andrewlalis.perfin.data.TransactionRepository;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
-import com.andrewlalis.perfin.model.Account;
-import com.andrewlalis.perfin.model.AccountEntry;
-import com.andrewlalis.perfin.model.Transaction;
-import com.andrewlalis.perfin.model.TransactionAttachment;
+import com.andrewlalis.perfin.model.*;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -125,6 +122,33 @@ public record JdbcTransactionRepository(Connection conn) implements TransactionR
             map.put(entry, account);
         }
         return map;
+    }
+
+    @Override
+    public CreditAndDebitAccounts findLinkedAccounts(long transactionId) {
+        Account creditAccount = DbUtil.findOne(
+                conn,
+                """
+                        SELECT *
+                        FROM account
+                        LEFT JOIN account_entry ON account_entry.account_id = account.id
+                        WHERE account_entry.transaction_id = ? AND account_entry.type = 'CREDIT'
+                        """,
+                List.of(transactionId),
+                JdbcAccountRepository::parseAccount
+        ).orElse(null);
+        Account debitAccount = DbUtil.findOne(
+                conn,
+                """
+                        SELECT *
+                        FROM account
+                        LEFT JOIN account_entry ON account_entry.account_id = account.id
+                        WHERE account_entry.transaction_id = ? AND account_entry.type = 'DEBIT'
+                        """,
+                List.of(transactionId),
+                JdbcAccountRepository::parseAccount
+        ).orElse(null);
+        return new CreditAndDebitAccounts(creditAccount, debitAccount);
     }
 
     @Override
