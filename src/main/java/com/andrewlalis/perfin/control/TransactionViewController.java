@@ -1,6 +1,6 @@
 package com.andrewlalis.perfin.control;
 
-import com.andrewlalis.perfin.control.component.AttachmentPreview;
+import com.andrewlalis.perfin.view.component.AttachmentPreview;
 import com.andrewlalis.perfin.data.CurrencyUtil;
 import com.andrewlalis.perfin.data.DateUtil;
 import com.andrewlalis.perfin.model.CreditAndDebitAccounts;
@@ -15,6 +15,8 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.skin.ScrollPaneSkin;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextFlow;
@@ -70,6 +72,10 @@ public class TransactionViewController {
                 Platform.runLater(() -> attachmentsList.setAll(attachments));
             });
         });
+        attachmentsHBox.setMinHeight(AttachmentPreview.HEIGHT);
+        attachmentsHBox.setPrefHeight(AttachmentPreview.HEIGHT);
+        ((ScrollPane) attachmentsHBox.getParent().getParent().getParent()).minHeightProperty().bind(attachmentsHBox.heightProperty().map(n -> n.doubleValue() + 2));
+        ((ScrollPane) attachmentsHBox.getParent().getParent().getParent()).prefHeightProperty().bind(attachmentsHBox.heightProperty().map(n -> n.doubleValue() + 2));
         BindingUtil.mapContent(attachmentsHBox.getChildren(), attachmentsList, AttachmentPreview::new);
     }
 

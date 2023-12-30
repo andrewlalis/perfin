@@ -41,7 +41,6 @@
                         <HBox fx:id="attachmentsHBox" styleClass="std-padding,std-spacing"/>
                     </ScrollPane>
                 </VBox>
-                <Separator/>
                 <FlowPane styleClass="std-padding, std-spacing">
                     <Button text="Delete" onAction="#deleteTransaction"/>
                 </FlowPane>

@@ -1,4 +1,4 @@
-package com.andrewlalis.perfin.control.component;
+package com.andrewlalis.perfin.view.component;
 
 import com.andrewlalis.perfin.model.TransactionAttachment;
 import javafx.scene.control.Label;
@@ -18,20 +18,27 @@ import java.util.Set;
  * like its name, type, and a preview image if possible.
  */
 public class AttachmentPreview extends BorderPane {
+    public static final double IMAGE_SIZE = 64.0;
+    public static final double LABEL_SIZE = 18.0;
+    public static final double HEIGHT = IMAGE_SIZE + LABEL_SIZE;
+
     public AttachmentPreview(TransactionAttachment attachment) {
         Label nameLabel = new Label(attachment.getFilename());
-        Label typeLabel = new Label(attachment.getContentType());
-        typeLabel.setStyle("-fx-font-size: x-small;");
-        setBottom(new VBox(nameLabel, typeLabel));
+        nameLabel.setStyle("-fx-font-size: small;");
+        VBox nameContainer = new VBox(nameLabel);
+        nameContainer.setPrefHeight(LABEL_SIZE);
+        nameContainer.setMaxHeight(LABEL_SIZE);
+        nameContainer.setMinHeight(LABEL_SIZE);
+        setBottom(nameContainer);
 
-        Rectangle placeholder = new Rectangle(64.0, 64.0);
+        Rectangle placeholder = new Rectangle(IMAGE_SIZE, IMAGE_SIZE);
         placeholder.setFill(Color.WHITE);
         setCenter(placeholder);
 
         Set<String> imageTypes = Set.of("image/png", "image/jpeg", "image/gif", "image/bmp");
         if (imageTypes.contains(attachment.getContentType())) {
             try (var in = Files.newInputStream(attachment.getPath())) {
-                Image img = new Image(in, 64.0, 64.0, true, true);
+                Image img = new Image(in, IMAGE_SIZE, IMAGE_SIZE, true, true);
                 setCenter(new ImageView(img));
             } catch (IOException e) {
                 e.printStackTrace();

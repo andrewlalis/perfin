@@ -1,4 +1,4 @@
-package com.andrewlalis.perfin.control.component;
+package com.andrewlalis.perfin.view.component;
 
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.AccountType;
