@@ -1,6 +1,5 @@
 package com.andrewlalis.perfin.control;
 
-import com.andrewlalis.perfin.view.component.AttachmentPreview;
 import com.andrewlalis.perfin.data.CurrencyUtil;
 import com.andrewlalis.perfin.data.DateUtil;
 import com.andrewlalis.perfin.model.CreditAndDebitAccounts;
@@ -8,6 +7,7 @@ import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.model.Transaction;
 import com.andrewlalis.perfin.model.TransactionAttachment;
 import com.andrewlalis.perfin.view.BindingUtil;
+import com.andrewlalis.perfin.view.component.AttachmentPreview;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
@@ -16,7 +16,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.skin.ScrollPaneSkin;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextFlow;

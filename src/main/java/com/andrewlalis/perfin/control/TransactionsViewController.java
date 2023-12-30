@@ -3,13 +3,13 @@ package com.andrewlalis.perfin.control;
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
 import com.andrewlalis.perfin.Pair;
 import com.andrewlalis.perfin.SceneUtil;
-import com.andrewlalis.perfin.view.component.DataSourcePaginationControls;
-import com.andrewlalis.perfin.view.component.TransactionTile;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.data.pagination.Sort;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.model.Transaction;
+import com.andrewlalis.perfin.view.component.DataSourcePaginationControls;
+import com.andrewlalis.perfin.view.component.TransactionTile;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
@@ -95,25 +95,4 @@ public class TransactionsViewController implements RouteSelectionListener {
         tile.selected.bind(selectedTransaction.map(t -> t != null && t.getId() == transaction.getId()));
         return tile;
     }
-
-//    private void refreshTransactions() {
-//        Thread.ofVirtual().start(() -> {
-//            Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
-//                var page = repo.findAll(PageRequest.unpaged(Sort.desc("timestamp")));
-//                var components = page.items().stream().map(transaction -> {
-//                    var tile = new TransactionTile(transaction, this::refreshTransactions);
-//                    tile.setOnMouseClicked(event -> {
-//                        if (selectedTransaction.get() == null || selectedTransaction.get().getId() != transaction.getId()) {
-//                            selectedTransaction.set(transaction);
-//                        } else {
-//                            selectedTransaction.set(null);
-//                        }
-//                    });
-//                    tile.selected.bind(selectedTransaction.map(t -> t != null && t.getId() == transaction.getId()));
-//                    return tile;
-//                }).toList();
-//                Platform.runLater(() -> transactionsVBox.getChildren().setAll(components));
-//            });
-//        });
-//    }
 }

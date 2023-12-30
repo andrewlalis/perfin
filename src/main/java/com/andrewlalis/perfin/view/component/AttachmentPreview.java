@@ -41,7 +41,7 @@ public class AttachmentPreview extends BorderPane {
                 Image img = new Image(in, IMAGE_SIZE, IMAGE_SIZE, true, true);
                 contentContainer.setCenter(new ImageView(img));
             } catch (IOException e) {
-                e.printStackTrace();
+                e.printStackTrace(System.err);
             }
         }
 
