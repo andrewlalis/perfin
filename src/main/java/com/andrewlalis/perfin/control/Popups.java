@@ -11,4 +11,17 @@ public class Popups {
         var result = alert.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
     }
+
+    public static void message(String text) {
+        Alert alert = new Alert(Alert.AlertType.NONE, text);
+        alert.initModality(Modality.APPLICATION_MODAL);
+        alert.getButtonTypes().setAll(ButtonType.OK);
+        alert.showAndWait();
+    }
+
+    public static void error(String text) {
+        Alert alert = new Alert(Alert.AlertType.WARNING, text);
+        alert.initModality(Modality.APPLICATION_MODAL);
+        alert.showAndWait();
+    }
 }

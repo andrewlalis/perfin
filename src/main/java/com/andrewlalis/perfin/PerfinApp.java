@@ -35,7 +35,7 @@ public class PerfinApp extends Application {
                 PerfinApp::defineRoutes,
                 PerfinApp::initAppDir,
                 c -> initMainScreen(stage, c),
-                PerfinApp::loadProfile
+                PerfinApp::loadLastUsedProfile
         ));
         splashScreen.showAndWait();
         if (splashScreen.isStartupSuccessful()) {
@@ -43,7 +43,7 @@ public class PerfinApp extends Application {
         }
     }
 
-    private void initMainScreen(Stage stage, Consumer<String> msgConsumer) throws Exception {
+    private void initMainScreen(Stage stage, Consumer<String> msgConsumer) {
         msgConsumer.accept("Initializing main screen.");
         Platform.runLater(() -> {
             stage.hide();
@@ -57,7 +57,7 @@ public class PerfinApp extends Application {
         router.map(route, PerfinApp.class.getResource(resource));
     }
 
-    private static void defineRoutes(Consumer<String> msgConsumer) throws Exception {
+    private static void defineRoutes(Consumer<String> msgConsumer) {
         msgConsumer.accept("Initializing application views.");
         Platform.runLater(() -> {
             mapResourceRoute("accounts", "/accounts-view.fxml");
@@ -80,7 +80,7 @@ public class PerfinApp extends Application {
         }
     }
 
-    private static void loadProfile(Consumer<String> msgConsumer) throws Exception {
+    private static void loadLastUsedProfile(Consumer<String> msgConsumer) throws Exception {
         msgConsumer.accept("Loading the most recent profile.");
         Profile.loadLast();
     }

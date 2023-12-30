@@ -2,6 +2,7 @@ package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.AnchorPaneRouterView;
 import com.andrewlalis.perfin.view.BindingUtil;
+import com.andrewlalis.perfin.view.ProfilesStage;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
@@ -10,13 +11,10 @@ import javafx.scene.layout.HBox;
 import static com.andrewlalis.perfin.PerfinApp.router;
 
 public class MainViewController {
-    @FXML
-    public BorderPane mainContainer;
-    @FXML
-    public HBox breadcrumbHBox;
+    @FXML public BorderPane mainContainer;
+    @FXML public HBox breadcrumbHBox;
 
-    @FXML
-    public void initialize() {
+    @FXML public void initialize() {
         AnchorPaneRouterView routerView = (AnchorPaneRouterView) router.getView();
         mainContainer.setCenter(routerView.getAnchorPane());
 
@@ -36,25 +34,25 @@ public class MainViewController {
         router.navigate("accounts");
     }
 
-    @FXML
-    public void goBack() {
+    @FXML public void goBack() {
         router.navigateBack();
     }
 
-    @FXML
-    public void goForward() {
+    @FXML public void goForward() {
         router.navigateForward();
     }
 
-    @FXML
-    public void goToAccounts() {
+    @FXML public void goToAccounts() {
         router.getHistory().clear();
         router.navigate("accounts");
     }
 
-    @FXML
-    public void goToTransactions() {
+    @FXML public void goToTransactions() {
         router.getHistory().clear();
         router.navigate("transactions");
+    }
+
+    @FXML public void viewProfiles() {
+        ProfilesStage.open(mainContainer.getScene().getWindow());
     }
 }

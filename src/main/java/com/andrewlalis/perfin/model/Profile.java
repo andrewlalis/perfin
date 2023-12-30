@@ -9,10 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -86,6 +83,16 @@ public class Profile {
         }
     }
 
+    public static List<String> getAvailableProfiles() {
+        try (var files = Files.list(PerfinApp.APP_DIR)) {
+            return files.filter(Files::isDirectory)
+                    .map(path -> path.getFileName().toString())
+                    .sorted().toList();
+        } catch (IOException e) {
+            return Collections.emptyList();
+        }
+    }
+
     public static String getLastProfile() {
         Path lastProfileFile = PerfinApp.APP_DIR.resolve("last-profile.txt");
         if (Files.exists(lastProfileFile)) {
@@ -127,7 +134,6 @@ public class Profile {
         for (var c : profileLoadListeners) {
             c.accept(current);
         }
-        profileLoadListeners.clear();
     }
 
     private static void initProfileDir(String name) throws IOException {
@@ -181,6 +187,13 @@ public class Profile {
     }
 
     public static boolean validateName(String name) {
-        return name.matches("\\w+");
+        return name != null &&
+                name.matches("\\w+") &&
+                name.toLowerCase().equals(name);
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

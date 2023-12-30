@@ -16,6 +16,7 @@
                 <Button text="Forward" onAction="#goForward"/>
                 <Button text="Accounts" onAction="#goToAccounts"/>
                 <Button text="Transactions" onAction="#goToTransactions"/>
+                <Button text="Profiles" onAction="#viewProfiles"/>
             </HBox>
             <HBox fx:id="breadcrumbHBox" styleClass="std-spacing,small-text"/>
         </VBox>
