@@ -43,6 +43,24 @@
                     <Label text="Panel 2"/>
                 </VBox>
             </HBox>
+            <Separator/>
+            <VBox>
+                <Label text="History" styleClass="bold-text"/>
+                <VBox>
+                    <ScrollPane fitToHeight="true" fitToWidth="true">
+                        <VBox fx:id="historyItemsVBox" style="-fx-padding: 10px; -fx-spacing: 10px;"/>
+                    </ScrollPane>
+                    <AnchorPane>
+                        <Button
+                                fx:id="loadMoreHistoryButton"
+                                text="Load more history"
+                                onAction="#loadMoreHistory"
+                                AnchorPane.leftAnchor="0.0"
+                                AnchorPane.rightAnchor="0.0"
+                        />
+                    </AnchorPane>
+                </VBox>
+            </VBox>
         </VBox>
     </center>
     <right>

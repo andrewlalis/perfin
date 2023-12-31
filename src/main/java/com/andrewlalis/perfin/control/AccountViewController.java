@@ -1,32 +1,40 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
+import com.andrewlalis.perfin.data.AccountHistoryItemRepository;
+import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.Profile;
+import com.andrewlalis.perfin.model.history.AccountHistoryItem;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.Node;
+import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
 public class AccountViewController implements RouteSelectionListener {
     private Account account;
 
-    @FXML
-    public Label titleLabel;
-    @FXML
-    public TextField accountNameField;
-    @FXML
-    public TextField accountNumberField;
-    @FXML
-    public TextField accountCreatedAtField;
-    @FXML
-    public TextField accountCurrencyField;
-    @FXML
-    public TextField accountBalanceField;
+    @FXML public Label titleLabel;
+    @FXML public TextField accountNameField;
+    @FXML public TextField accountNumberField;
+    @FXML public TextField accountCreatedAtField;
+    @FXML public TextField accountCurrencyField;
+    @FXML public TextField accountBalanceField;
+
+    @FXML public VBox historyItemsVBox;
+    @FXML public Button loadMoreHistoryButton;
+    private LocalDateTime loadHistoryFrom;
+    private final int historyLoadSize = 5;
 
     @Override
     public void onRouteSelected(Object context) {
@@ -38,6 +46,11 @@ public class AccountViewController implements RouteSelectionListener {
         accountCurrencyField.setText(account.getCurrency().getDisplayName());
         accountCreatedAtField.setText(DateUtil.formatUTCAsLocalWithZone(account.getCreatedAt()));
         Profile.getCurrent().getDataSource().getAccountBalanceText(account, accountBalanceField::setText);
+
+        loadHistoryFrom = DateUtil.nowAsUTC();
+        historyItemsVBox.getChildren().clear();
+        loadMoreHistoryButton.setDisable(false);
+        loadMoreHistory();
     }
 
     @FXML
@@ -77,5 +90,57 @@ public class AccountViewController implements RouteSelectionListener {
             router.getHistory().clear();
             router.navigate("accounts");
         }
+    }
+
+    @FXML public void loadMoreHistory() {
+        Thread.ofVirtual().start(() -> {
+            try (var historyRepo = Profile.getCurrent().getDataSource().getAccountHistoryItemRepository()) {
+                List<AccountHistoryItem> historyItems = historyRepo.findMostRecentForAccount(
+                        account.getId(),
+                        loadHistoryFrom,
+                        historyLoadSize
+                );
+                if (historyItems.size() < historyLoadSize) {
+                    Platform.runLater(() -> loadMoreHistoryButton.setDisable(true));
+                } else {
+                    loadHistoryFrom = historyItems.getLast().getTimestamp();
+                }
+                List<Node> nodes = historyItems.stream().map(item -> visualizeHistoryItem(item, historyRepo)).toList();
+                Platform.runLater(() -> historyItemsVBox.getChildren().addAll(nodes));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    private Node visualizeHistoryItem(AccountHistoryItem item, AccountHistoryItemRepository repo) {
+        BorderPane containerPane = new BorderPane();
+        containerPane.setStyle("""
+                -fx-border-color: lightgray;
+                -fx-border-radius: 5px;
+                -fx-padding: 5px;
+                """);
+        Label timestampLabel = new Label(item.getTimestamp().format(DateUtil.DEFAULT_DATETIME_FORMAT));
+        timestampLabel.setStyle("-fx-font-size: small;");
+        containerPane.setTop(timestampLabel);
+        containerPane.setCenter(switch (item.getType()) {
+            case TEXT -> {
+                var text = repo.getTextItem(item.getId());
+                yield new TextFlow(new Text(text));
+            }
+            case ACCOUNT_ENTRY -> {
+                var entry = repo.getAccountEntryItem(item.getId());
+                Text amountText = new Text(CurrencyUtil.formatMoney(entry.getSignedAmount(), entry.getCurrency()));
+                TextFlow text = new TextFlow(new Text("Entry added with value of "), amountText);
+                yield text;
+            }
+            case BALANCE_RECORD -> {
+                var balanceRecord = repo.getBalanceRecordItem(item.getId());
+                Text amountText = new Text(CurrencyUtil.formatMoney(balanceRecord.getBalance(), balanceRecord.getCurrency()));
+                TextFlow text = new TextFlow(new Text("Balance record added with value of "), amountText);
+                yield text;
+            }
+        });
+        return containerPane;
     }
 }

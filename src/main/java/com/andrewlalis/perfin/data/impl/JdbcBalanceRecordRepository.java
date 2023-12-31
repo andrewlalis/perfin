@@ -23,7 +23,7 @@ public record JdbcBalanceRecordRepository(Connection conn, Path contentDir) impl
             long recordId = DbUtil.insertOne(
                     conn,
                     "INSERT INTO balance_record (timestamp, account_id, balance, currency) VALUES (?, ?, ?, ?)",
-                    List.of(DbUtil.timestampFromUtcLDT(utcTimestamp), accountId, balance, currency)
+                    List.of(DbUtil.timestampFromUtcLDT(utcTimestamp), accountId, balance, currency.getCurrencyCode())
             );
             // Insert attachments.
             AttachmentRepository attachmentRepo = new JdbcAttachmentRepository(conn, contentDir);
