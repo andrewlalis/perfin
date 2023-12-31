@@ -1,6 +1,6 @@
 package com.andrewlalis.perfin.model;
 
-import com.andrewlalis.perfin.data.DateUtil;
+import com.andrewlalis.perfin.data.util.DateUtil;
 
 import java.nio.file.Path;
 import java.time.LocalDateTime;

@@ -1,6 +1,5 @@
 package com.andrewlalis.perfin.view;
 
-import com.andrewlalis.perfin.SceneUtil;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;

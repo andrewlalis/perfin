@@ -1,4 +1,4 @@
-package com.andrewlalis.perfin.data;
+package com.andrewlalis.perfin.data.util;
 
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;

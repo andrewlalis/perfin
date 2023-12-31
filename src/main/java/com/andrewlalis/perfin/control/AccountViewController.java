@@ -1,7 +1,7 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
-import com.andrewlalis.perfin.data.DateUtil;
+import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.Profile;
 import javafx.fxml.FXML;

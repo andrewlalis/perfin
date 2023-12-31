@@ -1,8 +1,8 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
-import com.andrewlalis.perfin.Pair;
-import com.andrewlalis.perfin.SceneUtil;
+import com.andrewlalis.perfin.data.util.Pair;
+import com.andrewlalis.perfin.view.SceneUtil;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.data.pagination.Sort;

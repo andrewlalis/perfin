@@ -1,7 +1,7 @@
 package com.andrewlalis.perfin.view.component;
 
-import com.andrewlalis.perfin.data.CurrencyUtil;
-import com.andrewlalis.perfin.data.DateUtil;
+import com.andrewlalis.perfin.data.util.CurrencyUtil;
+import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.model.CreditAndDebitAccounts;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.model.Transaction;

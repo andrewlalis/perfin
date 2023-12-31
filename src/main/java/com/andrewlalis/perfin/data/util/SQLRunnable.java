@@ -1,4 +1,4 @@
-package com.andrewlalis.perfin.data;
+package com.andrewlalis.perfin.data.util;
 
 import java.sql.SQLException;
 

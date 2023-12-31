@@ -2,7 +2,7 @@ package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.AccountEntryRepository;
 import com.andrewlalis.perfin.data.AttachmentRepository;
-import com.andrewlalis.perfin.data.DbUtil;
+import com.andrewlalis.perfin.data.util.DbUtil;
 import com.andrewlalis.perfin.data.TransactionRepository;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;

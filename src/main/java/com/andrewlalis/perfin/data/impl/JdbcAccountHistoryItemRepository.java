@@ -1,7 +1,7 @@
 package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.AccountHistoryItemRepository;
-import com.andrewlalis.perfin.data.DbUtil;
+import com.andrewlalis.perfin.data.util.DbUtil;
 import com.andrewlalis.perfin.model.history.AccountHistoryItemType;
 
 import java.sql.Connection;

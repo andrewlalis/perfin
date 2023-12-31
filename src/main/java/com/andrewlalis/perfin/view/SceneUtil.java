@@ -1,5 +1,6 @@
-package com.andrewlalis.perfin;
+package com.andrewlalis.perfin.view;
 
+import com.andrewlalis.perfin.data.util.Pair;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;

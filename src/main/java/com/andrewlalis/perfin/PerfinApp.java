@@ -3,6 +3,7 @@ package com.andrewlalis.perfin;
 import com.andrewlalis.javafx_scene_router.AnchorPaneRouterView;
 import com.andrewlalis.javafx_scene_router.SceneRouter;
 import com.andrewlalis.perfin.model.Profile;
+import com.andrewlalis.perfin.view.SceneUtil;
 import com.andrewlalis.perfin.view.StartupSplashScreen;
 import javafx.application.Application;
 import javafx.application.Platform;

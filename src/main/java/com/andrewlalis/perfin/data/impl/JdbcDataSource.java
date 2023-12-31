@@ -1,6 +1,7 @@
 package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.*;
+import com.andrewlalis.perfin.data.util.UncheckedSqlException;
 
 import java.nio.file.Path;
 import java.sql.Connection;

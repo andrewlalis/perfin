@@ -1,4 +1,4 @@
-package com.andrewlalis.perfin.data;
+package com.andrewlalis.perfin.data.util;
 
 @FunctionalInterface
 public interface ThrowableConsumer<T> {

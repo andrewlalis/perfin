@@ -1,6 +1,6 @@
 package com.andrewlalis.perfin.control;
 
-import com.andrewlalis.perfin.data.FileUtil;
+import com.andrewlalis.perfin.data.util.FileUtil;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.view.ProfilesStage;
 import javafx.beans.binding.BooleanExpression;

@@ -3,7 +3,7 @@ package com.andrewlalis.perfin.data.impl;
 import com.andrewlalis.perfin.data.AccountHistoryItemRepository;
 import com.andrewlalis.perfin.data.AttachmentRepository;
 import com.andrewlalis.perfin.data.BalanceRecordRepository;
-import com.andrewlalis.perfin.data.DbUtil;
+import com.andrewlalis.perfin.data.util.DbUtil;
 import com.andrewlalis.perfin.model.Attachment;
 import com.andrewlalis.perfin.model.BalanceRecord;
 

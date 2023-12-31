@@ -1,6 +1,6 @@
 package com.andrewlalis.perfin.view;
 
-import com.andrewlalis.perfin.data.ThrowableConsumer;
+import com.andrewlalis.perfin.data.util.ThrowableConsumer;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.TextArea;
