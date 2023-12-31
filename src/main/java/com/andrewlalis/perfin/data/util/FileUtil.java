@@ -1,5 +1,7 @@
 package com.andrewlalis.perfin.data.util;
 
+import javafx.stage.FileChooser;
+
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -53,5 +55,18 @@ public class FileUtil {
 
     public static String getTypeSuffix(Path filePath) {
         return getTypeSuffix(filePath.getFileName().toString());
+    }
+
+    public static FileChooser newAttachmentsFileChooser() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Attachments");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter(
+                        "Attachment Files",
+                        "*.pdf", "*.docx", "*.odt", "*.html", "*.txt", "*.md", "*.xml", "*.json",
+                        "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.bmp", "*.tiff"
+                )
+        );
+        return fileChooser;
     }
 }

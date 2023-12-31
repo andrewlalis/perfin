@@ -44,6 +44,7 @@ public class PerfinApp extends Application {
         splashScreen.showAndWait();
         if (splashScreen.isStartupSuccessful()) {
             stage.show();
+            stage.setMaximized(true);
         }
     }
 
@@ -70,6 +71,7 @@ public class PerfinApp extends Application {
             mapResourceRoute("edit-account", "/edit-account.fxml");
             mapResourceRoute("transactions", "/transactions-view.fxml");
             mapResourceRoute("create-transaction", "/create-transaction.fxml");
+            mapResourceRoute("create-balance-record", "/create-balance-record.fxml");
         });
     }
 

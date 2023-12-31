@@ -14,4 +14,9 @@ public class CurrencyUtil {
         BigDecimal displayValue = amount.setScale(currency.getDefaultFractionDigits(), RoundingMode.HALF_UP);
         return nf.format(displayValue);
     }
+
+    public static String formatMoneyAsBasicNumber(BigDecimal amount, Currency currency) {
+        BigDecimal displayValue = amount.setScale(currency.getDefaultFractionDigits(), RoundingMode.HALF_UP);
+        return displayValue.toString();
+    }
 }

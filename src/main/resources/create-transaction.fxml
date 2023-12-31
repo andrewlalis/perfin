@@ -53,21 +53,12 @@
                         </VBox>
                     </HBox>
                     <Label fx:id="linkedAccountsErrorLabel" styleClass="error-text" wrapText="true"/>
-                    <Label
-                            text="Every transaction must be linked to one of your accounts. In the case of transfer between accounts, then both the sender and receiver accounts should be linked."
-                            styleClass="small-text"
-                            style="-fx-min-width: 100px; -fx-min-height: 100px; -fx-alignment: top-left"
-                            wrapText="true"
-                            VBox.vgrow="NEVER"
-                    />
                 </VBox>
                 <!-- Container for attachments -->
-                <VBox>
+                <VBox fx:id="attachmentsVBox">
                     <Label text="Attachments" styleClass="bold-text"/>
                     <Label text="Attach receipts, invoices, or other content to this transaction." styleClass="small-text" wrapText="true"/>
-                    <VBox fx:id="selectedFilesVBox" styleClass="std-padding,std-spacing" VBox.vgrow="NEVER"/>
-                    <Label text="No attachments selected." fx:id="noSelectedFilesLabel"/>
-                    <Button text="Select attachments" onAction="#selectAttachmentFile"/>
+                    <!-- FileSelectionArea inserted here! -->
                 </VBox>
             </VBox>
         </ScrollPane>

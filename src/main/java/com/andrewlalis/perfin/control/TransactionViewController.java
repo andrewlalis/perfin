@@ -86,7 +86,10 @@ public class TransactionViewController {
             "Are you sure you want to delete this transaction? This will " +
             "permanently remove the transaction and its effects on any linked " +
             "accounts, as well as remove any attachments from storage within " +
-            "this app."
+            "this app.\n\n" +
+            "Note that incorrect or missing transactions can cause your " +
+            "account's balance to be incorrectly reported in Perfin, because " +
+            "it's derived from the most recent balance-record, and transactions."
         );
         if (confirm) {
             Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {

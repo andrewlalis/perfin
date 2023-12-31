@@ -53,6 +53,7 @@
                     <VBox styleClass="std-padding,std-spacing">
                         <Label text="Actions" styleClass="bold-text"/>
                         <Button text="Edit" onAction="#goToEditPage"/>
+                        <Button text="Record Balance" onAction="#goToCreateBalanceRecord"/>
                         <Button text="Archive" onAction="#archiveAccount"/>
                         <Button text="Delete" onAction="#deleteAccount"/>
                     </VBox>

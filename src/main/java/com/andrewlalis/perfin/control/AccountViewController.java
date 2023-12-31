@@ -54,6 +54,10 @@ public class AccountViewController implements RouteSelectionListener {
         router.navigate("edit-account", account);
     }
 
+    @FXML public void goToCreateBalanceRecord() {
+        router.navigate("create-balance-record", account);
+    }
+
     @FXML
     public void archiveAccount() {
         var confirmResult = new Alert(

@@ -42,11 +42,9 @@ public class AccountHistoryItemTile extends BorderPane {
         Text amountText = new Text(CurrencyUtil.formatMoney(entry.getSignedAmount(), entry.getCurrency()));
         Hyperlink transactionLink = new Hyperlink("Transaction #" + entry.getTransactionId());
         return new TextFlow(
-                new Text("Entry added with value of "),
-                amountText,
-                new Text(", linked with "),
                 transactionLink,
-                new Text(".")
+                new Text("posted as a " + entry.getType().name().toLowerCase() + " to this account, with a value of"),
+                amountText
         );
     }
 

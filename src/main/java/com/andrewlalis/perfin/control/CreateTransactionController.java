@@ -2,22 +2,17 @@ package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
 import com.andrewlalis.perfin.data.util.DateUtil;
+import com.andrewlalis.perfin.data.util.FileUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.CreditAndDebitAccounts;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.view.AccountComboBoxCellFactory;
-import com.andrewlalis.perfin.view.BindingUtil;
+import com.andrewlalis.perfin.view.component.FileSelectionArea;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleListProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.DateTimeException;
@@ -45,9 +40,8 @@ public class CreateTransactionController implements RouteSelectionListener {
     @FXML public ComboBox<Account> linkCreditAccountComboBox;
     @FXML public Label linkedAccountsErrorLabel;
 
-    private final ObservableList<File> selectedAttachmentFiles = FXCollections.observableArrayList();
-    @FXML public VBox selectedFilesVBox;
-    @FXML public Label noSelectedFilesLabel;
+    @FXML public VBox attachmentsVBox;
+    private FileSelectionArea attachmentsSelectionArea;
 
     @FXML public void initialize() {
         // Setup error field validation.
@@ -83,40 +77,13 @@ public class CreateTransactionController implements RouteSelectionListener {
             updateLinkAccountComboBoxes(newValue);
         });
 
-        // Show the "no files selected" label when the list is empty. And sync the vbox with the selected files.
-        noSelectedFilesLabel.managedProperty().bind(noSelectedFilesLabel.visibleProperty());
-        var filesListProp = new SimpleListProperty<>(selectedAttachmentFiles);
-        noSelectedFilesLabel.visibleProperty().bind(filesListProp.emptyProperty());
-        BindingUtil.mapContent(selectedFilesVBox.getChildren(), selectedAttachmentFiles, file -> {
-            Label filenameLabel = new Label(file.getName());
-            Button removeButton = new Button("Remove");
-            removeButton.setOnAction(event -> {
-                selectedAttachmentFiles.remove(file);
-            });
-            AnchorPane fileBox = new AnchorPane(filenameLabel, removeButton);
-            AnchorPane.setLeftAnchor(filenameLabel, 0.0);
-            AnchorPane.setRightAnchor(removeButton, 0.0);
-            return fileBox;
-        });
-    }
-
-    @FXML public void selectAttachmentFile() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select Transaction Attachment(s)");
-        fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter(
-                        "Attachment Files",
-                        "*.pdf", "*.docx", "*.odt", "*.html", "*.txt", "*.md", "*.xml", "*.json",
-                        "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.bmp", "*.tiff"
-                )
+        // Initialize the file selection area.
+        attachmentsSelectionArea = new FileSelectionArea(
+                FileUtil::newAttachmentsFileChooser,
+                () -> attachmentsVBox.getScene().getWindow()
         );
-        List<File> files = fileChooser.showOpenMultipleDialog(amountField.getScene().getWindow());
-        if (files == null) return;
-        for (var file : files) {
-            if (selectedAttachmentFiles.stream().noneMatch(f -> !f.equals(file) && f.getName().equals(file.getName()))) {
-                selectedAttachmentFiles.add(file);
-            }
-        }
+        attachmentsSelectionArea.allowMultiple.set(true);
+        attachmentsVBox.getChildren().add(attachmentsSelectionArea);
     }
 
     @FXML public void save() {
@@ -136,7 +103,7 @@ public class CreateTransactionController implements RouteSelectionListener {
             Currency currency = currencyChoiceBox.getValue();
             String description = descriptionField.getText() == null ? null : descriptionField.getText().strip();
             CreditAndDebitAccounts linkedAccounts = getSelectedAccounts();
-            List<Path> attachments = selectedAttachmentFiles.stream().map(File::toPath).toList();
+            List<Path> attachments = attachmentsSelectionArea.getSelectedFiles();
             Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
                 repo.insert(
                         utcTimestamp,
@@ -164,7 +131,7 @@ public class CreateTransactionController implements RouteSelectionListener {
         timestampField.setText(LocalDateTime.now().format(DateUtil.DEFAULT_DATETIME_FORMAT));
         amountField.setText("0");
         descriptionField.setText(null);
-        selectedAttachmentFiles.clear();
+        attachmentsSelectionArea.clear();
         Thread.ofVirtual().start(() -> {
             Profile.getCurrent().getDataSource().useAccountRepository(repo -> {
                 var currencies = repo.findAllUsedCurrencies().stream()

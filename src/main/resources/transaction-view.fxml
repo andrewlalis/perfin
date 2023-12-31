@@ -47,7 +47,7 @@
                     </ScrollPane>
                 </VBox>
                 <FlowPane styleClass="std-padding, std-spacing">
-                    <Button text="Delete" onAction="#deleteTransaction"/>
+                    <Button text="Delete this transaction" onAction="#deleteTransaction"/>
                 </FlowPane>
             </VBox>
         </ScrollPane>
