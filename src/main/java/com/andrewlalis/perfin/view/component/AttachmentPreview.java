@@ -6,7 +6,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -31,17 +30,23 @@ public class AttachmentPreview extends BorderPane {
         nameContainer.setMinHeight(LABEL_SIZE);
         contentContainer.setBottom(nameContainer);
 
-        Rectangle placeholder = new Rectangle(IMAGE_SIZE, IMAGE_SIZE);
-        placeholder.setFill(Color.WHITE);
-        contentContainer.setCenter(placeholder);
-
+        boolean showDocIcon = true;
         Set<String> imageTypes = Set.of("image/png", "image/jpeg", "image/gif", "image/bmp");
         if (imageTypes.contains(attachment.getContentType())) {
             try (var in = Files.newInputStream(attachment.getPath())) {
                 Image img = new Image(in, IMAGE_SIZE, IMAGE_SIZE, true, true);
                 contentContainer.setCenter(new ImageView(img));
+                showDocIcon = false;
             } catch (IOException e) {
                 e.printStackTrace(System.err);
+            }
+        }
+        if (showDocIcon) {
+            try (var in = AttachmentPreview.class.getResourceAsStream("/images/doc-icon.png")) {
+                Image img = new Image(in, IMAGE_SIZE, IMAGE_SIZE, true, true);
+                contentContainer.setCenter(new ImageView(img));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
 

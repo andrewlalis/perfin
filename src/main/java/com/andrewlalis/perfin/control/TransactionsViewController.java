@@ -70,6 +70,12 @@ public class TransactionsViewController implements RouteSelectionListener {
         selectedTransaction.addListener((observable, oldValue, newValue) -> {
             transactionViewController.setTransaction(newValue);
         });
+
+        // Clear the transactions when a new profile is loaded.
+        Profile.whenLoaded(profile -> {
+            transactionsVBox.getChildren().clear();
+            onRouteSelected(null);
+        });
     }
 
     @Override

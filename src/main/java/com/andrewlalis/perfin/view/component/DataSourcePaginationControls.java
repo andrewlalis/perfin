@@ -3,6 +3,7 @@ package com.andrewlalis.perfin.view.component;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.data.pagination.Sort;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -10,11 +11,13 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
 
 /**
@@ -48,8 +51,12 @@ public class DataSourcePaginationControls extends BorderPane {
         maxPagesLabel.textProperty().bind(maxPages.asString());
         TextFlow maxPagesText = new TextFlow(new Text(" / "), maxPagesLabel);
         maxPagesText.managedProperty().bind(maxPagesText.visibleProperty());
-        maxPagesText.visibleProperty().bind(maxPages.isNotEqualTo(-1));
+        maxPagesText.visibleProperty().bind(maxPages.greaterThan(0));
         TextFlow pageText = new TextFlow(new Text("Page "), currentPageLabel, maxPagesText);
+        pageText.setTextAlignment(TextAlignment.CENTER);
+        BorderPane pageTextContainer = new BorderPane(pageText);
+        BorderPane.setAlignment(pageText, Pos.CENTER);
+        pageTextContainer.setStyle("-fx-border-color: blue;");
 
 
         Button previousPageButton = new Button("Previous Page");
@@ -59,38 +66,45 @@ public class DataSourcePaginationControls extends BorderPane {
         nextPageButton.disableProperty().bind(fetching.or(currentPage.greaterThanOrEqualTo(maxPages)));
         nextPageButton.setOnAction(event -> setPage(currentPage.get() + 1));
 
-        sorts.addListener((ListChangeListener<Sort>) c -> {
-            setPage(1);
-        });
+//        sorts.addListener((ListChangeListener<Sort>) c -> {
+//            setPage(1);
+//        });
 
         HBox hbox = new HBox(
                 previousPageButton,
-                pageText,
+                pageTextContainer,
                 nextPageButton
         );
+        hbox.getStyleClass().addAll("std-padding", "std-spacing");
         setCenter(hbox);
     }
 
     public void setPage(int page) {
-        try {
-            fetching.set(true);
-            PageRequest pagination = new PageRequest(page - 1, itemsPerPage.get(), sorts);
-            var p = fetcher.fetchPage(pagination);
-            int totalResults = fetcher.getTotalCount();
-            target.setAll(p.items());
-            if (totalResults != -1) {
-                int max = totalResults / itemsPerPage.get();
-                if (totalResults % itemsPerPage.get() != 0) {
-                    max += 1;
-                }
-                maxPages.set(max);
+        fetching.set(true);
+        PageRequest pagination = new PageRequest(page - 1, itemsPerPage.get(), sorts);
+        Thread.ofVirtual().start(() -> {
+            try {
+                var p = fetcher.fetchPage(pagination);
+                int totalResults = fetcher.getTotalCount();
+                Platform.runLater(() -> {
+                    target.setAll(p.items());
+                    if (totalResults != -1) {
+                        int max = totalResults / itemsPerPage.get();
+                        if (totalResults % itemsPerPage.get() != 0) {
+                            max += 1;
+                        }
+                        maxPages.set(max);
+                    }
+                    currentPage.set(page);
+                    fetching.set(false);
+                });
+            } catch (Exception e) {
+                e.printStackTrace(System.err);
+                Platform.runLater(() -> {
+                    target.clear();
+                    fetching.set(false);
+                });
             }
-            currentPage.set(page);
-        } catch (Exception e) {
-            target.clear();
-            e.printStackTrace(System.err);
-        } finally {
-            fetching.set(false);
-        }
+        });
     }
 }

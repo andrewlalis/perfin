@@ -4,6 +4,9 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Modality;
 
+/**
+ * Helper class for standardized popups and confirmation dialogs for the app.
+ */
 public class Popups {
     public static boolean confirm(String text) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, text);
