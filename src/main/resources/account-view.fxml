@@ -14,37 +14,53 @@
         </HBox>
     </top>
     <center>
-        <VBox styleClass="std-padding,std-spacing">
-            <HBox>
-                <!-- Main account properties. -->
-                <VBox HBox.hgrow="SOMETIMES" style="-fx-border-color: blue">
-                    <VBox styleClass="account-property-box">
-                        <Label text="Name"/>
-                        <TextField fx:id="accountNameField" editable="false"/>
+        <VBox>
+            <!-- Main account properties and actions -->
+            <BorderPane>
+                <center>
+                    <VBox styleClass="std-padding,std-spacing">
+                        <HBox>
+                            <!-- Main account properties. -->
+                            <VBox HBox.hgrow="SOMETIMES">
+                                <VBox styleClass="account-property-box">
+                                    <Label text="Name"/>
+                                    <TextField fx:id="accountNameField" editable="false"/>
+                                </VBox>
+                                <VBox styleClass="account-property-box">
+                                    <Label text="Number"/>
+                                    <TextField fx:id="accountNumberField" editable="false" styleClass="mono-font"/>
+                                </VBox>
+                                <VBox styleClass="account-property-box">
+                                    <Label text="Currency"/>
+                                    <TextField fx:id="accountCurrencyField" editable="false"/>
+                                </VBox>
+                                <VBox styleClass="account-property-box">
+                                    <Label text="Created At"/>
+                                    <TextField fx:id="accountCreatedAtField" editable="false"/>
+                                </VBox>
+                                <VBox styleClass="account-property-box">
+                                    <Label text="Current Balance"/>
+                                    <TextField fx:id="accountBalanceField" editable="false"/>
+                                </VBox>
+                            </VBox>
+                            <VBox HBox.hgrow="SOMETIMES">
+                                <Label text="Panel 2"/>
+                            </VBox>
+                        </HBox>
                     </VBox>
-                    <VBox styleClass="account-property-box">
-                        <Label text="Number"/>
-                        <TextField fx:id="accountNumberField" editable="false" styleClass="mono-font"/>
+                </center>
+                <right>
+                    <VBox styleClass="std-padding,std-spacing">
+                        <Label text="Actions" styleClass="bold-text"/>
+                        <Button text="Edit" onAction="#goToEditPage"/>
+                        <Button text="Archive" onAction="#archiveAccount"/>
+                        <Button text="Delete" onAction="#deleteAccount"/>
                     </VBox>
-                    <VBox styleClass="account-property-box">
-                        <Label text="Currency"/>
-                        <TextField fx:id="accountCurrencyField" editable="false"/>
-                    </VBox>
-                    <VBox styleClass="account-property-box">
-                        <Label text="Created At"/>
-                        <TextField fx:id="accountCreatedAtField" editable="false"/>
-                    </VBox>
-                    <VBox styleClass="account-property-box">
-                        <Label text="Current Balance"/>
-                        <TextField fx:id="accountBalanceField" editable="false"/>
-                    </VBox>
-                </VBox>
-                <VBox HBox.hgrow="SOMETIMES" style="-fx-border-color: red">
-                    <Label text="Panel 2"/>
-                </VBox>
-            </HBox>
-            <Separator/>
-            <VBox>
+                </right>
+            </BorderPane>
+
+            <!-- Account history -->
+            <VBox VBox.vgrow="ALWAYS">
                 <Label text="History" styleClass="bold-text"/>
                 <VBox>
                     <ScrollPane fitToHeight="true" fitToWidth="true">
@@ -63,12 +79,4 @@
             </VBox>
         </VBox>
     </center>
-    <right>
-        <VBox styleClass="std-padding,std-spacing">
-            <Label text="Actions" styleClass="bold-text"/>
-            <Button text="Edit" onAction="#goToEditPage"/>
-            <Button text="Archive" onAction="#archiveAccount"/>
-            <Button text="Delete" onAction="#deleteAccount"/>
-        </VBox>
-    </right>
 </BorderPane>

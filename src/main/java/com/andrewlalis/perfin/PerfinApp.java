@@ -3,6 +3,7 @@ package com.andrewlalis.perfin;
 import com.andrewlalis.javafx_scene_router.AnchorPaneRouterView;
 import com.andrewlalis.javafx_scene_router.SceneRouter;
 import com.andrewlalis.perfin.model.Profile;
+import com.andrewlalis.perfin.view.ImageCache;
 import com.andrewlalis.perfin.view.SceneUtil;
 import com.andrewlalis.perfin.view.StartupSplashScreen;
 import javafx.application.Application;
@@ -20,6 +21,7 @@ import java.util.function.Consumer;
  */
 public class PerfinApp extends Application {
     public static final Path APP_DIR = Path.of(System.getProperty("user.home", "."), ".perfin");
+    public static PerfinApp instance;
 
     /**
      * The router that's used for navigating between different "pages" in the application.
@@ -32,6 +34,7 @@ public class PerfinApp extends Application {
 
     @Override
     public void start(Stage stage) {
+        instance = this;
         var splashScreen = new StartupSplashScreen(List.of(
                 PerfinApp::defineRoutes,
                 PerfinApp::initAppDir,
@@ -51,6 +54,7 @@ public class PerfinApp extends Application {
             Scene mainViewScene = SceneUtil.load("/main-view.fxml");
             stage.setScene(mainViewScene);
             stage.setTitle("Perfin");
+            stage.getIcons().add(ImageCache.getLogo64());
         });
     }
 

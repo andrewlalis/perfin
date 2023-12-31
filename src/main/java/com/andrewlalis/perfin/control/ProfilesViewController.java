@@ -1,5 +1,6 @@
 package com.andrewlalis.perfin.control;
 
+import com.andrewlalis.perfin.PerfinApp;
 import com.andrewlalis.perfin.data.util.FileUtil;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.view.ProfilesStage;
@@ -95,6 +96,11 @@ public class ProfilesViewController {
             openButton.setOnAction(event -> openProfile(profileName, false));
             openButton.setDisable(isCurrent);
             buttonBox.getChildren().add(openButton);
+            Button viewFilesButton = new Button("View Files");
+            viewFilesButton.setOnAction(event -> {
+                PerfinApp.instance.getHostServices().showDocument(Profile.getDir(profileName).toUri().toString());
+            });
+            buttonBox.getChildren().add(viewFilesButton);
             Button deleteButton = new Button("Delete");
             deleteButton.setOnAction(event -> deleteProfile(profileName));
             buttonBox.getChildren().add(deleteButton);

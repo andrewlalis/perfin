@@ -8,6 +8,11 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.andrewlalis.perfin.control.TransactionViewController"
 >
+    <top>
+        <HBox styleClass="std-padding,std-spacing">
+            <Label fx:id="titleLabel" styleClass="large-text,bold-text"/>
+        </HBox>
+    </top>
     <center>
         <ScrollPane fitToHeight="true" fitToWidth="true">
             <VBox styleClass="std-padding,std-spacing">

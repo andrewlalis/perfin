@@ -2,6 +2,7 @@ package com.andrewlalis.perfin.view.component;
 
 import com.andrewlalis.perfin.model.Attachment;
 import com.andrewlalis.perfin.model.Profile;
+import com.andrewlalis.perfin.view.ImageCache;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -43,13 +44,7 @@ public class AttachmentPreview extends BorderPane {
             }
         }
         if (showDocIcon) {
-            try (var in = AttachmentPreview.class.getResourceAsStream("/images/doc-icon.png")) {
-                if (in == null) throw new NullPointerException("Missing /images/doc-icon.png resource.");
-                Image img = new Image(in, IMAGE_SIZE, IMAGE_SIZE, true, true);
-                contentContainer.setCenter(new ImageView(img));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            contentContainer.setCenter(new ImageView(ImageCache.instance.get("/images/doc-icon.png", 64, 64, true, true)));
         }
 
         BorderPane hoverIndicatorPane = new BorderPane();

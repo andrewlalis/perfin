@@ -1,20 +1,16 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
-import com.andrewlalis.perfin.data.AccountHistoryItemRepository;
-import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.model.history.AccountHistoryItem;
+import com.andrewlalis.perfin.view.component.AccountHistoryItemTile;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,7 +35,7 @@ public class AccountViewController implements RouteSelectionListener {
     @Override
     public void onRouteSelected(Object context) {
         account = (Account) context;
-        titleLabel.setText("Account: " + account.getAccountNumber());
+        titleLabel.setText("Account #" + account.getId());
 
         accountNameField.setText(account.getName());
         accountNumberField.setText(account.getAccountNumber());
@@ -105,42 +101,13 @@ public class AccountViewController implements RouteSelectionListener {
                 } else {
                     loadHistoryFrom = historyItems.getLast().getTimestamp();
                 }
-                List<Node> nodes = historyItems.stream().map(item -> visualizeHistoryItem(item, historyRepo)).toList();
+                List<? extends Node> nodes = historyItems.stream()
+                        .map(item -> new AccountHistoryItemTile(item, historyRepo))
+                        .toList();
                 Platform.runLater(() -> historyItemsVBox.getChildren().addAll(nodes));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         });
-    }
-
-    private Node visualizeHistoryItem(AccountHistoryItem item, AccountHistoryItemRepository repo) {
-        BorderPane containerPane = new BorderPane();
-        containerPane.setStyle("""
-                -fx-border-color: lightgray;
-                -fx-border-radius: 5px;
-                -fx-padding: 5px;
-                """);
-        Label timestampLabel = new Label(item.getTimestamp().format(DateUtil.DEFAULT_DATETIME_FORMAT));
-        timestampLabel.setStyle("-fx-font-size: small;");
-        containerPane.setTop(timestampLabel);
-        containerPane.setCenter(switch (item.getType()) {
-            case TEXT -> {
-                var text = repo.getTextItem(item.getId());
-                yield new TextFlow(new Text(text));
-            }
-            case ACCOUNT_ENTRY -> {
-                var entry = repo.getAccountEntryItem(item.getId());
-                Text amountText = new Text(CurrencyUtil.formatMoney(entry.getSignedAmount(), entry.getCurrency()));
-                TextFlow text = new TextFlow(new Text("Entry added with value of "), amountText);
-                yield text;
-            }
-            case BALANCE_RECORD -> {
-                var balanceRecord = repo.getBalanceRecordItem(item.getId());
-                Text amountText = new Text(CurrencyUtil.formatMoney(balanceRecord.getBalance(), balanceRecord.getCurrency()));
-                TextFlow text = new TextFlow(new Text("Balance record added with value of "), amountText);
-                yield text;
-            }
-        });
-        return containerPane;
     }
 }

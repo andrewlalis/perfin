@@ -27,6 +27,8 @@ import static com.andrewlalis.perfin.PerfinApp.router;
 public class TransactionViewController {
     private Transaction transaction;
 
+    @FXML public Label titleLabel;
+
     @FXML public Label amountLabel;
     @FXML public Label timestampLabel;
     @FXML public Label descriptionLabel;
@@ -41,6 +43,7 @@ public class TransactionViewController {
     public void setTransaction(Transaction transaction) {
         this.transaction = transaction;
         if (transaction == null) return;
+        titleLabel.setText("Transaction #" + transaction.getId());
         amountLabel.setText(CurrencyUtil.formatMoney(transaction.getAmount(), transaction.getCurrency()));
         timestampLabel.setText(DateUtil.formatUTCAsLocalWithZone(transaction.getTimestamp()));
         descriptionLabel.setText(transaction.getDescription());
