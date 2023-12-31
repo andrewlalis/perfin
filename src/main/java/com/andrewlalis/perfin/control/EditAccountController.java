@@ -3,7 +3,6 @@ package com.andrewlalis.perfin.control;
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.AccountType;
-import com.andrewlalis.perfin.model.BalanceRecord;
 import com.andrewlalis.perfin.model.Profile;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -12,6 +11,9 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
 import java.math.BigDecimal;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -84,6 +86,7 @@ public class EditAccountController implements RouteSelectionListener {
                 AccountType type = accountTypeChoiceBox.getValue();
                 Currency currency = accountCurrencyComboBox.getValue();
                 BigDecimal initialBalance = new BigDecimal(initialBalanceField.getText().strip());
+                List<Path> attachments = Collections.emptyList();
 
                 Alert confirm = new Alert(
                         Alert.AlertType.CONFIRMATION,
@@ -92,14 +95,13 @@ public class EditAccountController implements RouteSelectionListener {
                 Optional<ButtonType> result = confirm.showAndWait();
                 boolean success = result.isPresent() && result.get().equals(ButtonType.OK);
                 if (success) {
-                    Account newAccount = new Account(type, number, name, currency);
-                    long id = accountRepo.insert(newAccount);
-                    Account savedAccount = accountRepo.findById(id).orElseThrow();
-                    balanceRepo.insert(new BalanceRecord(id, initialBalance, savedAccount.getCurrency()));
+                    long id = accountRepo.insert(type, number, name, currency);
+                    balanceRepo.insert(LocalDateTime.now(ZoneOffset.UTC), id, initialBalance, currency, attachments);
 
                     // Once we create the new account, go to the account.
+                    Account newAccount = accountRepo.findById(id).orElseThrow();
                     router.getHistory().clear();
-                    router.navigate("account", savedAccount);
+                    router.navigate("account", newAccount);
                 }
             } else {
                 System.out.println("Updating account " + account.getName());
@@ -113,7 +115,7 @@ public class EditAccountController implements RouteSelectionListener {
                 router.navigate("account", updatedAccount);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(System.err);
         }
     }
 

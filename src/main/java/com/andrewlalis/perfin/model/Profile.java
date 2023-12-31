@@ -148,7 +148,7 @@ public class Profile {
         String databaseFilename = getDatabaseFile(name).toAbsolutePath().toString();
         String jdbcUrl = "jdbc:h2:" + databaseFilename.substring(0, databaseFilename.length() - 6);
         boolean exists = Files.exists(getDatabaseFile(name));
-        JdbcDataSource dataSource = new JdbcDataSource(jdbcUrl);
+        JdbcDataSource dataSource = new JdbcDataSource(jdbcUrl, getContentDir(name));
         if (!exists) {// Initialize the datasource using schema.sql.
             try (var in = Profile.class.getResourceAsStream("/sql/schema.sql"); var conn = dataSource.getConnection()) {
                 if (in == null) throw new IOException("Could not load /sql/schema.sql");

@@ -1,6 +1,7 @@
 package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.AccountRepository;
+import com.andrewlalis.perfin.data.DateUtil;
 import com.andrewlalis.perfin.data.DbUtil;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
@@ -19,18 +20,24 @@ import java.util.*;
 
 public record JdbcAccountRepository(Connection conn) implements AccountRepository {
     @Override
-    public long insert(Account account) {
-        return DbUtil.insertOne(
-                conn,
-                "INSERT INTO account (created_at, account_type, account_number, name, currency) VALUES (?, ?, ?, ?, ?)",
-                List.of(
-                        DbUtil.timestampFromUtcNow(),
-                        account.getType().name(),
-                        account.getAccountNumber(),
-                        account.getName(),
-                        account.getCurrency().getCurrencyCode()
-                )
-        );
+    public long insert(AccountType type, String accountNumber, String name, Currency currency) {
+        return DbUtil.doTransaction(conn, () -> {
+            long accountId = DbUtil.insertOne(
+                    conn,
+                    "INSERT INTO account (created_at, account_type, account_number, name, currency) VALUES (?, ?, ?, ?, ?)",
+                    List.of(
+                            DbUtil.timestampFromUtcNow(),
+                            type.name(),
+                            accountNumber,
+                            name,
+                            currency.getCurrencyCode()
+                    )
+            );
+            // Insert a history item indicating the creation of the account.
+            var historyRepo = new JdbcAccountHistoryItemRepository(conn);
+            historyRepo.recordText(DateUtil.nowAsUTC(), accountId, "Account added to your Perfin profile.");
+            return accountId;
+        });
     }
 
     @Override

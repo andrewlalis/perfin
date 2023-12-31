@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
  * A file that's been attached to a transaction as additional context for it,
  * like a receipt or invoice copy.
  */
+@Deprecated
 public class TransactionAttachment {
     private long id;
     private LocalDateTime uploadedAt;

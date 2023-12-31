@@ -5,6 +5,7 @@ import com.andrewlalis.perfin.model.Account;
 import javafx.application.Platform;
 
 import java.math.BigDecimal;
+import java.nio.file.Path;
 import java.util.Currency;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +13,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public interface DataSource {
+    Path getContentDir();
+
     AccountRepository getAccountRepository();
     default void useAccountRepository(ThrowableConsumer<AccountRepository> repoConsumer) {
         DbUtil.useClosable(this::getAccountRepository, repoConsumer);
@@ -26,6 +29,13 @@ public interface DataSource {
     default void useTransactionRepository(ThrowableConsumer<TransactionRepository> repoConsumer) {
         DbUtil.useClosable(this::getTransactionRepository, repoConsumer);
     }
+
+    AttachmentRepository getAttachmentRepository();
+    default void useAttachmentRepository(ThrowableConsumer<AttachmentRepository> repoConsumer) {
+        DbUtil.useClosable(this::getAttachmentRepository, repoConsumer);
+    }
+
+    AccountHistoryItemRepository getAccountHistoryItemRepository();
 
     // Utility methods:
 

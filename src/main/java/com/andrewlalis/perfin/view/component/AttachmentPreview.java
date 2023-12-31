@@ -1,6 +1,7 @@
 package com.andrewlalis.perfin.view.component;
 
-import com.andrewlalis.perfin.model.TransactionAttachment;
+import com.andrewlalis.perfin.model.Attachment;
+import com.andrewlalis.perfin.model.Profile;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -20,7 +21,7 @@ public class AttachmentPreview extends BorderPane {
     public static final double LABEL_SIZE = 18.0;
     public static final double HEIGHT = IMAGE_SIZE + LABEL_SIZE;
 
-    public AttachmentPreview(TransactionAttachment attachment) {
+    public AttachmentPreview(Attachment attachment) {
         BorderPane contentContainer = new BorderPane();
         Label nameLabel = new Label(attachment.getFilename());
         nameLabel.setStyle("-fx-font-size: small;");
@@ -33,7 +34,7 @@ public class AttachmentPreview extends BorderPane {
         boolean showDocIcon = true;
         Set<String> imageTypes = Set.of("image/png", "image/jpeg", "image/gif", "image/bmp");
         if (imageTypes.contains(attachment.getContentType())) {
-            try (var in = Files.newInputStream(attachment.getPath())) {
+            try (var in = Files.newInputStream(attachment.getPath(Profile.getContentDir(Profile.getCurrent().getName())))) {
                 Image img = new Image(in, IMAGE_SIZE, IMAGE_SIZE, true, true);
                 contentContainer.setCenter(new ImageView(img));
                 showDocIcon = false;
@@ -43,6 +44,7 @@ public class AttachmentPreview extends BorderPane {
         }
         if (showDocIcon) {
             try (var in = AttachmentPreview.class.getResourceAsStream("/images/doc-icon.png")) {
+                if (in == null) throw new NullPointerException("Missing /images/doc-icon.png resource.");
                 Image img = new Image(in, IMAGE_SIZE, IMAGE_SIZE, true, true);
                 contentContainer.setCenter(new ImageView(img));
             } catch (IOException e) {

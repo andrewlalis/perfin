@@ -17,4 +17,16 @@ public class DateUtil {
                 .atZoneSameInstant(ZoneId.systemDefault())
                 .format(DEFAULT_DATETIME_FORMAT_WITH_ZONE);
     }
+
+    public static LocalDateTime localToUTC(LocalDateTime localTime, ZoneId localZone) {
+        return localTime.atZone(localZone).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
+    }
+
+    public static LocalDateTime localToUTC(LocalDateTime localTime) {
+        return localToUTC(localTime, ZoneId.systemDefault());
+    }
+
+    public static LocalDateTime nowAsUTC() {
+        return LocalDateTime.now(ZoneOffset.UTC);
+    }
 }

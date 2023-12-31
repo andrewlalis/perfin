@@ -2,8 +2,9 @@ package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
 import com.andrewlalis.perfin.data.DateUtil;
-import com.andrewlalis.perfin.data.FileUtil;
-import com.andrewlalis.perfin.model.*;
+import com.andrewlalis.perfin.model.Account;
+import com.andrewlalis.perfin.model.CreditAndDebitAccounts;
+import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.view.AccountComboBoxCellFactory;
 import com.andrewlalis.perfin.view.BindingUtil;
 import javafx.application.Platform;
@@ -17,14 +18,15 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
 import java.io.File;
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Currency;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
@@ -129,36 +131,21 @@ public class CreateTransactionController implements RouteSelectionListener {
             );
             alert.show();
         } else {
-            LocalDateTime timestamp = parseTimestamp();
+            LocalDateTime utcTimestamp = DateUtil.localToUTC(parseTimestamp());
             BigDecimal amount = new BigDecimal(amountField.getText());
             Currency currency = currencyChoiceBox.getValue();
             String description = descriptionField.getText() == null ? null : descriptionField.getText().strip();
-            Map<Long, AccountEntry.Type> affectedAccounts = getSelectedAccounts();
-            List<TransactionAttachment> attachments = selectedAttachmentFiles.stream()
-                    .map(file -> {
-                        String filename = file.getName();
-                        String filetypeSuffix = filename.substring(filename.lastIndexOf('.'));
-                        String mimeType = FileUtil.MIMETYPES.get(filetypeSuffix);
-                        return new TransactionAttachment(filename, mimeType);
-                    }).toList();
-            Transaction transaction = new Transaction(timestamp, amount, currency, description);
+            CreditAndDebitAccounts linkedAccounts = getSelectedAccounts();
+            List<Path> attachments = selectedAttachmentFiles.stream().map(File::toPath).toList();
             Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
-                long txId = repo.insert(transaction, affectedAccounts);
-                repo.addAttachments(txId, attachments);
-                // Copy the actual attachment files to their new locations.
-                for (var attachment : repo.findAttachments(txId)) {
-                    Path filePath = attachment.getPath();
-                    Path dirPath = filePath.getParent();
-                    Path originalFilePath = selectedAttachmentFiles.stream()
-                            .filter(file -> file.getName().equals(attachment.getFilename()))
-                            .findFirst().orElseThrow().toPath();
-                    try {
-                        Files.createDirectories(dirPath);
-                        Files.copy(originalFilePath, filePath);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
+                repo.insert(
+                        utcTimestamp,
+                        amount,
+                        currency,
+                        description,
+                        linkedAccounts,
+                        attachments
+                );
             });
             router.navigateBackAndClear();
         }
@@ -191,13 +178,11 @@ public class CreateTransactionController implements RouteSelectionListener {
         });
     }
 
-    private Map<Long, AccountEntry.Type> getSelectedAccounts() {
-        Account debitAccount = linkDebitAccountComboBox.getValue();
-        Account creditAccount = linkCreditAccountComboBox.getValue();
-        Map<Long, AccountEntry.Type> accountsMap = new HashMap<>();
-        if (debitAccount != null) accountsMap.put(debitAccount.getId(), AccountEntry.Type.DEBIT);
-        if (creditAccount != null) accountsMap.put(creditAccount.getId(), AccountEntry.Type.CREDIT);
-        return accountsMap;
+    private CreditAndDebitAccounts getSelectedAccounts() {
+        return new CreditAndDebitAccounts(
+                linkCreditAccountComboBox.getValue(),
+                linkDebitAccountComboBox.getValue()
+        );
     }
 
     private LocalDateTime parseTimestamp() {

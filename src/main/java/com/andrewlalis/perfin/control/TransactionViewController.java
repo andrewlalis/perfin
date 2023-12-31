@@ -2,10 +2,10 @@ package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.perfin.data.CurrencyUtil;
 import com.andrewlalis.perfin.data.DateUtil;
+import com.andrewlalis.perfin.model.Attachment;
 import com.andrewlalis.perfin.model.CreditAndDebitAccounts;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.model.Transaction;
-import com.andrewlalis.perfin.model.TransactionAttachment;
 import com.andrewlalis.perfin.view.BindingUtil;
 import com.andrewlalis.perfin.view.component.AttachmentPreview;
 import javafx.application.Platform;
@@ -36,7 +36,7 @@ public class TransactionViewController {
 
     @FXML public VBox attachmentsContainer;
     @FXML public HBox attachmentsHBox;
-    private final ObservableList<TransactionAttachment> attachmentsList = FXCollections.observableArrayList();
+    private final ObservableList<Attachment> attachmentsList = FXCollections.observableArrayList();
 
     public void setTransaction(Transaction transaction) {
         this.transaction = transaction;
@@ -67,7 +67,7 @@ public class TransactionViewController {
         attachmentsContainer.visibleProperty().bind(new SimpleListProperty<>(attachmentsList).emptyProperty().not());
         Thread.ofVirtual().start(() -> {
             Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
-                List<TransactionAttachment> attachments = repo.findAttachments(transaction.getId());
+                List<Attachment> attachments = repo.findAttachments(transaction.getId());
                 Platform.runLater(() -> attachmentsList.setAll(attachments));
             });
         });

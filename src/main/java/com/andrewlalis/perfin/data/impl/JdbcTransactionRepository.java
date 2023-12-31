@@ -1,84 +1,58 @@
 package com.andrewlalis.perfin.data.impl;
 
+import com.andrewlalis.perfin.data.AccountEntryRepository;
+import com.andrewlalis.perfin.data.AttachmentRepository;
 import com.andrewlalis.perfin.data.DbUtil;
 import com.andrewlalis.perfin.data.TransactionRepository;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.model.*;
 
+import java.math.BigDecimal;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.*;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Currency;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-public record JdbcTransactionRepository(Connection conn) implements TransactionRepository {
+public record JdbcTransactionRepository(Connection conn, Path contentDir) implements TransactionRepository {
     @Override
-    public long insert(Transaction transaction, Map<Long, AccountEntry.Type> accountsMap) {
-        final Timestamp timestamp = DbUtil.timestampFromUtcNow();
+    public long insert(
+            LocalDateTime utcTimestamp,
+            BigDecimal amount,
+            Currency currency,
+            String description,
+            CreditAndDebitAccounts linkedAccounts,
+            List<Path> attachments
+    ) {
         return DbUtil.doTransaction(conn, () -> {
-            long txId = insertTransaction(timestamp, transaction);
-            insertAccountEntriesForTransaction(timestamp, txId, transaction, accountsMap);
+            // 1. Insert the transaction.
+            long txId = DbUtil.insertOne(
+                    conn,
+                    "INSERT INTO transaction (timestamp, amount, currency, description) VALUES (?, ?, ?, ?)",
+                    List.of(DbUtil.timestampFromUtcLDT(utcTimestamp), amount, currency.getCurrencyCode(), description)
+            );
+            // 2. Insert linked account entries.
+            AccountEntryRepository accountEntryRepository = new JdbcAccountEntryRepository(conn);
+            linkedAccounts.ifDebit(acc -> accountEntryRepository.insert(utcTimestamp, acc.getId(), txId, amount, AccountEntry.Type.DEBIT, currency));
+            linkedAccounts.ifCredit(acc -> accountEntryRepository.insert(utcTimestamp, acc.getId(), txId, amount, AccountEntry.Type.CREDIT, currency));
+            // 3. Add attachments.
+            AttachmentRepository attachmentRepo = new JdbcAttachmentRepository(conn, contentDir);
+            try (var stmt = conn.prepareStatement("INSERT INTO transaction_attachment (transaction_id, attachment_id) VALUES (?, ?)")) {
+                for (var attachmentPath : attachments) {
+                    Attachment attachment = attachmentRepo.insert(attachmentPath);
+                    // Insert the link-table entry.
+                    DbUtil.setArgs(stmt, txId, attachment.getId());
+                    stmt.executeUpdate();
+                }
+            }
             return txId;
         });
-    }
-
-    @Override
-    public void addAttachments(long transactionId, List<TransactionAttachment> attachments) {
-        final Timestamp timestamp = DbUtil.timestampFromUtcNow();
-        DbUtil.doTransaction(conn, () -> {
-            for (var attachment : attachments) {
-                DbUtil.insertOne(
-                        conn,
-                        "INSERT INTO transaction_attachment (uploaded_at, transaction_id, filename, content_type) VALUES (?, ?, ?, ?)",
-                        List.of(
-                                timestamp,
-                                transactionId,
-                                attachment.getFilename(),
-                                attachment.getContentType()
-                        )
-                );
-            }
-        });
-    }
-
-    private long insertTransaction(Timestamp timestamp, Transaction transaction) {
-        return DbUtil.insertOne(
-                conn,
-                "INSERT INTO transaction (timestamp, amount, currency, description) VALUES (?, ?, ?, ?)",
-                List.of(
-                        timestamp,
-                        transaction.getAmount(),
-                        transaction.getCurrency().getCurrencyCode(),
-                        transaction.getDescription()
-                )
-        );
-    }
-
-    private void insertAccountEntriesForTransaction(
-            Timestamp timestamp,
-            long txId,
-            Transaction transaction,
-            Map<Long, AccountEntry.Type> accountsMap
-    ) throws SQLException {
-        try (var stmt = conn.prepareStatement(
-                "INSERT INTO account_entry (timestamp, account_id, transaction_id, amount, type, currency) VALUES (?, ?, ?, ?, ?, ?)"
-        )) {
-            for (var entry : accountsMap.entrySet()) {
-                long accountId = entry.getKey();
-                AccountEntry.Type entryType = entry.getValue();
-                DbUtil.setArgs(stmt, List.of(
-                        timestamp,
-                        accountId,
-                        txId,
-                        transaction.getAmount(),
-                        entryType.name(),
-                        transaction.getCurrency().getCurrencyCode()
-                ));
-                stmt.executeUpdate();
-            }
-        }
     }
 
     @Override
@@ -87,7 +61,7 @@ public record JdbcTransactionRepository(Connection conn) implements TransactionR
                 conn,
                 "SELECT * FROM transaction",
                 pagination,
-                JdbcTransactionRepository::parse
+                JdbcTransactionRepository::parseTransaction
         );
     }
 
@@ -105,28 +79,7 @@ public record JdbcTransactionRepository(Connection conn) implements TransactionR
                 LEFT JOIN account_entry ON account_entry.transaction_id = transaction.id
                 WHERE account_entry.account_id IN (%s)
                 """, idsStr);
-        return DbUtil.findAll(conn, query, pagination, JdbcTransactionRepository::parse);
-    }
-
-    @Override
-    public Map<AccountEntry, Account> findEntriesWithAccounts(long transactionId) {
-        List<AccountEntry> entries = DbUtil.findAll(
-                conn,
-                "SELECT * FROM account_entry WHERE transaction_id = ?",
-                List.of(transactionId),
-                JdbcAccountEntryRepository::parse
-        );
-        Map<AccountEntry, Account> map = new HashMap<>();
-        for (var entry : entries) {
-            Account account = DbUtil.findOne(
-                    conn,
-                    "SELECT * FROM account WHERE id = ?",
-                    List.of(entry.getAccountId()),
-                    JdbcAccountRepository::parseAccount
-            ).orElseThrow();
-            map.put(entry, account);
-        }
-        return map;
+        return DbUtil.findAll(conn, query, pagination, JdbcTransactionRepository::parseTransaction);
     }
 
     @Override
@@ -157,12 +110,17 @@ public record JdbcTransactionRepository(Connection conn) implements TransactionR
     }
 
     @Override
-    public List<TransactionAttachment> findAttachments(long transactionId) {
+    public List<Attachment> findAttachments(long transactionId) {
         return DbUtil.findAll(
                 conn,
-                "SELECT * FROM transaction_attachment WHERE transaction_id = ? ORDER BY filename ASC",
+                """
+                        SELECT *
+                        FROM attachment
+                        LEFT JOIN transaction_attachment ta ON ta.attachment_id = attachment.id
+                        WHERE ta.transaction_id = ?
+                        ORDER BY uploaded_at ASC, filename ASC""",
                 List.of(transactionId),
-                JdbcTransactionRepository::parseAttachment
+                JdbcAttachmentRepository::parseAttachment
         );
     }
 
@@ -176,23 +134,13 @@ public record JdbcTransactionRepository(Connection conn) implements TransactionR
         conn.close();
     }
 
-    public static Transaction parse(ResultSet rs) throws SQLException {
+    public static Transaction parseTransaction(ResultSet rs) throws SQLException {
         return new Transaction(
                 rs.getLong("id"),
                 DbUtil.utcLDTFromTimestamp(rs.getTimestamp("timestamp")),
                 rs.getBigDecimal("amount"),
                 Currency.getInstance(rs.getString("currency")),
                 rs.getString("description")
-        );
-    }
-
-    public static TransactionAttachment parseAttachment(ResultSet rs) throws SQLException {
-        return new TransactionAttachment(
-                rs.getLong("id"),
-                DbUtil.utcLDTFromTimestamp(rs.getTimestamp("uploaded_at")),
-                rs.getLong("transaction_id"),
-                rs.getString("filename"),
-                rs.getString("content_type")
         );
     }
 }

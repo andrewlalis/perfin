@@ -2,6 +2,7 @@ package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.*;
 
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -12,9 +13,11 @@ import java.sql.SQLException;
  */
 public class JdbcDataSource implements DataSource {
     private final String jdbcUrl;
+    private final Path contentDir;
 
-    public JdbcDataSource(String jdbcUrl) {
+    public JdbcDataSource(String jdbcUrl, Path contentDir) {
         this.jdbcUrl = jdbcUrl;
+        this.contentDir = contentDir;
     }
 
     public Connection getConnection() {
@@ -26,17 +29,32 @@ public class JdbcDataSource implements DataSource {
     }
 
     @Override
+    public Path getContentDir() {
+        return contentDir;
+    }
+
+    @Override
     public AccountRepository getAccountRepository() {
         return new JdbcAccountRepository(getConnection());
     }
 
     @Override
     public BalanceRecordRepository getBalanceRecordRepository() {
-        return new JdbcBalanceRecordRepository(getConnection());
+        return new JdbcBalanceRecordRepository(getConnection(), contentDir);
     }
 
     @Override
     public TransactionRepository getTransactionRepository() {
-        return new JdbcTransactionRepository(getConnection());
+        return new JdbcTransactionRepository(getConnection(), contentDir);
+    }
+
+    @Override
+    public AttachmentRepository getAttachmentRepository() {
+        return new JdbcAttachmentRepository(getConnection(), contentDir);
+    }
+
+    @Override
+    public AccountHistoryItemRepository getAccountHistoryItemRepository() {
+        return new JdbcAccountHistoryItemRepository(getConnection());
     }
 }

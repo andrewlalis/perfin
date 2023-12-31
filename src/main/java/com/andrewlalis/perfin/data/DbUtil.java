@@ -27,6 +27,10 @@ public final class DbUtil {
         }
     }
 
+    public static void setArgs(PreparedStatement stmt, Object... args) {
+        setArgs(stmt, List.of(args));
+    }
+
     public static <T> List<T> findAll(Connection conn, String query, List<Object> args, ResultSetMapper<T> mapper) {
         try (var stmt = conn.prepareStatement(query)) {
             setArgs(stmt, args);

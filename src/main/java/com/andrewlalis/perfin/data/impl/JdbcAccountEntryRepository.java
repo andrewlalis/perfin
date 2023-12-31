@@ -1,16 +1,41 @@
 package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.AccountEntryRepository;
+import com.andrewlalis.perfin.data.AccountHistoryItemRepository;
 import com.andrewlalis.perfin.data.DbUtil;
 import com.andrewlalis.perfin.model.AccountEntry;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.Currency;
 import java.util.List;
 
 public record JdbcAccountEntryRepository(Connection conn) implements AccountEntryRepository {
+    @Override
+    public long insert(LocalDateTime timestamp, long accountId, long transactionId, BigDecimal amount, AccountEntry.Type type, Currency currency) {
+        long entryId = DbUtil.insertOne(
+                conn,
+                """
+                        INSERT INTO account_entry (timestamp, account_id, transaction_id, amount, type, currency)
+                        VALUES (?, ?, ?, ?, ?, ?)""",
+                List.of(
+                        DbUtil.timestampFromUtcLDT(timestamp),
+                        accountId,
+                        transactionId,
+                        amount,
+                        type.name(),
+                        currency.getCurrencyCode()
+                )
+        );
+        // Insert an entry into the account's history.
+        AccountHistoryItemRepository historyRepo = new JdbcAccountHistoryItemRepository(conn);
+        historyRepo.recordAccountEntry(timestamp, accountId, entryId);
+        return entryId;
+    }
+
     @Override
     public List<AccountEntry> findAllByAccountId(long accountId) {
         return DbUtil.findAll(

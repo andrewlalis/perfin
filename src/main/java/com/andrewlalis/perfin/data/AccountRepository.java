@@ -3,6 +3,7 @@ package com.andrewlalis.perfin.data;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.model.Account;
+import com.andrewlalis.perfin.model.AccountType;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -13,7 +14,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface AccountRepository extends AutoCloseable {
-    long insert(Account account);
+    long insert(AccountType type, String accountNumber, String name, Currency currency);
     Page<Account> findAll(PageRequest pagination);
     List<Account> findAllByCurrency(Currency currency);
     Optional<Account> findById(long id);

@@ -44,4 +44,14 @@ public class FileUtil {
             }
         });
     }
+
+    public static String getTypeSuffix(String filename) {
+        int lastDotIdx = filename.lastIndexOf('.');
+        if (lastDotIdx == -1) return "";
+        return filename.substring(lastDotIdx);
+    }
+
+    public static String getTypeSuffix(Path filePath) {
+        return getTypeSuffix(filePath.getFileName().toString());
+    }
 }
