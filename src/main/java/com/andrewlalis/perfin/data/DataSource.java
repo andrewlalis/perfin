@@ -15,7 +15,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+/**
+ * Interface for methods to obtain any data from a {@link com.andrewlalis.perfin.model.Profile}
+ * instance. Usually, you'll obtain a repository to interact with entities of a
+ * certain type.
+ */
 public interface DataSource {
+    /**
+     * Gets the directory in which file content is stored.
+     * @return The content directory.
+     */
     Path getContentDir();
 
     AccountRepository getAccountRepository();
