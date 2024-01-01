@@ -9,7 +9,6 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -19,6 +18,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * A pane that contains some controls for navigating a paginated data source.
@@ -66,10 +67,6 @@ public class DataSourcePaginationControls extends BorderPane {
         nextPageButton.disableProperty().bind(fetching.or(currentPage.greaterThanOrEqualTo(maxPages)));
         nextPageButton.setOnAction(event -> setPage(currentPage.get() + 1));
 
-//        sorts.addListener((ListChangeListener<Sort>) c -> {
-//            setPage(1);
-//        });
-
         HBox hbox = new HBox(
                 previousPageButton,
                 pageTextContainer,
@@ -79,7 +76,8 @@ public class DataSourcePaginationControls extends BorderPane {
         setCenter(hbox);
     }
 
-    public void setPage(int page) {
+    public CompletableFuture<Void> setPage(int page) {
+        CompletableFuture<Void> cf = new CompletableFuture<>();
         fetching.set(true);
         PageRequest pagination = new PageRequest(page - 1, itemsPerPage.get(), sorts);
         Thread.ofVirtual().start(() -> {
@@ -97,14 +95,17 @@ public class DataSourcePaginationControls extends BorderPane {
                     }
                     currentPage.set(page);
                     fetching.set(false);
+                    cf.complete(null);
                 });
             } catch (Exception e) {
                 e.printStackTrace(System.err);
                 Platform.runLater(() -> {
                     target.clear();
                     fetching.set(false);
+                    cf.complete(null);
                 });
             }
         });
+        return cf;
     }
 }

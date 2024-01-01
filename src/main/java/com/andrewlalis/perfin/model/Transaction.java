@@ -11,22 +11,15 @@ import java.util.Currency;
  * entries that apply this transaction's amount to one or more accounts.
  */
 public class Transaction {
-    private long id;
-    private LocalDateTime timestamp;
+    private final long id;
+    private final LocalDateTime timestamp;
 
-    private BigDecimal amount;
-    private Currency currency;
+    private final BigDecimal amount;
+    private final Currency currency;
     private String description;
 
     public Transaction(long id, LocalDateTime timestamp, BigDecimal amount, Currency currency, String description) {
         this.id = id;
-        this.timestamp = timestamp;
-        this.amount = amount;
-        this.currency = currency;
-        this.description = description;
-    }
-
-    public Transaction(LocalDateTime timestamp, BigDecimal amount, Currency currency, String description) {
         this.timestamp = timestamp;
         this.amount = amount;
         this.currency = currency;
@@ -51,5 +44,10 @@ public class Transaction {
 
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof Transaction tx && id == tx.id;
     }
 }

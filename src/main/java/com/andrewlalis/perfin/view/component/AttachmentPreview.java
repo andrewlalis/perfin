@@ -1,5 +1,6 @@
 package com.andrewlalis.perfin.view.component;
 
+import com.andrewlalis.perfin.PerfinApp;
 import com.andrewlalis.perfin.model.Attachment;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.view.ImageCache;
@@ -11,6 +12,7 @@ import javafx.scene.paint.Color;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Set;
 
 /**
@@ -58,7 +60,8 @@ public class AttachmentPreview extends BorderPane {
         this.setCenter(stackPane);
         this.setOnMouseClicked(event -> {
             if (this.isHover()) {
-                System.out.println("Opening attachment: " + attachment.getFilename());
+                Path filePath = attachment.getPath(Profile.getContentDir(Profile.getCurrent().getName()));
+                PerfinApp.instance.getHostServices().showDocument(filePath.toAbsolutePath().toUri().toString());
             }
         });
     }

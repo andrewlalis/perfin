@@ -1,13 +1,13 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
-import com.andrewlalis.perfin.data.util.Pair;
-import com.andrewlalis.perfin.view.SceneUtil;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.data.pagination.Sort;
+import com.andrewlalis.perfin.data.util.Pair;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.model.Transaction;
+import com.andrewlalis.perfin.view.SceneUtil;
 import com.andrewlalis.perfin.view.component.DataSourcePaginationControls;
 import com.andrewlalis.perfin.view.component.TransactionTile;
 import javafx.beans.property.ObjectProperty;
@@ -19,9 +19,21 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+import java.util.List;
+
 import static com.andrewlalis.perfin.PerfinApp.router;
 
+/**
+ * Controller for the view of all transactions in a user's profile.
+ * Transactions are displayed in a paginated manner, and this controller
+ * accepts as a route context a {@link PageRequest} to initialize the results
+ * to a specific page.
+ */
 public class TransactionsViewController implements RouteSelectionListener {
+    public static List<Sort> DEFAULT_SORTS = List.of(Sort.desc("timestamp"));
+    public static int DEFAULT_ITEMS_PER_PAGE = 5;
+    public record RouteContext(Long selectedTransactionId) {}
+
     @FXML public BorderPane transactionsListBorderPane;
     @FXML public VBox transactionsVBox;
     private DataSourcePaginationControls paginationControls;
@@ -80,8 +92,23 @@ public class TransactionsViewController implements RouteSelectionListener {
 
     @Override
     public void onRouteSelected(Object context) {
-        paginationControls.sorts.setAll(Sort.desc("timestamp"));
-        this.paginationControls.setPage(1);
+        paginationControls.sorts.setAll(DEFAULT_SORTS);
+        paginationControls.itemsPerPage.set(DEFAULT_ITEMS_PER_PAGE);
+
+        // If a transaction id is given in the route context, navigate to the page it's on and select it.
+        if (context instanceof RouteContext ctx && ctx.selectedTransactionId != null) {
+            Thread.ofVirtual().start(() -> {
+                Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
+                    repo.findById(ctx.selectedTransactionId).ifPresent(tx -> {
+                        long offset = repo.countAllAfter(tx.getId());
+                        int pageNumber = (int) (offset / DEFAULT_ITEMS_PER_PAGE) + 1;
+                        paginationControls.setPage(pageNumber).thenRun(() -> selectedTransaction.set(tx));
+                    });
+                });
+            });
+        } else {
+            paginationControls.setPage(1);
+        }
     }
 
     @FXML
@@ -92,13 +119,13 @@ public class TransactionsViewController implements RouteSelectionListener {
     private TransactionTile makeTile(Transaction transaction) {
         var tile = new TransactionTile(transaction);
         tile.setOnMouseClicked(event -> {
-            if (selectedTransaction.get() == null || selectedTransaction.get().getId() != transaction.getId()) {
+            if (selectedTransaction.get() == null || !selectedTransaction.get().equals(transaction)) {
                 selectedTransaction.set(transaction);
             } else {
                 selectedTransaction.set(null);
             }
         });
-        tile.selected.bind(selectedTransaction.map(t -> t != null && t.getId() == transaction.getId()));
+        tile.selected.bind(selectedTransaction.map(t -> t != null && t.equals(transaction)));
         return tile;
     }
 }

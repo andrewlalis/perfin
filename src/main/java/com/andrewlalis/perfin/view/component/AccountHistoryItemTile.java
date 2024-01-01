@@ -1,5 +1,6 @@
 package com.andrewlalis.perfin.view.component;
 
+import com.andrewlalis.perfin.control.TransactionsViewController;
 import com.andrewlalis.perfin.data.AccountHistoryItemRepository;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DateUtil;
@@ -12,6 +13,8 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+
+import static com.andrewlalis.perfin.PerfinApp.router;
 
 /**
  * A tile that shows a brief bit of information about an account history item.
@@ -41,9 +44,13 @@ public class AccountHistoryItemTile extends BorderPane {
     private Node buildAccountEntryItem(AccountEntry entry) {
         Text amountText = new Text(CurrencyUtil.formatMoney(entry.getSignedAmount(), entry.getCurrency()));
         Hyperlink transactionLink = new Hyperlink("Transaction #" + entry.getTransactionId());
+        transactionLink.setOnAction(event -> router.navigate(
+                "transactions",
+                new TransactionsViewController.RouteContext(entry.getTransactionId())
+        ));
         return new TextFlow(
                 transactionLink,
-                new Text("posted as a " + entry.getType().name().toLowerCase() + " to this account, with a value of"),
+                new Text("posted as a " + entry.getType().name().toLowerCase() + " to this account, with a value of "),
                 amountText
         );
     }

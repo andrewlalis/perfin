@@ -2,10 +2,10 @@ package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.AccountEntryRepository;
 import com.andrewlalis.perfin.data.AttachmentRepository;
-import com.andrewlalis.perfin.data.util.DbUtil;
 import com.andrewlalis.perfin.data.TransactionRepository;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
+import com.andrewlalis.perfin.data.util.DbUtil;
 import com.andrewlalis.perfin.model.*;
 
 import java.math.BigDecimal;
@@ -14,10 +14,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.Currency;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public record JdbcTransactionRepository(Connection conn, Path contentDir) implements TransactionRepository {
@@ -56,6 +53,11 @@ public record JdbcTransactionRepository(Connection conn, Path contentDir) implem
     }
 
     @Override
+    public Optional<Transaction> findById(long id) {
+        return DbUtil.findById(conn, "SELECT * FROM transaction WHERE id = ?", id, JdbcTransactionRepository::parseTransaction);
+    }
+
+    @Override
     public Page<Transaction> findAll(PageRequest pagination) {
         return DbUtil.findAll(
                 conn,
@@ -68,6 +70,16 @@ public record JdbcTransactionRepository(Connection conn, Path contentDir) implem
     @Override
     public long countAll() {
         return DbUtil.findOne(conn, "SELECT COUNT(id) FROM transaction", Collections.emptyList(), rs -> rs.getLong(1)).orElse(0L);
+    }
+
+    @Override
+    public long countAllAfter(long transactionId) {
+        return DbUtil.findOne(
+                conn,
+                "SELECT COUNT(id) FROM transaction WHERE timestamp > (SELECT timestamp FROM transaction WHERE id = ?)",
+                List.of(transactionId),
+                rs -> rs.getLong(1)
+        ).orElse(0L);
     }
 
     @Override

@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Currency;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface TransactionRepository extends AutoCloseable {
@@ -22,8 +23,10 @@ public interface TransactionRepository extends AutoCloseable {
             CreditAndDebitAccounts linkedAccounts,
             List<Path> attachments
     );
+    Optional<Transaction> findById(long id);
     Page<Transaction> findAll(PageRequest pagination);
     long countAll();
+    long countAllAfter(long transactionId);
     Page<Transaction> findAllByAccounts(Set<Long> accountIds, PageRequest pagination);
     CreditAndDebitAccounts findLinkedAccounts(long transactionId);
     List<Attachment> findAttachments(long transactionId);

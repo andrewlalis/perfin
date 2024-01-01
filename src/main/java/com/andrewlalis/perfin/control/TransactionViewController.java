@@ -54,14 +54,14 @@ public class TransactionViewController {
             Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
                 CreditAndDebitAccounts accounts = repo.findLinkedAccounts(transaction.getId());
                 Platform.runLater(() -> {
-                    if (accounts.hasDebit()) {
-                        debitAccountLink.setText(accounts.debitAccount().getShortName());
-                        debitAccountLink.setOnAction(event -> router.navigate("account", accounts.debitAccount()));
-                    }
-                    if (accounts.hasCredit()) {
-                        creditAccountLink.setText(accounts.creditAccount().getShortName());
-                        creditAccountLink.setOnAction(event -> router.navigate("account", accounts.creditAccount()));
-                    }
+                    accounts.ifDebit(acc -> {
+                        debitAccountLink.setText(acc.getShortName());
+                        debitAccountLink.setOnAction(event -> router.navigate("account", acc));
+                    });
+                    accounts.ifCredit(acc -> {
+                        creditAccountLink.setText(acc.getShortName());
+                        creditAccountLink.setOnAction(event -> router.navigate("account", acc));
+                    });
                 });
             });
         });
@@ -105,5 +105,6 @@ public class TransactionViewController {
         TextFlow parent = (TextFlow) link.getParent();
         parent.managedProperty().bind(parent.visibleProperty());
         parent.visibleProperty().bind(link.textProperty().isNotEmpty());
+        link.setText(null);
     }
 }
