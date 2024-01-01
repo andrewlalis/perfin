@@ -49,11 +49,6 @@
             <artifactId>h2</artifactId>
             <version>2.2.224</version>
         </dependency>
-        <dependency>
-            <groupId>com.github.f4b6a3</groupId>
-            <artifactId>ulid-creator</artifactId>
-            <version>5.2.2</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -102,6 +97,58 @@
                         </goals>
                         <configuration>
                             <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- This is needed since H2 is not modular. -->
+            <plugin>
+                <groupId>org.moditect</groupId>
+                <artifactId>moditect-maven-plugin</artifactId>
+                <version>1.0.0.Final</version>
+                <executions>
+                    <execution>
+                        <id>add-module-infos</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>add-module-info</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/modules</outputDirectory>
+                            <modules>
+                                <module>
+                                    <artifact>
+                                        <groupId>com.h2database</groupId>
+                                        <artifactId>h2</artifactId>
+                                        <version>2.2.224</version>
+                                    </artifact>
+                                    <moduleInfoSource>
+                                        module com.h2database {
+                                        requires java.compiler;
+                                        requires jdk.net;
+                                        requires static lucene.core;
+                                        requires static lucene.queryparser;
+                                        requires static slf4j.api;
+                                        requires static jakarta.servlet;
+                                        requires transitive java.desktop;
+                                        requires transitive java.instrument;
+                                        requires java.logging;
+                                        requires transitive java.management;
+                                        requires static java.naming;
+                                        requires transitive java.scripting;
+                                        requires java.sql;
+                                        requires transitive java.transaction.xa;
+                                        requires transitive java.xml;
+                                        requires static javax.servlet.api;
+                                        requires static org.locationtech.jts;
+                                        requires static org.osgi.service.jdbc;
+                                        requires static osgi.core;
+                                        provides java.sql.Driver with org.h2.Driver;
+                                        }
+                                    </moduleInfoSource>
+                                </module>
+                            </modules>
                         </configuration>
                     </execution>
                 </executions>

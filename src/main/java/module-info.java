@@ -7,8 +7,6 @@ module com.andrewlalis.perfin {
 
     requires com.fasterxml.jackson.databind;
 
-    requires com.github.f4b6a3.ulid;
-
     requires java.sql;
 
     exports com.andrewlalis.perfin to javafx.graphics;

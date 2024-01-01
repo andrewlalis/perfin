@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# A helper script to (optionally) build and run a JAR packaged version of Perfin.
+# Provide the "build" argument to rebuild the project before running it.
+
 shouldBuild=0
 for i in "$@" ; do
   if [[ $i == "build" ]] ; then

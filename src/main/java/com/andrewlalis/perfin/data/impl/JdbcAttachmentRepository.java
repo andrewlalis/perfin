@@ -1,10 +1,10 @@
 package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.AttachmentRepository;
+import com.andrewlalis.perfin.data.ulid.UlidCreator;
 import com.andrewlalis.perfin.data.util.DbUtil;
 import com.andrewlalis.perfin.data.util.FileUtil;
 import com.andrewlalis.perfin.model.Attachment;
-import com.github.f4b6a3.ulid.UlidCreator;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
