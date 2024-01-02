@@ -2,7 +2,7 @@
 
 # Creates a native linux installer for Perfin, in the .deb format (for Ubuntu, Debian, etc.)
 
-mvn clean package
+./mvnw clean package
 
 function join_by {
    local d=${1-} f=${2-}

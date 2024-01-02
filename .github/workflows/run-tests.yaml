@@ -7,7 +7,10 @@ on:
       - "v*"
 jobs:
   maven-tests:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -19,31 +22,27 @@ jobs:
           distribution: temurin
           cache: maven
 
-      - name: Install Maven 3.9.6
-        run: |
-          wget https://downloads.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz
-          tar -xvf apache-maven-3.9.6-bin.tar.gz
-          sudo mv apache-maven-3.9.6 /usr/local/apache-maven
-          rm apache-maven-3.9.6-bin.tar.gz
-          sudo update-alternatives --install /usr/bin/mvn mvn /usr/local/apache-maven/bin/mvn 1
-
       - name: Check versions
         run: |
           java -version
           javac -version
-          mvn -version
+          ./mvnw -version
 
       - name: Test with Maven
-        run: mvn -B verify --file pom.xml
+        run: ./mvnw -B verify --file pom.xml
 
-      - name: Build Package for Release
-        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+      - name: Build Linux DEB Package for Release
+        if: ${{ startsWith(github.ref, 'refs/tags/') && runner.os == 'Linux' }}
         run: ./scripts/package-linux-deb.sh
+
+      - name: Build Windows MSI Package for Release
+        if: ${{ startsWith(github.ref, 'refs/tags/') && runner.os == 'Windows' }}
+        run:
 
       - name: Create Release
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
         uses: softprops/action-gh-release@v1
         with:
-          fail_on_unmatched_files: true
+          fail_on_unmatched_files: false
           files: |
             *.deb

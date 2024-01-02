@@ -12,8 +12,7 @@ for i in "$@" ; do
 done
 
 if [ $shouldBuild == 1 ]; then
-  mvn clean
-  mvn package
+  ./mvnw clean package
 fi
 
 java \
