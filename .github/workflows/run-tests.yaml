@@ -33,3 +33,7 @@ jobs:
 
       - name: Test with Maven
         run: mvn -B verify --file pom.xml
+
+      - name: Release If Tagged Main
+        if: github.ref_name === "main"
+        run: echo "Push to main!"
