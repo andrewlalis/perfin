@@ -12,21 +12,14 @@ import java.time.format.DateTimeFormatter;
  * account balance record.
  */
 public class Attachment {
-    private long id;
-    private LocalDateTime timestamp;
-    private String identifier;
-    private String filename;
-    private String contentType;
+    private final long id;
+    private final LocalDateTime timestamp;
+    private final String identifier;
+    private final String filename;
+    private final String contentType;
 
     public Attachment(long id, LocalDateTime timestamp, String identifier, String filename, String contentType) {
         this.id = id;
-        this.timestamp = timestamp;
-        this.identifier = identifier;
-        this.filename = filename;
-        this.contentType = contentType;
-    }
-
-    public Attachment(LocalDateTime timestamp, String identifier, String filename, String contentType) {
         this.timestamp = timestamp;
         this.identifier = identifier;
         this.filename = filename;

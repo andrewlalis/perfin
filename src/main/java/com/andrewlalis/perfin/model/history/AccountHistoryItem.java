@@ -9,19 +9,13 @@ import java.time.LocalDateTime;
  * record, or modifications to the account's properties.
  */
 public class AccountHistoryItem {
-    private long id;
-    private LocalDateTime timestamp;
-    private long accountId;
-    private AccountHistoryItemType type;
+    private final long id;
+    private final LocalDateTime timestamp;
+    private final long accountId;
+    private final AccountHistoryItemType type;
 
     public AccountHistoryItem(long id, LocalDateTime timestamp, long accountId, AccountHistoryItemType type) {
         this.id = id;
-        this.timestamp = timestamp;
-        this.accountId = accountId;
-        this.type = type;
-    }
-
-    public AccountHistoryItem(LocalDateTime timestamp, long accountId, AccountHistoryItemType type) {
         this.timestamp = timestamp;
         this.accountId = accountId;
         this.type = type;

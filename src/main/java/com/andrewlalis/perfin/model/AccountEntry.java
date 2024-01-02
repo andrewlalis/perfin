@@ -36,25 +36,17 @@ public class AccountEntry {
         DEBIT
     }
 
-    private long id;
-    private LocalDateTime timestamp;
-    private long accountId;
-    private long transactionId;
-    private BigDecimal amount;
-    private Type type;
-    private Currency currency;
+    private final long id;
+    private final LocalDateTime timestamp;
+    private final long accountId;
+    private final long transactionId;
+    private final BigDecimal amount;
+    private final Type type;
+    private final Currency currency;
 
     public AccountEntry(long id, LocalDateTime timestamp, long accountId, long transactionId, BigDecimal amount, Type type, Currency currency) {
         this.id = id;
         this.timestamp = timestamp;
-        this.accountId = accountId;
-        this.transactionId = transactionId;
-        this.amount = amount;
-        this.type = type;
-        this.currency = currency;
-    }
-
-    public AccountEntry(long accountId, long transactionId, BigDecimal amount, Type type, Currency currency) {
         this.accountId = accountId;
         this.transactionId = transactionId;
         this.amount = amount;

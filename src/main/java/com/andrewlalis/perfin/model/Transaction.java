@@ -16,7 +16,7 @@ public class Transaction {
 
     private final BigDecimal amount;
     private final Currency currency;
-    private String description;
+    private final String description;
 
     public Transaction(long id, LocalDateTime timestamp, BigDecimal amount, Currency currency, String description) {
         this.id = id;

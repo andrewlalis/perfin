@@ -8,9 +8,9 @@ import java.util.Currency;
  * credit-card, etc.).
  */
 public class Account {
-    private long id;
-    private LocalDateTime createdAt;
-    private boolean archived;
+    private final long id;
+    private final LocalDateTime createdAt;
+    private final boolean archived;
 
     private AccountType type;
     private String accountNumber;
@@ -21,14 +21,6 @@ public class Account {
         this.id = id;
         this.createdAt = createdAt;
         this.archived = archived;
-        this.type = type;
-        this.accountNumber = accountNumber;
-        this.name = name;
-        this.currency = currency;
-    }
-
-    public Account(AccountType type, String accountNumber, String name, Currency currency) {
-        this.archived = false;
         this.type = type;
         this.accountNumber = accountNumber;
         this.name = name;

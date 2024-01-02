@@ -10,22 +10,16 @@ import java.util.Currency;
  * correct balance.
  */
 public class BalanceRecord {
-    private long id;
-    private LocalDateTime timestamp;
+    private final long id;
+    private final LocalDateTime timestamp;
 
-    private long accountId;
-    private BigDecimal balance;
-    private Currency currency;
+    private final long accountId;
+    private final BigDecimal balance;
+    private final Currency currency;
 
     public BalanceRecord(long id, LocalDateTime timestamp, long accountId, BigDecimal balance, Currency currency) {
         this.id = id;
         this.timestamp = timestamp;
-        this.accountId = accountId;
-        this.balance = balance;
-        this.currency = currency;
-    }
-
-    public BalanceRecord(long accountId, BigDecimal balance, Currency currency) {
         this.accountId = accountId;
         this.balance = balance;
         this.currency = currency;

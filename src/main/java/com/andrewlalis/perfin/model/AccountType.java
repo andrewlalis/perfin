@@ -1,5 +1,8 @@
 package com.andrewlalis.perfin.model;
 
+/**
+ * Represents the different possible account types in Perfin.
+ */
 public enum AccountType {
     CHECKING("Checking"),
     SAVINGS("Savings"),
