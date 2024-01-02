@@ -37,3 +37,8 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+# JPackage Artifacts
+*.deb
+*.msi
+*.rpm
