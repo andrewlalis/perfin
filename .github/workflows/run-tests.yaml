@@ -37,7 +37,7 @@ jobs:
 
       - name: Build Windows MSI Package for Release
         if: ${{ startsWith(github.ref, 'refs/tags/') && runner.os == 'Windows' }}
-        run:
+        run: powershell.exe -File scripts/package-windows-msi.ps1
 
       - name: Create Release
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
