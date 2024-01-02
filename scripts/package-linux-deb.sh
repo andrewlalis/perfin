@@ -11,13 +11,15 @@ function join_by {
    fi
 }
 
+# Fix because H2 is not modular:
+rm target/lib/h2-*.jar
+
 # Gets a ":"-separated string of all the dependency jar-files.
 module_jar_files=(target/lib/*)
 module_jar_files_path=$(join_by ":" ${module_jar_files[@]})
 module_path="target/classes:$module_jar_files_path"
 
 # Fix because H2 is not modular:
-rm target/lib/h2-*.jar
 module_path="$module_path:target/modules/h2-2.2.224.jar"
 
 jpackage \
@@ -26,9 +28,11 @@ jpackage \
   --description "Desktop application for personal finance. Add your accounts, track transactions, and store receipts, invoices, and more." \
   --icon design/perfin-logo_256.png \
   --vendor "Andrew Lalis" \
+  --about-url https://github.com/andrewlalis/perfin \
   --module com.andrewlalis.perfin/com.andrewlalis.perfin.PerfinApp \
   --module-path $module_path \
   --add-modules com.h2database \
+  --type deb \
   --linux-deb-maintainer "andrewlalisofficial@gmail.com" \
   --linux-shortcut \
   --linux-menu-group "Office;Finance;Java" \

@@ -37,12 +37,13 @@ jobs:
 
       - name: Build Windows MSI Package for Release
         if: ${{ startsWith(github.ref, 'refs/tags/') && runner.os == 'Windows' }}
-        run: powershell.exe -File scripts/package-windows-msi.ps1
+        run: powershell.exe -File scripts\package-windows-msi.ps1
 
       - name: Create Release
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
         uses: softprops/action-gh-release@v1
         with:
-          fail_on_unmatched_files: false
+          fail_on_unmatched_files: true
           files: |
             *.deb
+            *.msi
