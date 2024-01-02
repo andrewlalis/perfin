@@ -17,5 +17,7 @@ jobs:
           distribution: temurin
           cache: maven
 
+      - run: mvn --version
+
       - name: Test with Maven
         run: mvn -B verify --file pom.xml
