@@ -1,5 +1,3 @@
-$projectDir = $PSScriptRoot
-
 ./mvnw.cmd clean package
 
 # Fix because H2 is not modular:

@@ -1,0 +1,77 @@
+name: Make Release
+on:
+  push:
+    tags:
+      - "v*"
+jobs:
+  make-linux-deb:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+          cache: maven
+
+      - name: Build Linux DEB Package for Release
+        run: ./scripts/package-linux-deb.sh
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-deb
+          path: '*.deb'
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+  make-windows-msi:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+          cache: maven
+
+      - name: Build Windows MSI Package for Release
+        if: ${{ startsWith(github.ref, 'refs/tags/') && runner.os == 'Windows' }}
+        run: powershell.exe -File scripts\package-windows-msi.ps1
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-msi
+          path: '*.msi'
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+  make-release:
+    needs:
+      - make-linux-deb
+      - make-windows-msi
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+          merge-multiple: true
+      - name: List Artifacts
+        run: ls -R release-artifacts
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          fail-on-unmatched-files: true
+          files: |
+            release-artifacts/*.deb
+            release-artifacts/*.msi
