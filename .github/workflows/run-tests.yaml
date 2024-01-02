@@ -37,11 +37,11 @@ jobs:
         run: mvn -B verify --file pom.xml
 
       - name: Build Package for Release
-        if: ${{ github.ref_name == 'main' && startsWith(github.ref, 'refs/tags/') }}
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
         run: ./scripts/package-linux-deb.sh
 
       - name: Create Release
-        if: ${{ github.ref_name == 'main' && startsWith(github.ref, 'refs/tags/') }}
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
         uses: softprops/action-gh-release@v1
         with:
           fail_on_unmatched_files: true
