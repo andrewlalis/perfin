@@ -1,9 +1,17 @@
 # Perfin
 
-> *Per*sonal *Fin*ance
+![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/andrewlalis/perfin/run-tests.yaml?style=flat-square&logo=github)
+![GitHub release (with filter)](https://img.shields.io/github/v/release/andrewlalis/perfin?style=flat-square)
 
 A personal accounting desktop app to track your finances using an approachable
 interface and interoperable file formats for maximum compatibility.
+
+## Download
+
+Head to the [releases](https://github.com/andrewlalis/perfin/releases) page and
+find the installer that's compatible for your system.
+
+> No compatible release for your system? [Report it here.](https://github.com/andrewlalis/perfin/issues)
 
 ## About Perfin
 
