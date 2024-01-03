@@ -2,6 +2,8 @@ package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.DataSource;
 import com.andrewlalis.perfin.data.ProfileLoadException;
+import com.andrewlalis.perfin.data.impl.migration.Migration;
+import com.andrewlalis.perfin.data.impl.migration.Migrations;
 import com.andrewlalis.perfin.data.util.FileUtil;
 import com.andrewlalis.perfin.model.Profile;
 import org.slf4j.Logger;
@@ -48,7 +50,7 @@ public class JdbcDataSourceFactory {
             log.debug("Database loaded for profile {} has schema version {}.", profileName, loadedSchemaVersion);
             if (loadedSchemaVersion < SCHEMA_VERSION) {
                 log.debug("Schema version {} is lower than the app's version {}. Performing migration.", loadedSchemaVersion, SCHEMA_VERSION);
-                // TODO: Do migration
+                migrateToCurrentSchemaVersion(profileName, loadedSchemaVersion);
             } else if (loadedSchemaVersion > SCHEMA_VERSION) {
                 log.debug("Schema version {} is higher than the app's version {}. Cannot continue.", loadedSchemaVersion, SCHEMA_VERSION);
                 throw new ProfileLoadException("Profile " + profileName + " has a database with an unsupported schema version.");
@@ -66,13 +68,7 @@ public class JdbcDataSourceFactory {
         ) {
             if (in == null) throw new IOException("Could not load database schema SQL file.");
             String schemaStr = new String(in.readAllBytes(), StandardCharsets.UTF_8);
-            List<String> statements = Arrays.stream(schemaStr.split(";"))
-                    .map(String::strip).filter(s -> !s.isBlank()).toList();
-            for (String statementText : statements) {
-                try (Statement stmt = conn.createStatement()) {
-                    stmt.executeUpdate(statementText);
-                }
-            }
+            executeSqlScript(schemaStr, conn);
             try {
                 writeCurrentSchemaVersion(profileName);
             } catch (IOException e) {
@@ -99,6 +95,63 @@ public class JdbcDataSourceFactory {
         } catch (SQLException e) {
             log.error("JDBC database connection failed.", e);
             return false;
+        }
+    }
+
+    private void migrateToCurrentSchemaVersion(String profileName, int currentVersion) throws ProfileLoadException {
+        // Before starting, copy the database file to a backup folder.
+        Path backupDatabaseFile = getDatabaseFile(profileName).resolveSibling("migration-backup-database.mv.db");
+        try {
+            Files.copy(getDatabaseFile(profileName), backupDatabaseFile);
+        } catch (IOException e) {
+            throw new ProfileLoadException("Failed to prepare database backup prior to schema migration.", e);
+        }
+        int version = currentVersion;
+        JdbcDataSource dataSource = new JdbcDataSource(getJdbcUrl(profileName), Profile.getContentDir(profileName));
+        while (version < SCHEMA_VERSION) {
+            log.info("Migrating profile {} from version {} to version {}.", profileName, version, version + 1);
+            try {
+                Migration m = Migrations.get(version);
+                m.migrate(dataSource);
+                version++;
+            } catch (Exception e) {
+                log.error("Migration from version " + version + " to " + (version+1) + " failed!", e);
+                log.debug("Restoring database from pre-migration backup.");
+                FileUtil.deleteIfPossible(getDatabaseFile(profileName));
+                try {
+                    Files.copy(backupDatabaseFile, getDatabaseFile(profileName));
+                    FileUtil.deleteIfPossible(backupDatabaseFile);
+                } catch (IOException e2) {
+                    log.error("Failed to restore backup!", e2);
+                    throw new ProfileLoadException("Failed to restore backup after a failed migration.", e2);
+                }
+                throw new ProfileLoadException("Migration failed and data restored to pre-migration state.", e);
+            }
+        }
+        try {
+            writeCurrentSchemaVersion(profileName);
+        } catch (IOException e) {
+            log.error("Failed to write current schema version after migration.");
+            FileUtil.deleteIfPossible(getDatabaseFile(profileName));
+            try {
+                Files.copy(backupDatabaseFile, getDatabaseFile(profileName));
+                FileUtil.deleteIfPossible(backupDatabaseFile);
+            } catch (IOException e2) {
+                throw new ProfileLoadException("Failed to restore backup after failing to set schema version.", e2);
+            }
+            throw new ProfileLoadException("Failed to update the schema version file after the migration.", e);
+        }
+        FileUtil.deleteIfPossible(backupDatabaseFile);
+        log.info("Profile successfully migrated to latest version.");
+    }
+
+    private static void executeSqlScript(String script, Connection conn) throws SQLException {
+        List<String> statements = Arrays.stream(script.split(";"))
+                .map(String::strip).filter(s -> !s.isBlank()).toList();
+        for (String statementText : statements) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(statementText);
+            }
         }
     }
 

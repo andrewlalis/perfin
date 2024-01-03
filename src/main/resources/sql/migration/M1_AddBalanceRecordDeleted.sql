@@ -1,0 +1,5 @@
+ALTER TABLE balance_record
+    ADD COLUMN deleted BOOLEAN NOT NULL DEFAULT FALSE AFTER currency;
+
+ALTER TABLE account_entry
+    ADD COLUMN deleted BOOLEAN NOT NULL DEFAULT FALSE AFTER currency;
