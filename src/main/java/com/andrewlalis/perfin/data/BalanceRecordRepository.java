@@ -11,4 +11,5 @@ import java.util.List;
 public interface BalanceRecordRepository extends AutoCloseable {
     long insert(LocalDateTime utcTimestamp, long accountId, BigDecimal balance, Currency currency, List<Path> attachments);
     BalanceRecord findLatestByAccountId(long accountId);
+    void deleteById(long id);
 }

@@ -7,7 +7,10 @@ import com.andrewlalis.perfin.model.Profile;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
 import java.math.BigDecimal;
@@ -88,12 +91,7 @@ public class EditAccountController implements RouteSelectionListener {
                 BigDecimal initialBalance = new BigDecimal(initialBalanceField.getText().strip());
                 List<Path> attachments = Collections.emptyList();
 
-                Alert confirm = new Alert(
-                        Alert.AlertType.CONFIRMATION,
-                        "Are you sure you want to create this account?"
-                );
-                Optional<ButtonType> result = confirm.showAndWait();
-                boolean success = result.isPresent() && result.get().equals(ButtonType.OK);
+                boolean success = Popups.confirm("Are you sure you want to create this account?");
                 if (success) {
                     long id = accountRepo.insert(type, number, name, currency);
                     balanceRepo.insert(LocalDateTime.now(ZoneOffset.UTC), id, initialBalance, currency, attachments);

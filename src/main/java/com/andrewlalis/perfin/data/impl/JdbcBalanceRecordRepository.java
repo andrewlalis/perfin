@@ -52,6 +52,11 @@ public record JdbcBalanceRecordRepository(Connection conn, Path contentDir) impl
     }
 
     @Override
+    public void deleteById(long id) {
+        DbUtil.updateOne(conn, "DELETE FROM balance_record WHERE id = ?", List.of(id));
+    }
+
+    @Override
     public void close() throws Exception {
         conn.close();
     }

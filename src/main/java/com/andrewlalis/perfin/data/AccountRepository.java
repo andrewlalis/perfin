@@ -18,6 +18,7 @@ public interface AccountRepository extends AutoCloseable {
     Page<Account> findAll(PageRequest pagination);
     List<Account> findAllByCurrency(Currency currency);
     Optional<Account> findById(long id);
+    void updateName(long id, String name);
     void update(Account account);
     void delete(Account account);
     void archive(Account account);

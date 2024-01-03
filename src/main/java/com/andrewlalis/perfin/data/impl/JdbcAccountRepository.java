@@ -61,6 +61,11 @@ public record JdbcAccountRepository(Connection conn) implements AccountRepositor
     }
 
     @Override
+    public void updateName(long id, String name) {
+        DbUtil.updateOne(conn, "UPDATE account SET name = ? WHERE id = ?", List.of(name, id));
+    }
+
+    @Override
     public BigDecimal deriveBalance(long id, Instant timestamp) {
         // Find the most recent balance record before timestamp.
         Optional<BalanceRecord> closestPastRecord = DbUtil.findOne(

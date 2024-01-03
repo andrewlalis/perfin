@@ -43,6 +43,10 @@ public class AccountViewController implements RouteSelectionListener {
         accountCreatedAtField.setText(DateUtil.formatUTCAsLocalWithZone(account.getCreatedAt()));
         Profile.getCurrent().getDataSource().getAccountBalanceText(account, accountBalanceField::setText);
 
+        reloadHistory();
+    }
+
+    public void reloadHistory() {
         loadHistoryFrom = DateUtil.nowAsUTC();
         historyItemsVBox.getChildren().clear();
         loadMoreHistoryButton.setDisable(false);
@@ -106,7 +110,7 @@ public class AccountViewController implements RouteSelectionListener {
                     loadHistoryFrom = historyItems.getLast().getTimestamp();
                 }
                 List<? extends Node> nodes = historyItems.stream()
-                        .map(item -> new AccountHistoryItemTile(item, historyRepo))
+                        .map(item -> AccountHistoryItemTile.forItem(item, historyRepo, this))
                         .toList();
                 Platform.runLater(() -> historyItemsVBox.getChildren().addAll(nodes));
             } catch (Exception e) {

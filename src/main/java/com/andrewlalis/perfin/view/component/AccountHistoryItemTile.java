@@ -1,26 +1,17 @@
 package com.andrewlalis.perfin.view.component;
 
-import com.andrewlalis.perfin.control.TransactionsViewController;
+import com.andrewlalis.perfin.control.AccountViewController;
 import com.andrewlalis.perfin.data.AccountHistoryItemRepository;
-import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DateUtil;
-import com.andrewlalis.perfin.model.AccountEntry;
-import com.andrewlalis.perfin.model.BalanceRecord;
 import com.andrewlalis.perfin.model.history.AccountHistoryItem;
-import javafx.scene.Node;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
-
-import static com.andrewlalis.perfin.PerfinApp.router;
 
 /**
  * A tile that shows a brief bit of information about an account history item.
  */
-public class AccountHistoryItemTile extends BorderPane {
-    public AccountHistoryItemTile(AccountHistoryItem item, AccountHistoryItemRepository repo) {
+public abstract class AccountHistoryItemTile extends BorderPane {
+    public AccountHistoryItemTile(AccountHistoryItem item) {
         setStyle("""
                 -fx-border-color: lightgray;
                 -fx-border-radius: 5px;
@@ -30,33 +21,17 @@ public class AccountHistoryItemTile extends BorderPane {
         Label timestampLabel = new Label(DateUtil.formatUTCAsLocalWithZone(item.getTimestamp()));
         timestampLabel.setStyle("-fx-font-size: small;");
         setTop(timestampLabel);
-        setCenter(switch (item.getType()) {
-            case TEXT -> buildTextItem(repo.getTextItem(item.getId()));
-            case ACCOUNT_ENTRY -> buildAccountEntryItem(repo.getAccountEntryItem(item.getId()));
-            case BALANCE_RECORD -> buildBalanceRecordItem(repo.getBalanceRecordItem(item.getId()));
-        });
     }
 
-    private Node buildTextItem(String text) {
-        return new TextFlow(new Text(text));
-    }
-
-    private Node buildAccountEntryItem(AccountEntry entry) {
-        Text amountText = new Text(CurrencyUtil.formatMoneyWithCurrencyPrefix(entry.getMoneyValue()));
-        Hyperlink transactionLink = new Hyperlink("Transaction #" + entry.getTransactionId());
-        transactionLink.setOnAction(event -> router.navigate(
-                "transactions",
-                new TransactionsViewController.RouteContext(entry.getTransactionId())
-        ));
-        return new TextFlow(
-                transactionLink,
-                new Text("posted as a " + entry.getType().name().toLowerCase() + " to this account, with a value of "),
-                amountText
-        );
-    }
-
-    private Node buildBalanceRecordItem(BalanceRecord balanceRecord) {
-        Text amountText = new Text(CurrencyUtil.formatMoneyWithCurrencyPrefix(balanceRecord.getMoneyAmount()));
-        return new TextFlow(new Text("Balance record #" + balanceRecord.getId() + " added with value of "), amountText);
+    public static AccountHistoryItemTile forItem(
+            AccountHistoryItem item,
+            AccountHistoryItemRepository repo,
+            AccountViewController controller
+    ) {
+        return switch (item.getType()) {
+            case TEXT -> new AccountHistoryTextTile(item, repo);
+            case ACCOUNT_ENTRY -> new AccountHistoryAccountEntryTile(item, repo);
+            case BALANCE_RECORD -> new AccountHistoryBalanceRecordTile(item, repo, controller);
+        };
     }
 }
