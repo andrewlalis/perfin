@@ -37,9 +37,13 @@ public class FileUtil {
 
     public static void deleteIfPossible(Path file) {
         try {
-            Files.deleteIfExists(file);
+            if (Files.isDirectory(file)) {
+                deleteDirRecursive(file);
+            } else {
+                Files.deleteIfExists(file);
+            }
         } catch (IOException e) {
-            log.error("Failed to delete file " + file, e);
+            log.error("Failed to delete " + file, e);
         }
     }
 

@@ -1,7 +1,7 @@
 package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.DataSource;
-import com.andrewlalis.perfin.data.DataSourceInitializationException;
+import com.andrewlalis.perfin.data.ProfileLoadException;
 import com.andrewlalis.perfin.data.util.FileUtil;
 import com.andrewlalis.perfin.model.Profile;
 import org.slf4j.Logger;
@@ -32,7 +32,7 @@ public class JdbcDataSourceFactory {
      */
     public static final int SCHEMA_VERSION = 1;
 
-    public DataSource getDataSource(String profileName) throws DataSourceInitializationException {
+    public DataSource getDataSource(String profileName) throws ProfileLoadException {
         final boolean dbExists = Files.exists(getDatabaseFile(profileName));
         if (!dbExists) {
             log.info("Creating new database for profile {}.", profileName);
@@ -43,7 +43,7 @@ public class JdbcDataSourceFactory {
                 loadedSchemaVersion = getSchemaVersion(profileName);
             } catch (IOException e) {
                 log.error("Failed to load schema version.", e);
-                throw new DataSourceInitializationException("Failed to determine database schema version.", e);
+                throw new ProfileLoadException("Failed to determine database schema version.", e);
             }
             log.debug("Database loaded for profile {} has schema version {}.", profileName, loadedSchemaVersion);
             if (loadedSchemaVersion < SCHEMA_VERSION) {
@@ -51,13 +51,13 @@ public class JdbcDataSourceFactory {
                 // TODO: Do migration
             } else if (loadedSchemaVersion > SCHEMA_VERSION) {
                 log.debug("Schema version {} is higher than the app's version {}. Cannot continue.", loadedSchemaVersion, SCHEMA_VERSION);
-                throw new DataSourceInitializationException("Profile " + profileName + " has a database with an unsupported schema version.");
+                throw new ProfileLoadException("Profile " + profileName + " has a database with an unsupported schema version.");
             }
         }
         return new JdbcDataSource(getJdbcUrl(profileName), Profile.getContentDir(profileName));
     }
 
-    private void createNewDatabase(String profileName) throws DataSourceInitializationException {
+    private void createNewDatabase(String profileName) throws ProfileLoadException {
         log.info("Creating new database for profile {}.", profileName);
         JdbcDataSource dataSource = new JdbcDataSource(getJdbcUrl(profileName), Profile.getContentDir(profileName));
         try (
@@ -81,15 +81,15 @@ public class JdbcDataSourceFactory {
         } catch (IOException e) {
             log.error("IO Exception when trying to create database.", e);
             FileUtil.deleteIfPossible(getDatabaseFile(profileName));
-            throw new DataSourceInitializationException("Failed to read SQL data to create database schema.", e);
+            throw new ProfileLoadException("Failed to read SQL data to create database schema.", e);
         } catch (SQLException e) {
             log.error("SQL Exception when trying to create database.", e);
             FileUtil.deleteIfPossible(getDatabaseFile(profileName));
-            throw new DataSourceInitializationException("Failed to create the database due to an SQL error.", e);
+            throw new ProfileLoadException("Failed to create the database due to an SQL error.", e);
         }
         if (!testConnection(dataSource)) {
             FileUtil.deleteIfPossible(getDatabaseFile(profileName));
-            throw new DataSourceInitializationException("Testing the database connection failed.");
+            throw new ProfileLoadException("Testing the database connection failed.");
         }
     }
 
@@ -117,7 +117,11 @@ public class JdbcDataSourceFactory {
 
     private static int getSchemaVersion(String profileName) throws IOException {
         if (Files.exists(getSchemaVersionFile(profileName))) {
-            return Integer.parseInt(Files.readString(getSchemaVersionFile(profileName)));
+            try {
+                return Integer.parseInt(Files.readString(getSchemaVersionFile(profileName)).strip());
+            } catch (NumberFormatException e) {
+                throw new IOException("Could not parse integer schema version.", e);
+            }
         } else {
             writeCurrentSchemaVersion(profileName);
             return SCHEMA_VERSION;

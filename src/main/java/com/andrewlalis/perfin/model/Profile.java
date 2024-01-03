@@ -2,8 +2,9 @@ package com.andrewlalis.perfin.model;
 
 import com.andrewlalis.perfin.PerfinApp;
 import com.andrewlalis.perfin.data.DataSource;
-import com.andrewlalis.perfin.data.DataSourceInitializationException;
+import com.andrewlalis.perfin.data.ProfileLoadException;
 import com.andrewlalis.perfin.data.impl.JdbcDataSourceFactory;
+import com.andrewlalis.perfin.data.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,17 +119,24 @@ public class Profile {
         }
     }
 
-    public static void loadLast() throws IOException, DataSourceInitializationException {
+    public static void loadLast() throws ProfileLoadException {
         load(getLastProfile());
     }
 
-    public static void load(String name) throws IOException, DataSourceInitializationException {
+    public static void load(String name) throws ProfileLoadException {
         if (Files.notExists(getDir(name))) {
-            initProfileDir(name);
+            try {
+                initProfileDir(name);
+            } catch (IOException e) {
+                FileUtil.deleteIfPossible(getDir(name));
+                throw new ProfileLoadException("Failed to initialize new profile directory.", e);
+            }
         }
         Properties settings = new Properties();
         try (var in = Files.newInputStream(getSettingsFile(name))) {
             settings.load(in);
+        } catch (IOException e) {
+            throw new ProfileLoadException("Failed to load profile settings.", e);
         }
         current = new Profile(name, settings, new JdbcDataSourceFactory().getDataSource(name));
         saveLastProfile(current.getName());

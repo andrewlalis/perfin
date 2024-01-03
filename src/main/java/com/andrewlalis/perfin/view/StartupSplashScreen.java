@@ -66,6 +66,11 @@ public class StartupSplashScreen extends Stage implements Consumer<String> {
                 } catch (Exception e) {
                     accept("Startup failed: " + e.getMessage());
                     e.printStackTrace(System.err);
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException ex) {
+                        throw new RuntimeException(ex);
+                    }
                     Platform.runLater(this::close);
                     return;
                 }
