@@ -1,22 +1,27 @@
 package com.andrewlalis.perfin.data.util;
 
+import com.andrewlalis.perfin.model.MoneyValue;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
-import java.util.Currency;
 
 public class CurrencyUtil {
-    public static String formatMoney(BigDecimal amount, Currency currency) {
+    public static String formatMoney(MoneyValue money) {
         NumberFormat nf = NumberFormat.getCurrencyInstance();
-        nf.setCurrency(currency);
-        nf.setMaximumFractionDigits(currency.getDefaultFractionDigits());
-        nf.setMinimumFractionDigits(currency.getDefaultFractionDigits());
-        BigDecimal displayValue = amount.setScale(currency.getDefaultFractionDigits(), RoundingMode.HALF_UP);
+        nf.setCurrency(money.currency());
+        nf.setMaximumFractionDigits(money.currency().getDefaultFractionDigits());
+        nf.setMinimumFractionDigits(money.currency().getDefaultFractionDigits());
+        BigDecimal displayValue = money.amount().setScale(money.currency().getDefaultFractionDigits(), RoundingMode.HALF_UP);
         return nf.format(displayValue);
     }
 
-    public static String formatMoneyAsBasicNumber(BigDecimal amount, Currency currency) {
-        BigDecimal displayValue = amount.setScale(currency.getDefaultFractionDigits(), RoundingMode.HALF_UP);
+    public static String formatMoneyWithCurrencyPrefix(MoneyValue money) {
+        return money.currency().getCurrencyCode() + ' ' + formatMoney(money);
+    }
+
+    public static String formatMoneyAsBasicNumber(MoneyValue money) {
+        BigDecimal displayValue = money.amount().setScale(money.currency().getDefaultFractionDigits(), RoundingMode.HALF_UP);
         return displayValue.toString();
     }
 }

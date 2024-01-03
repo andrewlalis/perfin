@@ -42,7 +42,7 @@ public class AccountHistoryItemTile extends BorderPane {
     }
 
     private Node buildAccountEntryItem(AccountEntry entry) {
-        Text amountText = new Text(CurrencyUtil.formatMoney(entry.getSignedAmount(), entry.getCurrency()));
+        Text amountText = new Text(CurrencyUtil.formatMoneyWithCurrencyPrefix(entry.getMoneyValue()));
         Hyperlink transactionLink = new Hyperlink("Transaction #" + entry.getTransactionId());
         transactionLink.setOnAction(event -> router.navigate(
                 "transactions",
@@ -56,7 +56,7 @@ public class AccountHistoryItemTile extends BorderPane {
     }
 
     private Node buildBalanceRecordItem(BalanceRecord balanceRecord) {
-        Text amountText = new Text(CurrencyUtil.formatMoney(balanceRecord.getBalance(), balanceRecord.getCurrency()));
-        return new TextFlow(new Text("Balance record added with value of "), amountText);
+        Text amountText = new Text(CurrencyUtil.formatMoneyWithCurrencyPrefix(balanceRecord.getMoneyAmount()));
+        return new TextFlow(new Text("Balance record #" + balanceRecord.getId() + " added with value of "), amountText);
     }
 }

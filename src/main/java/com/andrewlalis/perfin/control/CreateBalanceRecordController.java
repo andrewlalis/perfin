@@ -5,6 +5,7 @@ import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.data.util.FileUtil;
 import com.andrewlalis.perfin.model.Account;
+import com.andrewlalis.perfin.model.MoneyValue;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.view.component.FileSelectionArea;
 import javafx.application.Platform;
@@ -39,7 +40,7 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
             Profile.getCurrent().getDataSource().useAccountRepository(repo -> {
                 BigDecimal value = repo.deriveCurrentBalance(account.getId());
                 Platform.runLater(() -> balanceField.setText(
-                        CurrencyUtil.formatMoneyAsBasicNumber(value, account.getCurrency())
+                        CurrencyUtil.formatMoneyAsBasicNumber(new MoneyValue(value, account.getCurrency()))
                 ));
             });
         });

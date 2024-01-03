@@ -2,6 +2,8 @@ package com.andrewlalis.perfin;
 
 import com.andrewlalis.javafx_scene_router.AnchorPaneRouterView;
 import com.andrewlalis.javafx_scene_router.SceneRouter;
+import com.andrewlalis.perfin.control.Popups;
+import com.andrewlalis.perfin.data.DataSourceInitializationException;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.view.ImageCache;
 import com.andrewlalis.perfin.view.SceneUtil;
@@ -89,6 +91,11 @@ public class PerfinApp extends Application {
 
     private static void loadLastUsedProfile(Consumer<String> msgConsumer) throws Exception {
         msgConsumer.accept("Loading the most recent profile.");
-        Profile.loadLast();
+        try {
+            Profile.loadLast();
+        } catch (DataSourceInitializationException e) {
+            Popups.error(e.getMessage());
+            throw e;
+        }
     }
 }

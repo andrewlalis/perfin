@@ -5,6 +5,7 @@ import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DbUtil;
 import com.andrewlalis.perfin.data.util.ThrowableConsumer;
 import com.andrewlalis.perfin.model.Account;
+import com.andrewlalis.perfin.model.MoneyValue;
 import javafx.application.Platform;
 
 import java.math.BigDecimal;
@@ -52,12 +53,11 @@ public interface DataSource {
     // Utility methods:
 
     default void getAccountBalanceText(Account account, Consumer<String> balanceConsumer) {
-        Thread.ofVirtual().start(() -> {
-            useAccountRepository(repo -> {
-                BigDecimal balance = repo.deriveCurrentBalance(account.getId());
-                Platform.runLater(() -> balanceConsumer.accept(CurrencyUtil.formatMoney(balance, account.getCurrency())));
-            });
-        });
+        Thread.ofVirtual().start(() -> useAccountRepository(repo -> {
+            BigDecimal balance = repo.deriveCurrentBalance(account.getId());
+            MoneyValue money = new MoneyValue(balance, account.getCurrency());
+            Platform.runLater(() -> balanceConsumer.accept(CurrencyUtil.formatMoney(money)));
+        }));
     }
 
     default Map<Currency, BigDecimal> getCombinedAccountBalances() {

@@ -2,14 +2,18 @@ package com.andrewlalis.perfin.model;
 
 import com.andrewlalis.perfin.PerfinApp;
 import com.andrewlalis.perfin.data.DataSource;
-import com.andrewlalis.perfin.data.impl.JdbcDataSource;
+import com.andrewlalis.perfin.data.DataSourceInitializationException;
+import com.andrewlalis.perfin.data.impl.JdbcDataSourceFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
 import java.util.function.Consumer;
 
 /**
@@ -30,6 +34,8 @@ import java.util.function.Consumer;
  * </p>
  */
 public class Profile {
+    private static final Logger log = LoggerFactory.getLogger(Profile.class);
+
     private static Profile current;
     private static final List<Consumer<Profile>> profileLoadListeners = new ArrayList<>();
 
@@ -67,10 +73,6 @@ public class Profile {
         return getDir(name).resolve("settings.properties");
     }
 
-    public static Path getDatabaseFile(String name) {
-        return getDir(name).resolve("database.mv.db");
-    }
-
     public static Profile getCurrent() {
         return current;
     }
@@ -89,6 +91,7 @@ public class Profile {
                     .map(path -> path.getFileName().toString())
                     .sorted().toList();
         } catch (IOException e) {
+            log.error("Failed to get a list of available profiles.", e);
             return Collections.emptyList();
         }
     }
@@ -100,8 +103,7 @@ public class Profile {
                 String s = Files.readString(lastProfileFile).strip().toLowerCase();
                 if (!s.isBlank()) return s;
             } catch (IOException e) {
-                System.err.println("Failed to read " + lastProfileFile);
-                e.printStackTrace(System.err);
+                log.error("Failed to read " + lastProfileFile, e);
             }
         }
         return "default";
@@ -112,16 +114,15 @@ public class Profile {
         try {
             Files.writeString(lastProfileFile, name);
         } catch (IOException e) {
-            System.err.println("Failed to write " + lastProfileFile);
-            e.printStackTrace(System.err);
+            log.error("Failed to write " + lastProfileFile, e);
         }
     }
 
-    public static void loadLast() throws Exception {
+    public static void loadLast() throws IOException, DataSourceInitializationException {
         load(getLastProfile());
     }
 
-    public static void load(String name) throws IOException {
+    public static void load(String name) throws IOException, DataSourceInitializationException {
         if (Files.notExists(getDir(name))) {
             initProfileDir(name);
         }
@@ -129,7 +130,7 @@ public class Profile {
         try (var in = Files.newInputStream(getSettingsFile(name))) {
             settings.load(in);
         }
-        current = new Profile(name, settings, initJdbcDataSource(name));
+        current = new Profile(name, settings, new JdbcDataSourceFactory().getDataSource(name));
         saveLastProfile(current.getName());
         for (var c : profileLoadListeners) {
             c.accept(current);
@@ -142,38 +143,6 @@ public class Profile {
         copyResourceFile("/text/defaultProfileSettings.properties", getSettingsFile(name));
         Files.createDirectory(getContentDir(name));
         copyResourceFile("/text/contentDirReadme.txt", getContentDir(name).resolve("README.txt"));
-    }
-
-    private static DataSource initJdbcDataSource(String name) throws IOException {
-        String databaseFilename = getDatabaseFile(name).toAbsolutePath().toString();
-        String jdbcUrl = "jdbc:h2:" + databaseFilename.substring(0, databaseFilename.length() - 6);
-        boolean exists = Files.exists(getDatabaseFile(name));
-        JdbcDataSource dataSource = new JdbcDataSource(jdbcUrl, getContentDir(name));
-        if (!exists) {// Initialize the datasource using schema.sql.
-            try (var in = Profile.class.getResourceAsStream("/sql/schema.sql"); var conn = dataSource.getConnection()) {
-                if (in == null) throw new IOException("Could not load /sql/schema.sql");
-                String schemaStr = new String(in.readAllBytes(), StandardCharsets.UTF_8);
-                List<String> statements = Arrays.stream(schemaStr.split(";"))
-                        .map(String::strip).filter(s -> !s.isBlank()).toList();
-                for (var statementStr : statements) {
-                    try (var stmt = conn.createStatement()) {
-                        stmt.executeUpdate(statementStr);
-                        System.out.println("Executed update:\n" + statementStr + "\n-----");
-                    }
-                }
-            } catch (SQLException e) {
-                Files.deleteIfExists(getDatabaseFile(name));
-                throw new IOException("Failed to initialize database.", e);
-            }
-        }
-        // Test the datasource before returning it.
-        try (var conn = dataSource.getConnection(); var s = conn.createStatement()) {
-            boolean success = s.execute("SELECT 1;");
-            if (!success) throw new IOException("Failed to execute DB test statement.");
-        } catch (SQLException e) {
-            throw new IOException(e);
-        }
-        return dataSource;
     }
 
     private static void copyResourceFile(String resource, Path dest) throws IOException {

@@ -46,6 +46,10 @@ public class Transaction {
         return description;
     }
 
+    public MoneyValue getMoneyAmount() {
+        return new MoneyValue(amount, currency);
+    }
+
     @Override
     public boolean equals(Object other) {
         return other instanceof Transaction tx && id == tx.id;

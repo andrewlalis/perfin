@@ -44,4 +44,8 @@ public class BalanceRecord {
     public Currency getCurrency() {
         return currency;
     }
+
+    public MoneyValue getMoneyAmount() {
+        return new MoneyValue(balance, currency);
+    }
 }

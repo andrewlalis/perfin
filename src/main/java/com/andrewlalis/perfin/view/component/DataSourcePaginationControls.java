@@ -57,7 +57,6 @@ public class DataSourcePaginationControls extends BorderPane {
         pageText.setTextAlignment(TextAlignment.CENTER);
         BorderPane pageTextContainer = new BorderPane(pageText);
         BorderPane.setAlignment(pageText, Pos.CENTER);
-        pageTextContainer.setStyle("-fx-border-color: blue;");
 
 
         Button previousPageButton = new Button("Previous Page");

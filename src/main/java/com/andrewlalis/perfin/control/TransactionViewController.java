@@ -44,7 +44,7 @@ public class TransactionViewController {
         this.transaction = transaction;
         if (transaction == null) return;
         titleLabel.setText("Transaction #" + transaction.getId());
-        amountLabel.setText(CurrencyUtil.formatMoney(transaction.getAmount(), transaction.getCurrency()));
+        amountLabel.setText(CurrencyUtil.formatMoney(transaction.getMoneyAmount()));
         timestampLabel.setText(DateUtil.formatUTCAsLocalWithZone(transaction.getTimestamp()));
         descriptionLabel.setText(transaction.getDescription());
 

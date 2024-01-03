@@ -1,21 +1,18 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
-import com.andrewlalis.perfin.view.component.AccountTile;
-import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.data.pagination.Sort;
+import com.andrewlalis.perfin.data.util.CurrencyUtil;
+import com.andrewlalis.perfin.model.MoneyValue;
 import com.andrewlalis.perfin.model.Profile;
+import com.andrewlalis.perfin.view.component.AccountTile;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.Currency;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
@@ -63,9 +60,7 @@ public class AccountsViewController implements RouteSelectionListener {
                 var totals = profile.getDataSource().getCombinedAccountBalances();
                 StringBuilder sb = new StringBuilder("Totals: ");
                 for (var entry : totals.entrySet()) {
-                    Currency cur = entry.getKey();
-                    BigDecimal value = entry.getValue().setScale(cur.getDefaultFractionDigits(), RoundingMode.HALF_UP);
-                    sb.append(cur.getCurrencyCode()).append(' ').append(CurrencyUtil.formatMoney(value, cur)).append(' ');
+                    sb.append(CurrencyUtil.formatMoneyWithCurrencyPrefix(new MoneyValue(entry.getValue(), entry.getKey())));
                 }
                 Platform.runLater(() -> totalLabel.setText(sb.toString().strip()));
             });

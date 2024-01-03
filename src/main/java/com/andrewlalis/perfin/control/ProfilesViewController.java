@@ -1,6 +1,7 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.perfin.PerfinApp;
+import com.andrewlalis.perfin.data.DataSourceInitializationException;
 import com.andrewlalis.perfin.data.util.FileUtil;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.view.ProfilesStage;
@@ -123,6 +124,9 @@ public class ProfilesViewController {
         } catch (IOException e) {
             e.printStackTrace(System.err);
             Popups.error("Failed to load profile: " + e.getMessage());
+            return false;
+        } catch (DataSourceInitializationException e) {
+            Popups.error("Failed to initialize the profile's data: " + e.getMessage());
             return false;
         }
     }

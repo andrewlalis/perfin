@@ -9,6 +9,8 @@ module com.andrewlalis.perfin {
 
     requires java.sql;
 
+    requires org.slf4j;
+
     exports com.andrewlalis.perfin to javafx.graphics;
     exports com.andrewlalis.perfin.view to javafx.graphics;
     exports com.andrewlalis.perfin.model to javafx.graphics;

@@ -1,6 +1,8 @@
 package com.andrewlalis.perfin.data.util;
 
 import javafx.stage.FileChooser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -12,6 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FileUtil {
+    private static final Logger log = LoggerFactory.getLogger(FileUtil.class);
+
     public static Map<String, String> MIMETYPES = new HashMap<>();
     static {
         MIMETYPES.put(".pdf", "application/pdf");
@@ -29,6 +33,14 @@ public class FileUtil {
         MIMETYPES.put(".webp", "image/webp");
         MIMETYPES.put(".bmp", "image/bmp");
         MIMETYPES.put(".tiff", "image/tiff");
+    }
+
+    public static void deleteIfPossible(Path file) {
+        try {
+            Files.deleteIfExists(file);
+        } catch (IOException e) {
+            log.error("Failed to delete file " + file, e);
+        }
     }
 
     public static void deleteDirRecursive(Path startDir) throws IOException {

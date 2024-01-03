@@ -85,4 +85,8 @@ public class AccountEntry {
     public BigDecimal getSignedAmount() {
         return type == Type.DEBIT ? amount : amount.negate();
     }
+
+    public MoneyValue getMoneyValue() {
+        return new MoneyValue(amount, currency);
+    }
 }

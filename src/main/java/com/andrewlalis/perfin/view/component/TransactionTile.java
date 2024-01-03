@@ -55,7 +55,7 @@ public class TransactionTile extends BorderPane {
     }
 
     private Node getHeader(Transaction transaction) {
-        Label currencyLabel = new Label(CurrencyUtil.formatMoney(transaction.getAmount(), transaction.getCurrency()));
+        Label currencyLabel = new Label(CurrencyUtil.formatMoney(transaction.getMoneyAmount()));
         currencyLabel.setStyle("-fx-font-family: monospace;");
         HBox headerHBox = new HBox(
                 currencyLabel
