@@ -15,7 +15,7 @@ import javafx.scene.text.TextFlow;
 public class AccountHistoryBalanceRecordTile extends AccountHistoryItemTile {
     public AccountHistoryBalanceRecordTile(AccountHistoryItem item, AccountHistoryItemRepository repo, AccountViewController controller) {
         super(item);
-        BalanceRecord balanceRecord = repo.getBalanceRecordItem(item.getId());
+        BalanceRecord balanceRecord = repo.getBalanceRecordItem(item.id);
         if (balanceRecord == null) {
             setCenter(new TextFlow(new Text("Deleted balance record was added.")));
             return;

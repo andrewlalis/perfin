@@ -1,5 +1,7 @@
 package com.andrewlalis.perfin.model.history;
 
+import com.andrewlalis.perfin.model.IdEntity;
+
 import java.time.LocalDateTime;
 
 /**
@@ -8,21 +10,16 @@ import java.time.LocalDateTime;
  * what exactly it means, and could be something like an account entry, balance
  * record, or modifications to the account's properties.
  */
-public class AccountHistoryItem {
-    private final long id;
+public class AccountHistoryItem extends IdEntity {
     private final LocalDateTime timestamp;
     private final long accountId;
     private final AccountHistoryItemType type;
 
     public AccountHistoryItem(long id, LocalDateTime timestamp, long accountId, AccountHistoryItemType type) {
-        this.id = id;
+        super(id);
         this.timestamp = timestamp;
         this.accountId = accountId;
         this.type = type;
-    }
-
-    public long getId() {
-        return id;
     }
 
     public LocalDateTime getTimestamp() {

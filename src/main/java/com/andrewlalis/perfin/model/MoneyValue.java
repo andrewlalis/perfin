@@ -8,4 +8,8 @@ import java.util.Currency;
  * @param amount The amount of money.
  * @param currency The currency of the money.
  */
-public record MoneyValue(BigDecimal amount, Currency currency) {}
+public record MoneyValue(BigDecimal amount, Currency currency) {
+    public static MoneyValue from(String amountStr, String currencyCode) {
+        return new MoneyValue(new BigDecimal(amountStr), Currency.getInstance(currencyCode));
+    }
+}

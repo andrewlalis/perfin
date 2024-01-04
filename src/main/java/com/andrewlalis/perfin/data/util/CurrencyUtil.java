@@ -5,10 +5,12 @@ import com.andrewlalis.perfin.model.MoneyValue;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
+import java.util.Locale;
 
 public class CurrencyUtil {
     public static String formatMoney(MoneyValue money) {
-        NumberFormat nf = NumberFormat.getCurrencyInstance();
+        // TODO: Use locale-dependent formatting.
+        NumberFormat nf = NumberFormat.getCurrencyInstance(Locale.US);
         nf.setCurrency(money.currency());
         nf.setMaximumFractionDigits(money.currency().getDefaultFractionDigits());
         nf.setMinimumFractionDigits(money.currency().getDefaultFractionDigits());

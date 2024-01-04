@@ -8,7 +8,7 @@ import javafx.scene.text.TextFlow;
 public class AccountHistoryTextTile extends AccountHistoryItemTile {
     public AccountHistoryTextTile(AccountHistoryItem item, AccountHistoryItemRepository repo) {
         super(item);
-        String text = repo.getTextItem(item.getId());
+        String text = repo.getTextItem(item.id);
         setCenter(new TextFlow(new Text(text)));
     }
 }

@@ -14,7 +14,7 @@ import static com.andrewlalis.perfin.PerfinApp.router;
 public class AccountHistoryAccountEntryTile extends AccountHistoryItemTile {
     public AccountHistoryAccountEntryTile(AccountHistoryItem item, AccountHistoryItemRepository repo) {
         super(item);
-        AccountEntry entry = repo.getAccountEntryItem(item.getId());
+        AccountEntry entry = repo.getAccountEntryItem(item.id);
         if (entry == null) {
             setCenter(new TextFlow(new Text("Deleted account entry because of deleted transaction.")));
             return;
