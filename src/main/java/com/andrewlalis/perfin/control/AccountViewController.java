@@ -12,9 +12,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
@@ -87,15 +85,14 @@ public class AccountViewController implements RouteSelectionListener {
 
     @FXML
     public void archiveAccount() {
-        var confirmResult = new Alert(
-                Alert.AlertType.CONFIRMATION,
+        boolean confirmResult = Popups.confirm(
                 "Are you sure you want to archive this account? It will no " +
                         "longer show up in the app normally, and you won't be " +
                         "able to add new transactions to it. You'll still be " +
                         "able to view the account, and you can un-archive it " +
                         "later if you need to."
-        ).showAndWait();
-        if (confirmResult.isPresent() && confirmResult.get() == ButtonType.OK) {
+        );
+        if (confirmResult) {
             Profile.getCurrent().getDataSource().useAccountRepository(repo -> repo.archive(account.id));
             router.getHistory().clear();
             router.navigate("accounts");
@@ -103,20 +100,27 @@ public class AccountViewController implements RouteSelectionListener {
     }
 
     @FXML public void unarchiveAccount() {
-        System.out.println("Unarchiving");
+        boolean confirm = Popups.confirm(
+                "Are you sure you want to restore this account from its archived " +
+                        "status?"
+        );
+        if (confirm) {
+            Profile.getCurrent().getDataSource().useAccountRepository(repo -> repo.unarchive(account.id));
+            router.getHistory().clear();
+            router.navigate("accounts");
+        }
     }
 
     @FXML
     public void deleteAccount() {
-        var confirmResult = new Alert(
-                Alert.AlertType.CONFIRMATION,
+        boolean confirm = Popups.confirm(
                 "Are you sure you want to permanently delete this account and " +
                         "all data directly associated with it? This cannot be " +
                         "undone; deleted accounts are not recoverable at all. " +
                         "Consider archiving this account instead if you just " +
                         "want to hide it."
-        ).showAndWait();
-        if (confirmResult.isPresent() && confirmResult.get() == ButtonType.OK) {
+        );
+        if (confirm) {
             Profile.getCurrent().getDataSource().useAccountRepository(repo -> repo.delete(account));
             router.getHistory().clear();
             router.navigate("accounts");

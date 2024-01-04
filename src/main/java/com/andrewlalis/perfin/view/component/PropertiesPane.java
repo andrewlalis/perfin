@@ -13,19 +13,21 @@ import java.util.List;
 
 /**
  * A specially-formatted {@link GridPane} that arranges its children into a
- * two-column grid representing key-value pairs.
+ * two-column grid representing key-value pairs. It will use a default set of
+ * {@link ColumnConstraints} unless they are already defined by the user.
  */
 public class PropertiesPane extends GridPane {
+    private final ColumnConstraints defaultKeyColumnConstraints;
+    private final ColumnConstraints defaultValueColumnConstraints;
+    private boolean columnConstraintsSet = false;
+
     public PropertiesPane() {
-        ColumnConstraints keyConstraints = new ColumnConstraints();
-        keyConstraints.setHgrow(Priority.NEVER);
-        keyConstraints.setHalignment(HPos.LEFT);
-        keyConstraints.setMinWidth(10.0);
-        ColumnConstraints valueConstraints = new ColumnConstraints();
-        valueConstraints.setHgrow(Priority.ALWAYS);
-        valueConstraints.setHalignment(HPos.LEFT);
-        valueConstraints.setMinWidth(10.0);
-        getColumnConstraints().setAll(keyConstraints, valueConstraints);
+        defaultKeyColumnConstraints = new ColumnConstraints();
+        defaultKeyColumnConstraints.setHgrow(Priority.NEVER);
+        defaultKeyColumnConstraints.setHalignment(HPos.LEFT);
+        defaultValueColumnConstraints = new ColumnConstraints();
+        defaultValueColumnConstraints.setHgrow(Priority.ALWAYS);
+        defaultValueColumnConstraints.setHalignment(HPos.LEFT);
     }
 
     @Override
@@ -34,6 +36,17 @@ public class PropertiesPane extends GridPane {
         // key 1  value 1
         // key 2  value 2
         // ... and so on.
+
+        // Set column restraints if they weren't set already.
+        if (!columnConstraintsSet) {
+            if (getColumnConstraints().isEmpty()) {
+                // No preexisting constraints, so we set our defaults.
+                getColumnConstraints().setAll(defaultKeyColumnConstraints, defaultValueColumnConstraints);
+            }
+            columnConstraintsSet = true;
+        }
+
+        // Set row constraints for each row.
         int rowCount = getManagedChildren().size() / 2;
         List<RowConstraints> rows = new ArrayList<>(rowCount);
         for (int i = 0; i < rowCount; i++) {
@@ -43,6 +56,8 @@ public class PropertiesPane extends GridPane {
             rows.add(c);
         }
         getRowConstraints().setAll(rows);
+
+        // Set child row and column indices.
         for (int i = 0; i < getManagedChildren().size(); i++) {
             Node child = getManagedChildren().get(i);
             int column = i % 2;
@@ -50,6 +65,7 @@ public class PropertiesPane extends GridPane {
             GridPane.setRowIndex(child, row);
             GridPane.setColumnIndex(child, column);
         }
+
         super.layoutChildren();
     }
 }

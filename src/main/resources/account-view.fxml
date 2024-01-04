@@ -43,9 +43,6 @@
                                 </VBox>
                                 <Label fx:id="accountBalanceLabel" styleClass="mono-font"/>
                             </PropertiesPane>
-                            <VBox HBox.hgrow="SOMETIMES">
-                                <Label text="Panel 2"/>
-                            </VBox>
                         </FlowPane>
                     </VBox>
                 </center>

@@ -4,6 +4,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.text.TextFlow?>
+<?import com.andrewlalis.perfin.view.component.PropertiesPane?>
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.andrewlalis.perfin.control.TransactionViewController"
@@ -16,19 +17,20 @@
     <center>
         <ScrollPane fitToHeight="true" fitToWidth="true">
             <VBox styleClass="std-padding,std-spacing">
-                <VBox>
-                    <Label text="Amount" styleClass="bold-text"/>
+                <PropertiesPane vgap="5" hgap="5">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="100" halignment="LEFT" hgrow="NEVER"/>
+                        <ColumnConstraints hgrow="ALWAYS" halignment="LEFT"/>
+                    </columnConstraints>
+                    <Label text="Amount" styleClass="bold-text" style="-fx-min-width: 100px;"/>
                     <Label fx:id="amountLabel" styleClass="mono-font"/>
-                </VBox>
-                <VBox>
+
                     <Label text="Timestamp" styleClass="bold-text"/>
                     <Label fx:id="timestampLabel" styleClass="mono-font"/>
-                </VBox>
-                <VBox>
+
                     <Label text="Description" styleClass="bold-text"/>
                     <Label fx:id="descriptionLabel" wrapText="true" style="-fx-min-height: 100px;" alignment="TOP_LEFT"/>
-                </VBox>
-                <Separator/>
+                </PropertiesPane>
                 <VBox>
                     <TextFlow>
                         <Text text="Debited to"/>
@@ -39,7 +41,6 @@
                         <Hyperlink fx:id="creditAccountLink"/>
                     </TextFlow>
                 </VBox>
-                <Separator/>
                 <VBox fx:id="attachmentsContainer">
                     <Label text="Attachments" styleClass="bold-text"/>
                     <ScrollPane fitToWidth="true" fitToHeight="true">
