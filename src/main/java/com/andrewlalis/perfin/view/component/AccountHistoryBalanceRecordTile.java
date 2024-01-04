@@ -22,7 +22,7 @@ public class AccountHistoryBalanceRecordTile extends AccountHistoryItemTile {
         }
 
         Text amountText = new Text(CurrencyUtil.formatMoneyWithCurrencyPrefix(balanceRecord.getMoneyAmount()));
-        var text = new TextFlow(new Text("Balance record #" + balanceRecord.getId() + " added with value of "), amountText);
+        var text = new TextFlow(new Text("Balance record #" + balanceRecord.id + " added with value of "), amountText);
         setCenter(text);
 
         Hyperlink deleteLink = new Hyperlink("Delete this balance record");
@@ -30,7 +30,7 @@ public class AccountHistoryBalanceRecordTile extends AccountHistoryItemTile {
             boolean confirm = Popups.confirm("Are you sure you want to delete this balance record? It will be removed permanently, and cannot be undone.");
             if (confirm) {
                 Profile.getCurrent().getDataSource().useBalanceRecordRepository(balanceRecordRepo -> {
-                    balanceRecordRepo.deleteById(balanceRecord.getId());
+                    balanceRecordRepo.deleteById(balanceRecord.id);
                     Platform.runLater(controller::reloadHistory);
                 });
             }

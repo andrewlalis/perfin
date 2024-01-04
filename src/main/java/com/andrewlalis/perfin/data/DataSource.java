@@ -5,6 +5,7 @@ import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DbUtil;
 import com.andrewlalis.perfin.data.util.ThrowableConsumer;
 import com.andrewlalis.perfin.model.Account;
+import com.andrewlalis.perfin.model.AccountType;
 import com.andrewlalis.perfin.model.MoneyValue;
 import javafx.application.Platform;
 
@@ -29,32 +30,32 @@ public interface DataSource {
     Path getContentDir();
 
     AccountRepository getAccountRepository();
+    BalanceRecordRepository getBalanceRecordRepository();
+    TransactionRepository getTransactionRepository();
+    AttachmentRepository getAttachmentRepository();
+    AccountHistoryItemRepository getAccountHistoryItemRepository();
+
     default void useAccountRepository(ThrowableConsumer<AccountRepository> repoConsumer) {
         DbUtil.useClosable(this::getAccountRepository, repoConsumer);
     }
 
-    BalanceRecordRepository getBalanceRecordRepository();
     default void useBalanceRecordRepository(ThrowableConsumer<BalanceRecordRepository> repoConsumer) {
         DbUtil.useClosable(this::getBalanceRecordRepository, repoConsumer);
     }
 
-    TransactionRepository getTransactionRepository();
     default void useTransactionRepository(ThrowableConsumer<TransactionRepository> repoConsumer) {
         DbUtil.useClosable(this::getTransactionRepository, repoConsumer);
     }
 
-    AttachmentRepository getAttachmentRepository();
     default void useAttachmentRepository(ThrowableConsumer<AttachmentRepository> repoConsumer) {
         DbUtil.useClosable(this::getAttachmentRepository, repoConsumer);
     }
-
-    AccountHistoryItemRepository getAccountHistoryItemRepository();
 
     // Utility methods:
 
     default void getAccountBalanceText(Account account, Consumer<String> balanceConsumer) {
         Thread.ofVirtual().start(() -> useAccountRepository(repo -> {
-            BigDecimal balance = repo.deriveCurrentBalance(account.getId());
+            BigDecimal balance = repo.deriveCurrentBalance(account.id);
             MoneyValue money = new MoneyValue(balance, account.getCurrency());
             Platform.runLater(() -> balanceConsumer.accept(CurrencyUtil.formatMoney(money)));
         }));
@@ -66,7 +67,9 @@ public interface DataSource {
             Map<Currency, BigDecimal> totals = new HashMap<>();
             for (var account : accounts) {
                 BigDecimal currencyTotal = totals.computeIfAbsent(account.getCurrency(), c -> BigDecimal.ZERO);
-                totals.put(account.getCurrency(), currencyTotal.add(accountRepo.deriveCurrentBalance(account.getId())));
+                BigDecimal accountBalance = accountRepo.deriveCurrentBalance(account.id);
+                if (account.getType() == AccountType.CREDIT_CARD) accountBalance = accountBalance.negate();
+                totals.put(account.getCurrency(), currencyTotal.add(accountBalance));
             }
             return totals;
         } catch (Exception e) {

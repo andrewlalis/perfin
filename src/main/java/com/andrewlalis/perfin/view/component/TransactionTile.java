@@ -107,7 +107,7 @@ public class TransactionTile extends BorderPane {
         CompletableFuture<CreditAndDebitAccounts> cf = new CompletableFuture<>();
         Thread.ofVirtual().start(() -> {
             Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
-                CreditAndDebitAccounts accounts = repo.findLinkedAccounts(transaction.getId());
+                CreditAndDebitAccounts accounts = repo.findLinkedAccounts(transaction.id);
                 cf.complete(accounts);
             });
         });

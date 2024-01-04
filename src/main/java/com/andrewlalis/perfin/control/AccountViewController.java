@@ -35,7 +35,7 @@ public class AccountViewController implements RouteSelectionListener {
     @Override
     public void onRouteSelected(Object context) {
         account = (Account) context;
-        titleLabel.setText("Account #" + account.getId());
+        titleLabel.setText("Account #" + account.id);
 
         accountNameField.setText(account.getName());
         accountNumberField.setText(account.getAccountNumber());
@@ -100,7 +100,7 @@ public class AccountViewController implements RouteSelectionListener {
         Thread.ofVirtual().start(() -> {
             try (var historyRepo = Profile.getCurrent().getDataSource().getAccountHistoryItemRepository()) {
                 List<AccountHistoryItem> historyItems = historyRepo.findMostRecentForAccount(
-                        account.getId(),
+                        account.id,
                         loadHistoryFrom,
                         historyLoadSize
                 );

@@ -1,6 +1,7 @@
 package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.AccountRepository;
+import com.andrewlalis.perfin.data.EntityNotFoundException;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.data.util.DateUtil;
@@ -66,59 +67,53 @@ public record JdbcAccountRepository(Connection conn) implements AccountRepositor
     }
 
     @Override
-    public BigDecimal deriveBalance(long id, Instant timestamp) {
+    public BigDecimal deriveBalance(long accountId, Instant timestamp) {
+        // First find the account itself, since its properties influence the balance.
+        Account account = findById(accountId).orElse(null);
+        if (account == null) throw new EntityNotFoundException(Account.class, accountId);
         // Find the most recent balance record before timestamp.
         Optional<BalanceRecord> closestPastRecord = DbUtil.findOne(
                 conn,
                 "SELECT * FROM balance_record WHERE account_id = ? AND timestamp <= ? ORDER BY timestamp DESC LIMIT 1",
-                List.of(id, DbUtil.timestampFromInstant(timestamp)),
+                List.of(accountId, DbUtil.timestampFromInstant(timestamp)),
                 JdbcBalanceRecordRepository::parse
         );
         if (closestPastRecord.isPresent()) {
             // Then find any entries on the account since that balance record and the timestamp.
-            List<AccountEntry> accountEntries = DbUtil.findAll(
+            List<AccountEntry> entriesAfterRecord = DbUtil.findAll(
                     conn,
                     "SELECT * FROM account_entry WHERE account_id = ? AND timestamp >= ? AND timestamp <= ? ORDER BY timestamp ASC",
                     List.of(
-                            id,
+                            accountId,
                             DbUtil.timestampFromUtcLDT(closestPastRecord.get().getTimestamp()),
                             DbUtil.timestampFromInstant(timestamp)
                     ),
                     JdbcAccountEntryRepository::parse
             );
-            // Apply all entries to the most recent known balance to obtain the balance at this point.
-            BigDecimal currentBalance = closestPastRecord.get().getBalance();
-            for (var entry : accountEntries) {
-                currentBalance = currentBalance.add(entry.getSignedAmount());
-            }
-            return currentBalance;
+            return computeBalanceWithEntriesAfter(account, closestPastRecord.get(), entriesAfterRecord);
         } else {
             // There is no balance record present before the given timestamp. Try and find the closest one after.
             Optional<BalanceRecord> closestFutureRecord = DbUtil.findOne(
                     conn,
                     "SELECT * FROM balance_record WHERE account_id = ? AND timestamp >= ? ORDER BY timestamp ASC LIMIT 1",
-                    List.of(id, DbUtil.timestampFromInstant(timestamp)),
+                    List.of(accountId, DbUtil.timestampFromInstant(timestamp)),
                     JdbcBalanceRecordRepository::parse
             );
             if (closestFutureRecord.isEmpty()) {
-                throw new IllegalStateException("No balance record exists for account " + id);
+                throw new IllegalStateException("No balance record exists for account " + accountId);
             }
             // Now find any entries on the account from the timestamp until that balance record.
-            List<AccountEntry> accountEntries = DbUtil.findAll(
+            List<AccountEntry> entriesBeforeRecord = DbUtil.findAll(
                     conn,
                     "SELECT * FROM account_entry WHERE account_id = ? AND timestamp <= ? AND timestamp >= ? ORDER BY timestamp DESC",
                     List.of(
-                            id,
+                            accountId,
                             DbUtil.timestampFromUtcLDT(closestFutureRecord.get().getTimestamp()),
                             DbUtil.timestampFromInstant(timestamp)
                     ),
                     JdbcAccountEntryRepository::parse
             );
-            BigDecimal currentBalance = closestFutureRecord.get().getBalance();
-            for (var entry : accountEntries) {
-                currentBalance = currentBalance.subtract(entry.getSignedAmount());
-            }
-            return currentBalance;
+            return computeBalanceWithEntriesBefore(account, closestFutureRecord.get(), entriesBeforeRecord);
         }
     }
 
@@ -141,19 +136,19 @@ public record JdbcAccountRepository(Connection conn) implements AccountRepositor
                         account.getAccountNumber(),
                         account.getCurrency().getCurrencyCode(),
                         account.getType().name(),
-                        account.getId()
+                        account.id
                 )
         );
     }
 
     @Override
     public void delete(Account account) {
-        DbUtil.updateOne(conn, "DELETE FROM account WHERE id = ?", List.of(account.getId()));
+        DbUtil.updateOne(conn, "DELETE FROM account WHERE id = ?", List.of(account.id));
     }
 
     @Override
     public void archive(Account account) {
-        DbUtil.updateOne(conn, "UPDATE account SET archived = TRUE WHERE id = ?", List.of(account.getId()));
+        DbUtil.updateOne(conn, "UPDATE account SET archived = TRUE WHERE id = ?", List.of(account.id));
     }
 
     public static Account parseAccount(ResultSet rs) throws SQLException {
@@ -170,5 +165,21 @@ public record JdbcAccountRepository(Connection conn) implements AccountRepositor
     @Override
     public void close() throws Exception {
         conn.close();
+    }
+
+    private BigDecimal computeBalanceWithEntriesAfter(Account account, BalanceRecord balanceRecord, List<AccountEntry> entriesAfterRecord) {
+        BigDecimal balance = balanceRecord.getBalance();
+        for (AccountEntry entry : entriesAfterRecord) {
+            balance = balance.add(entry.getEffectiveValue(account.getType()));
+        }
+        return balance;
+    }
+
+    private BigDecimal computeBalanceWithEntriesBefore(Account account, BalanceRecord balanceRecord, List<AccountEntry> entriesBeforeRecord) {
+        BigDecimal balance = balanceRecord.getBalance();
+        for (AccountEntry entry : entriesBeforeRecord) {
+            balance = balance.subtract(entry.getEffectiveValue(account.getType()));
+        }
+        return balance;
     }
 }

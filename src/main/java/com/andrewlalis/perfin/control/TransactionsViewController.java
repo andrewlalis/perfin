@@ -100,7 +100,7 @@ public class TransactionsViewController implements RouteSelectionListener {
             Thread.ofVirtual().start(() -> {
                 Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
                     repo.findById(ctx.selectedTransactionId).ifPresent(tx -> {
-                        long offset = repo.countAllAfter(tx.getId());
+                        long offset = repo.countAllAfter(tx.id);
                         int pageNumber = (int) (offset / DEFAULT_ITEMS_PER_PAGE) + 1;
                         paginationControls.setPage(pageNumber).thenRun(() -> selectedTransaction.set(tx));
                     });

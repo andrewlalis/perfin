@@ -197,7 +197,7 @@ public class CreateTransactionController implements RouteSelectionListener {
         Account creditAccount = linkCreditAccountComboBox.getValue();
         if (debitAccount == null && creditAccount == null) {
             linkedAccountsErrorLabel.setText("At least one credit or debit account must be linked to the transaction for it to have any effect.");
-        } else if (debitAccount != null && creditAccount != null && debitAccount.getId() == creditAccount.getId()) {
+        } else if (debitAccount != null && debitAccount.equals(creditAccount)) {
             linkedAccountsErrorLabel.setText("Cannot link the same account to both credit and debit.");
         } else {
             linkedAccountsErrorLabel.setText(null);
@@ -223,7 +223,7 @@ public class CreateTransactionController implements RouteSelectionListener {
         if (debitAccount == null && creditAccount == null) {
             errorMessages.add("At least one account must be linked to this transaction.");
         }
-        if (debitAccount != null && creditAccount != null && debitAccount.getId() == creditAccount.getId()) {
+        if (debitAccount != null && debitAccount.equals(creditAccount)) {
             errorMessages.add("Credit and debit accounts cannot be the same.");
         }
         return errorMessages;

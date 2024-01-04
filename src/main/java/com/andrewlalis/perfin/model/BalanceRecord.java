@@ -9,24 +9,18 @@ import java.util.Currency;
  * used as a sanity check for ensuring that an account's entries add up to the
  * correct balance.
  */
-public class BalanceRecord {
-    private final long id;
+public class BalanceRecord extends IdEntity {
     private final LocalDateTime timestamp;
-
     private final long accountId;
     private final BigDecimal balance;
     private final Currency currency;
 
     public BalanceRecord(long id, LocalDateTime timestamp, long accountId, BigDecimal balance, Currency currency) {
-        this.id = id;
+        super(id);
         this.timestamp = timestamp;
         this.accountId = accountId;
         this.balance = balance;
         this.currency = currency;
-    }
-
-    public long getId() {
-        return id;
     }
 
     public LocalDateTime getTimestamp() {

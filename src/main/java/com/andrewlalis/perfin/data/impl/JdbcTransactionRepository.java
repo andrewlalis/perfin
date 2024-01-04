@@ -36,15 +36,15 @@ public record JdbcTransactionRepository(Connection conn, Path contentDir) implem
             );
             // 2. Insert linked account entries.
             AccountEntryRepository accountEntryRepository = new JdbcAccountEntryRepository(conn);
-            linkedAccounts.ifDebit(acc -> accountEntryRepository.insert(utcTimestamp, acc.getId(), txId, amount, AccountEntry.Type.DEBIT, currency));
-            linkedAccounts.ifCredit(acc -> accountEntryRepository.insert(utcTimestamp, acc.getId(), txId, amount, AccountEntry.Type.CREDIT, currency));
+            linkedAccounts.ifDebit(acc -> accountEntryRepository.insert(utcTimestamp, acc.id, txId, amount, AccountEntry.Type.DEBIT, currency));
+            linkedAccounts.ifCredit(acc -> accountEntryRepository.insert(utcTimestamp, acc.id, txId, amount, AccountEntry.Type.CREDIT, currency));
             // 3. Add attachments.
             AttachmentRepository attachmentRepo = new JdbcAttachmentRepository(conn, contentDir);
             try (var stmt = conn.prepareStatement("INSERT INTO transaction_attachment (transaction_id, attachment_id) VALUES (?, ?)")) {
                 for (var attachmentPath : attachments) {
                     Attachment attachment = attachmentRepo.insert(attachmentPath);
                     // Insert the link-table entry.
-                    DbUtil.setArgs(stmt, txId, attachment.getId());
+                    DbUtil.setArgs(stmt, txId, attachment.id);
                     stmt.executeUpdate();
                 }
             }

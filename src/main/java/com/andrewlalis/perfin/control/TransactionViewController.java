@@ -43,7 +43,7 @@ public class TransactionViewController {
     public void setTransaction(Transaction transaction) {
         this.transaction = transaction;
         if (transaction == null) return;
-        titleLabel.setText("Transaction #" + transaction.getId());
+        titleLabel.setText("Transaction #" + transaction.id);
         amountLabel.setText(CurrencyUtil.formatMoney(transaction.getMoneyAmount()));
         timestampLabel.setText(DateUtil.formatUTCAsLocalWithZone(transaction.getTimestamp()));
         descriptionLabel.setText(transaction.getDescription());
@@ -52,7 +52,7 @@ public class TransactionViewController {
         configureAccountLinkBindings(creditAccountLink);
         Thread.ofVirtual().start(() -> {
             Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
-                CreditAndDebitAccounts accounts = repo.findLinkedAccounts(transaction.getId());
+                CreditAndDebitAccounts accounts = repo.findLinkedAccounts(transaction.id);
                 Platform.runLater(() -> {
                     accounts.ifDebit(acc -> {
                         debitAccountLink.setText(acc.getShortName());
@@ -70,7 +70,7 @@ public class TransactionViewController {
         attachmentsContainer.visibleProperty().bind(new SimpleListProperty<>(attachmentsList).emptyProperty().not());
         Thread.ofVirtual().start(() -> {
             Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
-                List<Attachment> attachments = repo.findAttachments(transaction.getId());
+                List<Attachment> attachments = repo.findAttachments(transaction.id);
                 Platform.runLater(() -> attachmentsList.setAll(attachments));
             });
         });
@@ -94,7 +94,7 @@ public class TransactionViewController {
         if (confirm) {
             Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
                 // TODO: Delete attachments first!
-                repo.delete(transaction.getId());
+                repo.delete(transaction.id);
                 router.getHistory().clear();
                 router.navigate("transactions");
             });

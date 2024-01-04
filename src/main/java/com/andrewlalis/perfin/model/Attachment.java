@@ -11,23 +11,18 @@ import java.time.format.DateTimeFormatter;
  * entity, like a receipt attached to a transaction, or a bank statement to an
  * account balance record.
  */
-public class Attachment {
-    private final long id;
+public class Attachment extends IdEntity {
     private final LocalDateTime timestamp;
     private final String identifier;
     private final String filename;
     private final String contentType;
 
     public Attachment(long id, LocalDateTime timestamp, String identifier, String filename, String contentType) {
-        this.id = id;
+        super(id);
         this.timestamp = timestamp;
         this.identifier = identifier;
         this.filename = filename;
         this.contentType = contentType;
-    }
-
-    public long getId() {
-        return id;
     }
 
     public LocalDateTime getTimestamp() {

@@ -30,13 +30,12 @@ import java.util.Currency;
  *     all those extra accounts would be a burden to casual users.
  * </p>
  */
-public class AccountEntry {
+public class AccountEntry extends IdEntity {
     public enum Type {
         CREDIT,
         DEBIT
     }
 
-    private final long id;
     private final LocalDateTime timestamp;
     private final long accountId;
     private final long transactionId;
@@ -45,17 +44,13 @@ public class AccountEntry {
     private final Currency currency;
 
     public AccountEntry(long id, LocalDateTime timestamp, long accountId, long transactionId, BigDecimal amount, Type type, Currency currency) {
-        this.id = id;
+        super(id);
         this.timestamp = timestamp;
         this.accountId = accountId;
         this.transactionId = transactionId;
         this.amount = amount;
         this.type = type;
         this.currency = currency;
-    }
-
-    public long getId() {
-        return id;
     }
 
     public LocalDateTime getTimestamp() {
@@ -82,11 +77,19 @@ public class AccountEntry {
         return currency;
     }
 
-    public BigDecimal getSignedAmount() {
-        return type == Type.DEBIT ? amount : amount.negate();
-    }
-
     public MoneyValue getMoneyValue() {
         return new MoneyValue(amount, currency);
+    }
+
+    /**
+     * Gets the effective value of this entry for the account's type.
+     * @param accountType The type of the account.
+     * @return The effective value of this entry, either positive or negative.
+     */
+    public BigDecimal getEffectiveValue(AccountType accountType) {
+        return switch (accountType) {
+            case CHECKING, SAVINGS -> type == Type.DEBIT ? amount : amount.negate();
+            case CREDIT_CARD -> type == Type.DEBIT ? amount.negate() : amount;
+        };
     }
 }

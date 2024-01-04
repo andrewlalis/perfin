@@ -10,24 +10,18 @@ import java.util.Currency;
  * actual positive/negative effect is determined by the associated account
  * entries that apply this transaction's amount to one or more accounts.
  */
-public class Transaction {
-    private final long id;
+public class Transaction extends IdEntity {
     private final LocalDateTime timestamp;
-
     private final BigDecimal amount;
     private final Currency currency;
     private final String description;
 
     public Transaction(long id, LocalDateTime timestamp, BigDecimal amount, Currency currency, String description) {
-        this.id = id;
+        super(id);
         this.timestamp = timestamp;
         this.amount = amount;
         this.currency = currency;
         this.description = description;
-    }
-
-    public long getId() {
-        return id;
     }
 
     public LocalDateTime getTimestamp() {
@@ -48,10 +42,5 @@ public class Transaction {
 
     public MoneyValue getMoneyAmount() {
         return new MoneyValue(amount, currency);
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        return other instanceof Transaction tx && id == tx.id;
     }
 }

@@ -7,8 +7,7 @@ import java.util.Currency;
  * The representation of a physical account of some sort (checking, savings,
  * credit-card, etc.).
  */
-public class Account {
-    private final long id;
+public class Account extends IdEntity {
     private final LocalDateTime createdAt;
     private final boolean archived;
 
@@ -18,7 +17,7 @@ public class Account {
     private Currency currency;
 
     public Account(long id, LocalDateTime createdAt, boolean archived, AccountType type, String accountNumber, String name, Currency currency) {
-        this.id = id;
+        super(id);
         this.createdAt = createdAt;
         this.archived = archived;
         this.type = type;
@@ -71,10 +70,6 @@ public class Account {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
-    }
-
-    public long getId() {
-        return id;
     }
 
     public boolean isArchived() {

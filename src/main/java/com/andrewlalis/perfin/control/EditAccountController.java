@@ -12,6 +12,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.nio.file.Path;
@@ -23,6 +25,8 @@ import java.util.stream.Stream;
 import static com.andrewlalis.perfin.PerfinApp.router;
 
 public class EditAccountController implements RouteSelectionListener {
+    private static final Logger log = LoggerFactory.getLogger(EditAccountController.class);
+
     private Account account;
     private final BooleanProperty creatingNewAccount = new SimpleBooleanProperty(false);
 
@@ -102,18 +106,19 @@ public class EditAccountController implements RouteSelectionListener {
                     router.navigate("account", newAccount);
                 }
             } else {
-                System.out.println("Updating account " + account.getName());
+                log.debug("Updating account {}", account.id);
                 account.setName(accountNameField.getText().strip());
                 account.setAccountNumber(accountNumberField.getText().strip());
                 account.setType(accountTypeChoiceBox.getValue());
                 account.setCurrency(accountCurrencyComboBox.getValue());
                 accountRepo.update(account);
-                Account updatedAccount = accountRepo.findById(account.getId()).orElseThrow();
+                Account updatedAccount = accountRepo.findById(account.id).orElseThrow();
                 router.getHistory().clear();
                 router.navigate("account", updatedAccount);
             }
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            log.error("Failed to save (or update) account " + account.id, e);
+            Popups.error("Failed to save the account: " + e.getMessage());
         }
     }
 

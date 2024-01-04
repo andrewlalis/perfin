@@ -30,7 +30,7 @@ public record JdbcBalanceRecordRepository(Connection conn, Path contentDir) impl
             try (var stmt = conn.prepareStatement("INSERT INTO balance_record_attachment(balance_record_id, attachment_id) VALUES (?, ?)")) {
                 for (var attachmentPath : attachments) {
                     Attachment attachment = attachmentRepo.insert(attachmentPath);
-                    DbUtil.setArgs(stmt, recordId, attachment.getId());
+                    DbUtil.setArgs(stmt, recordId, attachment.id);
                     stmt.executeUpdate();
                 }
             }

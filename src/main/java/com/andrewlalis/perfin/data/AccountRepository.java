@@ -23,9 +23,9 @@ public interface AccountRepository extends AutoCloseable {
     void delete(Account account);
     void archive(Account account);
 
-    BigDecimal deriveBalance(long id, Instant timestamp);
-    default BigDecimal deriveCurrentBalance(long id) {
-        return deriveBalance(id, Instant.now(Clock.systemUTC()));
+    BigDecimal deriveBalance(long accountId, Instant timestamp);
+    default BigDecimal deriveCurrentBalance(long accountId) {
+        return deriveBalance(accountId, Instant.now(Clock.systemUTC()));
     }
     Set<Currency> findAllUsedCurrencies();
 }

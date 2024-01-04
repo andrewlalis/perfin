@@ -38,7 +38,7 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
         timestampField.setText(LocalDateTime.now().format(DateUtil.DEFAULT_DATETIME_FORMAT));
         Thread.ofVirtual().start(() -> {
             Profile.getCurrent().getDataSource().useAccountRepository(repo -> {
-                BigDecimal value = repo.deriveCurrentBalance(account.getId());
+                BigDecimal value = repo.deriveCurrentBalance(account.id);
                 Platform.runLater(() -> balanceField.setText(
                         CurrencyUtil.formatMoneyAsBasicNumber(new MoneyValue(value, account.getCurrency()))
                 ));
@@ -54,7 +54,7 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
             BigDecimal reportedBalance = new BigDecimal(balanceField.getText());
             repo.insert(
                     DateUtil.localToUTC(localTimestamp),
-                    account.getId(),
+                    account.id,
                     reportedBalance,
                     account.getCurrency(),
                     attachmentSelectionArea.getSelectedFiles()
