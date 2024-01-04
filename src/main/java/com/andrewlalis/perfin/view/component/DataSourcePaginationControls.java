@@ -10,11 +10,9 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
@@ -54,9 +52,11 @@ public class DataSourcePaginationControls extends BorderPane {
         maxPagesText.managedProperty().bind(maxPagesText.visibleProperty());
         maxPagesText.visibleProperty().bind(maxPages.greaterThan(0));
         TextFlow pageText = new TextFlow(new Text("Page "), currentPageLabel, maxPagesText);
-        pageText.setTextAlignment(TextAlignment.CENTER);
-        BorderPane pageTextContainer = new BorderPane(pageText);
-        BorderPane.setAlignment(pageText, Pos.CENTER);
+        AnchorPane pageTextContainer = new AnchorPane(pageText);
+        AnchorPane.setTopAnchor(pageText, 4.0);
+        AnchorPane.setRightAnchor(pageText, 0.0);
+        AnchorPane.setBottomAnchor(pageText, 0.0);
+        AnchorPane.setLeftAnchor(pageText, 0.0);
 
 
         Button previousPageButton = new Button("Previous Page");

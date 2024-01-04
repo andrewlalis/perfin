@@ -21,7 +21,8 @@ public interface AccountRepository extends AutoCloseable {
     void updateName(long id, String name);
     void update(Account account);
     void delete(Account account);
-    void archive(Account account);
+    void archive(long accountId);
+    void unarchive(long accountId);
 
     BigDecimal deriveBalance(long accountId, Instant timestamp);
     default BigDecimal deriveCurrentBalance(long accountId) {

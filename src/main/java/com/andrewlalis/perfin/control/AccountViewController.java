@@ -7,9 +7,15 @@ import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.model.history.AccountHistoryItem;
 import com.andrewlalis.perfin.view.component.AccountHistoryItemTile;
 import javafx.application.Platform;
+import javafx.beans.binding.BooleanExpression;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
 import java.time.LocalDateTime;
@@ -21,27 +27,44 @@ public class AccountViewController implements RouteSelectionListener {
     private Account account;
 
     @FXML public Label titleLabel;
-    @FXML public TextField accountNameField;
-    @FXML public TextField accountNumberField;
-    @FXML public TextField accountCreatedAtField;
-    @FXML public TextField accountCurrencyField;
-    @FXML public TextField accountBalanceField;
+
+    @FXML public Label accountNameLabel;
+    @FXML public Label accountNumberLabel;
+    @FXML public Label accountCurrencyLabel;
+    @FXML public Label accountCreatedAtLabel;
+    @FXML public Label accountBalanceLabel;
+    @FXML public BooleanProperty accountArchivedProperty = new SimpleBooleanProperty(false);
 
     @FXML public VBox historyItemsVBox;
     @FXML public Button loadMoreHistoryButton;
     private LocalDateTime loadHistoryFrom;
     private final int historyLoadSize = 5;
 
+    @FXML public VBox actionsVBox;
+
+    @FXML public void initialize() {
+        actionsVBox.getChildren().forEach(node -> {
+            Button button = (Button) node;
+            BooleanExpression buttonActive = accountArchivedProperty;
+            if (button.getText().equalsIgnoreCase("Unarchive")) {
+                buttonActive = buttonActive.not();
+            }
+            button.disableProperty().bind(buttonActive);
+            button.managedProperty().bind(button.visibleProperty());
+            button.visibleProperty().bind(button.disableProperty().not());
+        });
+    }
+
     @Override
     public void onRouteSelected(Object context) {
         account = (Account) context;
+        accountArchivedProperty.set(account.isArchived());
         titleLabel.setText("Account #" + account.id);
-
-        accountNameField.setText(account.getName());
-        accountNumberField.setText(account.getAccountNumber());
-        accountCurrencyField.setText(account.getCurrency().getDisplayName());
-        accountCreatedAtField.setText(DateUtil.formatUTCAsLocalWithZone(account.getCreatedAt()));
-        Profile.getCurrent().getDataSource().getAccountBalanceText(account, accountBalanceField::setText);
+        accountNameLabel.setText(account.getName());
+        accountNumberLabel.setText(account.getAccountNumber());
+        accountCurrencyLabel.setText(account.getCurrency().getDisplayName());
+        accountCreatedAtLabel.setText(DateUtil.formatUTCAsLocalWithZone(account.getCreatedAt()));
+        Profile.getCurrent().getDataSource().getAccountBalanceText(account, accountBalanceLabel::setText);
 
         reloadHistory();
     }
@@ -73,10 +96,14 @@ public class AccountViewController implements RouteSelectionListener {
                         "later if you need to."
         ).showAndWait();
         if (confirmResult.isPresent() && confirmResult.get() == ButtonType.OK) {
-            Profile.getCurrent().getDataSource().useAccountRepository(repo -> repo.archive(account));
+            Profile.getCurrent().getDataSource().useAccountRepository(repo -> repo.archive(account.id));
             router.getHistory().clear();
             router.navigate("accounts");
         }
+    }
+
+    @FXML public void unarchiveAccount() {
+        System.out.println("Unarchiving");
     }
 
     @FXML

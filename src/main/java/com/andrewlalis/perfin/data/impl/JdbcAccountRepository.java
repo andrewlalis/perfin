@@ -147,8 +147,19 @@ public record JdbcAccountRepository(Connection conn) implements AccountRepositor
     }
 
     @Override
-    public void archive(Account account) {
-        DbUtil.updateOne(conn, "UPDATE account SET archived = TRUE WHERE id = ?", List.of(account.id));
+    public void archive(long accountId) {
+        DbUtil.doTransaction(conn, () -> {
+            DbUtil.updateOne(conn, "UPDATE account SET archived = TRUE WHERE id = ?", List.of(accountId));
+            new JdbcAccountHistoryItemRepository(conn).recordText(DateUtil.nowAsUTC(), accountId, "Account has been archived.");
+        });
+    }
+
+    @Override
+    public void unarchive(long accountId) {
+        DbUtil.doTransaction(conn, () -> {
+            DbUtil.updateOne(conn, "UPDATE account SET archived = FALSE WHERE id = ?", List.of(accountId));
+            new JdbcAccountHistoryItemRepository(conn).recordText(DateUtil.nowAsUTC(), accountId, "Account has been unarchived.");
+        });
     }
 
     public static Account parseAccount(ResultSet rs) throws SQLException {
