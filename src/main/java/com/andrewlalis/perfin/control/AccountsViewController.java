@@ -1,9 +1,8 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
-import com.andrewlalis.perfin.data.pagination.PageRequest;
-import com.andrewlalis.perfin.data.pagination.Sort;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
+import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.MoneyValue;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.view.component.AccountTile;
@@ -13,6 +12,8 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
+
+import java.util.List;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
@@ -47,14 +48,14 @@ public class AccountsViewController implements RouteSelectionListener {
 
     public void refreshAccounts() {
         Profile.whenLoaded(profile -> {
-            Thread.ofVirtual().start(() -> {
-                profile.getDataSource().useAccountRepository(repo -> {
-                    var page = repo.findAll(PageRequest.unpaged(Sort.asc("created_at")));
-                    Platform.runLater(() -> {
-                        accountsPane.getChildren().setAll(page.items().stream().map(AccountTile::new).toList());
-                    });
-                });
-            });
+            Thread.ofVirtual().start(() -> profile.getDataSource().useAccountRepository(repo -> {
+                List<Account> accounts = repo.findAllOrderedByRecentHistory();
+                Platform.runLater(() -> accountsPane.getChildren()
+                        .setAll(accounts.stream()
+                                .map(AccountTile::new)
+                                .toList()
+                        ));
+            }));
             // Compute grand totals!
             Thread.ofVirtual().start(() -> {
                 var totals = profile.getDataSource().getCombinedAccountBalances();

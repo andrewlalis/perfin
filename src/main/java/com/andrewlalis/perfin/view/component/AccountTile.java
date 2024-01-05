@@ -38,9 +38,6 @@ public class AccountTile extends BorderPane {
                 -fx-padding: 5px;
                 -fx-cursor: hand;
                 """);
-        final Color color = ACCOUNT_TYPE_COLORS.get(account.getType());
-//        var fill = new BackgroundFill(color, new CornerRadii(3.0), null);
-//        setBackground(new Background(fill));
 
         setTop(getHeader(account));
         setBottom(getFooter(account));

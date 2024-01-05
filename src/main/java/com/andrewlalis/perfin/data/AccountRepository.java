@@ -16,6 +16,7 @@ import java.util.Set;
 public interface AccountRepository extends AutoCloseable {
     long insert(AccountType type, String accountNumber, String name, Currency currency);
     Page<Account> findAll(PageRequest pagination);
+    List<Account> findAllOrderedByRecentHistory();
     List<Account> findAllByCurrency(Currency currency);
     Optional<Account> findById(long id);
     void updateName(long id, String name);

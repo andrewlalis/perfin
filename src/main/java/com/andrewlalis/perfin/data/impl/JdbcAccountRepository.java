@@ -47,6 +47,19 @@ public record JdbcAccountRepository(Connection conn) implements AccountRepositor
     }
 
     @Override
+    public List<Account> findAllOrderedByRecentHistory() {
+        return DbUtil.findAll(
+                conn,
+                """
+                SELECT DISTINCT ON (account.id) account.*, ahi.timestamp AS _
+                FROM account
+                LEFT OUTER JOIN account_history_item ahi ON ahi.account_id = account.id
+                ORDER BY ahi.timestamp DESC, account.created_at DESC""",
+                JdbcAccountRepository::parseAccount
+        );
+    }
+
+    @Override
     public List<Account> findAllByCurrency(Currency currency) {
         return DbUtil.findAll(
                 conn,
