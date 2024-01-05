@@ -6,6 +6,8 @@
 A personal accounting desktop app to track your finances using an approachable
 interface and interoperable file formats for maximum compatibility.
 
+![](design/main-view-screenshot.png "main view screenshot")
+
 ## Download
 
 Head to the [releases](https://github.com/andrewlalis/perfin/releases) page and
