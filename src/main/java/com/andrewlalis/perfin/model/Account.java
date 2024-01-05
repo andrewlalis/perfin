@@ -39,6 +39,16 @@ public class Account extends IdEntity {
         return "..." + accountNumber.substring(accountNumber.length() - suffixLength);
     }
 
+    public String getAccountNumberGrouped(int groupSize, char separator) {
+        StringBuilder sb = new StringBuilder();
+        int idx = 0;
+        while (idx < accountNumber.length()) {
+            sb.append(accountNumber.charAt(idx++));
+            if (idx % groupSize == 0 && idx < accountNumber.length()) sb.append(separator);
+        }
+        return sb.toString();
+    }
+
     public String getShortName() {
         String numberSuffix = getAccountNumberSuffix();
         return name + " (" + numberSuffix + ")";

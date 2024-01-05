@@ -23,7 +23,7 @@ public class AccountComboBoxCellFactory implements Callback<ListView<Account>, L
 
         public AccountListCell(String emptyCellText) {
             this.emptyCellText = emptyCellText;
-            label.setStyle("-fx-text-fill: black;");
+            label.getStyleClass().add("normal-color-text-fill");
         }
 
         @Override

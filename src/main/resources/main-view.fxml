@@ -18,7 +18,7 @@
                 <Button text="Transactions" onAction="#goToTransactions"/>
                 <Button text="Profiles" onAction="#viewProfiles"/>
             </HBox>
-            <HBox fx:id="breadcrumbHBox" styleClass="std-spacing,small-text"/>
+            <HBox fx:id="breadcrumbHBox" styleClass="std-spacing,small-font"/>
         </VBox>
     </top>
     <bottom>

@@ -25,7 +25,7 @@ public class MainViewController {
                 breadCrumb -> {
                     Label label = new Label("> " + breadCrumb.route());
                     if (breadCrumb.current()) {
-                        label.setStyle("-fx-font-weight: bold");
+                        label.getStyleClass().add("bold-text");
                     }
                     return label;
                 }

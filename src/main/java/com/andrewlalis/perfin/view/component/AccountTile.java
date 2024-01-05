@@ -1,8 +1,11 @@
 package com.andrewlalis.perfin.view.component;
 
+import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.AccountType;
+import com.andrewlalis.perfin.model.MoneyValue;
 import com.andrewlalis.perfin.model.Profile;
+import javafx.application.Platform;
 import javafx.geometry.HPos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -14,6 +17,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
@@ -30,14 +34,7 @@ public class AccountTile extends BorderPane {
 
     public AccountTile(Account account) {
         setPrefWidth(350.0);
-        setStyle("""
-                -fx-border-color: lightgray;
-                -fx-border-width: 1px;
-                -fx-border-style: solid;
-                -fx-border-radius: 5px;
-                -fx-padding: 5px;
-                -fx-cursor: hand;
-                """);
+        getStyleClass().addAll("tile", "hand-cursor");
 
         setTop(getHeader(account));
         setBottom(getFooter(account));
@@ -48,7 +45,7 @@ public class AccountTile extends BorderPane {
 
     private Node getHeader(Account account) {
         Text title = new Text("Account #" + account.id);
-        title.setStyle("-fx-font-size: large; -fx-font-weight: bold;");
+        title.getStyleClass().addAll("large-font", "bold-text");
         return title;
     }
 
@@ -56,7 +53,7 @@ public class AccountTile extends BorderPane {
         Label currencyLabel = new Label(account.getCurrency().getCurrencyCode());
         Label typeLabel = new Label(account.getType().toString() + " Account");
         HBox footerHBox = new HBox(currencyLabel, typeLabel);
-        footerHBox.setStyle("-fx-font-size: x-small; -fx-spacing: 3px;");
+        footerHBox.getStyleClass().addAll("std-spacing", "small-font");
         return footerHBox;
     }
 
@@ -73,15 +70,33 @@ public class AccountTile extends BorderPane {
         valueConstraints.setHalignment(HPos.RIGHT);
         propertiesPane.getColumnConstraints().setAll(keyConstraints, valueConstraints);
 
-        Label accountNameLabel = newPropertyValue(account.getName());
+        Label accountNameLabel = new Label(account.getName());
         accountNameLabel.setWrapText(true);
+        accountNameLabel.getStyleClass().add("italic-text");
 
-        Label accountTypeLabel = newPropertyValue(account.getType().toString());
+        Label accountNumberLabel = new Label(account.getAccountNumber());
+        accountNumberLabel.getStyleClass().add("mono-font");
+
+        Label accountTypeLabel = new Label(account.getType().toString());
         accountTypeLabel.setTextFill(ACCOUNT_TYPE_COLORS.get(account.getType()));
-        accountTypeLabel.setStyle("-fx-font-weight: bold;");
+        accountTypeLabel.getStyleClass().add("bold-text");
 
-        Label balanceLabel = newPropertyValue("Computing balance...");
+        Label balanceLabel = new Label("Computing balance...");
+        balanceLabel.getStyleClass().addAll("mono-font");
         balanceLabel.setDisable(true);
+        Thread.ofVirtual().start(() -> Profile.getCurrent().getDataSource().useAccountRepository(repo -> {
+            BigDecimal balance = repo.deriveCurrentBalance(account.id);
+            String text = CurrencyUtil.formatMoney(new MoneyValue(balance, account.getCurrency()));
+            Platform.runLater(() -> {
+                balanceLabel.setText(text);
+                if (account.getType().areDebitsPositive() && balance.compareTo(BigDecimal.ZERO) < 0) {
+                    balanceLabel.getStyleClass().add("negative-color-text-fill");
+                } else if (!account.getType().areDebitsPositive() && balance.compareTo(BigDecimal.ZERO) < 0) {
+                    balanceLabel.getStyleClass().add("positive-color-text-fill");
+                }
+                balanceLabel.setDisable(false);
+            });
+        }));
         Profile.getCurrent().getDataSource().getAccountBalanceText(account, text -> {
             balanceLabel.setText(text);
             balanceLabel.setDisable(false);
@@ -91,7 +106,7 @@ public class AccountTile extends BorderPane {
                 newPropertyLabel("Account Name"),
                 accountNameLabel,
                 newPropertyLabel("Account Number"),
-                newPropertyValue(account.getAccountNumber()),
+                accountNumberLabel,
                 newPropertyLabel("Account Type"),
                 accountTypeLabel,
                 newPropertyLabel("Current Balance"),
@@ -102,18 +117,7 @@ public class AccountTile extends BorderPane {
 
     private static Label newPropertyLabel(String text) {
         Label lbl = new Label(text);
-        lbl.setStyle("""
-                -fx-font-weight: bold;
-                """);
-        return lbl;
-    }
-
-    private static Label newPropertyValue(String text) {
-        Label lbl = new Label(text);
-        lbl.setStyle("""
-                -fx-font-family: monospace;
-                -fx-font-size: large;
-                """);
+        lbl.getStyleClass().add("bold-text");
         return lbl;
     }
 }

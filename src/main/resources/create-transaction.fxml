@@ -27,7 +27,7 @@
                 </VBox>
                 <VBox>
                     <Label text="Description" labelFor="${descriptionField}" styleClass="bold-text"/>
-                    <Label text="Maximum of 255 characters." styleClass="small-text"/>
+                    <Label text="Maximum of 255 characters." styleClass="small-font"/>
                     <TextArea
                             fx:id="descriptionField"
                             styleClass="mono-font"
@@ -57,7 +57,7 @@
                 <!-- Container for attachments -->
                 <VBox fx:id="attachmentsVBox">
                     <Label text="Attachments" styleClass="bold-text"/>
-                    <Label text="Attach receipts, invoices, or other content to this transaction." styleClass="small-text" wrapText="true"/>
+                    <Label text="Attach receipts, invoices, or other content to this transaction." styleClass="small-font" wrapText="true"/>
                     <!-- FileSelectionArea inserted here! -->
                 </VBox>
             </VBox>

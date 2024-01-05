@@ -66,22 +66,15 @@ public class ProfilesViewController {
         for (String profileName : profileNames) {
             boolean isCurrent = profileName.equals(currentProfile);
             AnchorPane profilePane = new AnchorPane();
-            profilePane.setStyle("""
-                    -fx-border-color: lightgray;
-                    -fx-border-radius: 5px;
-                    -fx-padding: 5px;
-                    """);
+            profilePane.getStyleClass().add("tile");
 
             Text nameTextElement = new Text(profileName);
-            nameTextElement.setStyle("-fx-font-size: large;");
+            nameTextElement.getStyleClass().add("large-font");
             TextFlow nameLabel = new TextFlow(nameTextElement);
             if (isCurrent) {
-                nameTextElement.setStyle("-fx-font-size: large; -fx-font-weight: bold;");
+                nameTextElement.getStyleClass().addAll("large-font", "bold-text");
                 Text currentProfileIndicator = new Text(" Currently Selected Profile");
-                currentProfileIndicator.setStyle("""
-                        -fx-font-size: small;
-                        -fx-fill: grey;
-                        """);
+                currentProfileIndicator.getStyleClass().addAll("small-font", "secondary-color-fill");
                 nameLabel.getChildren().add(currentProfileIndicator);
             }
             AnchorPane.setLeftAnchor(nameLabel, 0.0);

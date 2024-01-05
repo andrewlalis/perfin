@@ -12,14 +12,10 @@ import javafx.scene.layout.BorderPane;
  */
 public abstract class AccountHistoryItemTile extends BorderPane {
     public AccountHistoryItemTile(AccountHistoryItem item) {
-        setStyle("""
-                -fx-border-color: lightgray;
-                -fx-border-radius: 5px;
-                -fx-padding: 5px;
-                """);
+        getStyleClass().add("tile");
 
         Label timestampLabel = new Label(DateUtil.formatUTCAsLocalWithZone(item.getTimestamp()));
-        timestampLabel.setStyle("-fx-font-size: small;");
+        timestampLabel.getStyleClass().add("small-font");
         setTop(timestampLabel);
     }
 

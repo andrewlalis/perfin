@@ -53,7 +53,10 @@ public class StartupSplashScreen extends Stage implements Consumer<String> {
         textArea.setFocusTraversable(false);
 
         Scene scene = new Scene(root, 400.0, 200.0);
-        scene.getStylesheets().add(StartupSplashScreen.class.getResource("/style/startup-splash-screen.css").toExternalForm());
+        scene.getStylesheets().addAll(
+                StartupSplashScreen.class.getResource("/style/base.css").toExternalForm(),
+                StartupSplashScreen.class.getResource("/style/startup-splash-screen.css").toExternalForm()
+        );
         return scene;
     }
 

@@ -1,5 +1,19 @@
+.root {
+    -fx-font-family: "Roboto", sans-serif;
+    -fx-font-size: 14px;
+    -fx-text-fill: rgb(26, 26, 26);
+}
+
 .mono-font {
-    -fx-font-family: monospace;
+    -fx-font-family: "JetBrains Mono", monospace;
+}
+
+.large-font {
+    -fx-font-size: 18px;
+}
+
+.small-font {
+    -fx-font-size: 10px;
 }
 
 .error-text {
@@ -11,8 +25,8 @@
     -fx-font-weight: bold;
 }
 
-.small-text {
-    -fx-font-size: small;
+.italic-text {
+    -fx-font-style: italic;
 }
 
 .large-text {
@@ -22,13 +36,61 @@
 .std-padding {
     -fx-padding: 3px;
 }
+.padding-extra {
+    -fx-padding: 6px;
+}
+.padding-extra-1 {
+    -fx-padding: 10px;
+}
 
 .std-spacing {
     -fx-spacing: 3px;
 }
-
 .spacing-extra {
     -fx-spacing: 6px;
+}
+.spacing-extra-1 {
+    -fx-spacing: 10px;
+}
+
+.hand-cursor {
+    -fx-cursor: hand;
+}
+
+/* Standard "tile" styling. */
+.tile {
+    -fx-border-color: lightgray;
+    -fx-border-width: 2px;
+    -fx-border-style: solid;
+    -fx-border-radius: 5px;
+    -fx-padding: 5px;
+}
+
+.tile-border-selected {
+    -fx-border-color: darkgray;
+}
+
+/* Standard colors */
+.normal-color-text-fill {
+    -fx-text-fill: rgb(26, 26, 26);
+}
+
+.secondary-color-fill {
+    -fx-fill: rgb(99, 99, 99);
+}
+
+.negative-color-text-fill {
+    -fx-text-fill: rgb(247, 37, 69);
+}
+.negative-color-fill {
+    -fx-fill: rgb(247, 37, 69);
+}
+
+.positive-color-text-fill {
+    -fx-text-fill: rgb(43, 196, 77);
+}
+.positive-color-fill {
+    -fx-fill: rgb(43, 196, 77);
 }
 
 /* DEBUG BORDERS */

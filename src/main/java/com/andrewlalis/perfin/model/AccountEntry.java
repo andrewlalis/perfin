@@ -87,9 +87,10 @@ public class AccountEntry extends IdEntity {
      * @return The effective value of this entry, either positive or negative.
      */
     public BigDecimal getEffectiveValue(AccountType accountType) {
-        return switch (accountType) {
-            case CHECKING, SAVINGS -> type == Type.DEBIT ? amount : amount.negate();
-            case CREDIT_CARD -> type == Type.DEBIT ? amount.negate() : amount;
-        };
+        if (accountType.areDebitsPositive()) {
+            return type == Type.DEBIT ? amount : amount.negate();
+        } else {
+            return type == Type.DEBIT ? amount.negate() : amount;
+        }
     }
 }

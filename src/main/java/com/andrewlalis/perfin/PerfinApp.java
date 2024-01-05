@@ -10,8 +10,13 @@ import com.andrewlalis.perfin.view.StartupSplashScreen;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -21,6 +26,7 @@ import java.util.function.Consumer;
  * The class from which the JavaFX-based application starts.
  */
 public class PerfinApp extends Application {
+    private static final Logger log = LoggerFactory.getLogger(PerfinApp.class);
     public static final Path APP_DIR = Path.of(System.getProperty("user.home", "."), ".perfin");
     public static PerfinApp instance;
 
@@ -36,6 +42,7 @@ public class PerfinApp extends Application {
     @Override
     public void start(Stage stage) {
         instance = this;
+        loadFonts();
         var splashScreen = new StartupSplashScreen(List.of(
                 PerfinApp::defineRoutes,
                 PerfinApp::initAppDir,
@@ -95,6 +102,29 @@ public class PerfinApp extends Application {
         } catch (ProfileLoadException e) {
             msgConsumer.accept("Failed to load the profile: " + e.getMessage());
             throw e;
+        }
+    }
+
+    private static void loadFonts() {
+        List<String> fontResources = List.of(
+                "/font/JetBrainsMono-2.304/fonts/ttf/JetBrainsMono-Medium.ttf",
+                "/font/Roboto/Roboto-Regular.ttf",
+                "/font/Roboto/Roboto-Bold.ttf",
+                "/font/Roboto/Roboto-Italic.ttf",
+                "/font/Roboto/Roboto-BoldItalic.ttf"
+        );
+        for (String res : fontResources) {
+            URL resourceUrl = PerfinApp.class.getResource(res);
+            if (resourceUrl == null) {
+                log.warn("Font resource {} was not found.", res);
+            } else {
+                Font font = Font.loadFont(PerfinApp.class.getResource(res).toExternalForm(), 10);
+                if (font == null) {
+                    log.warn("Failed to load font {}.", res);
+                } else {
+                    log.debug("Loaded font: Family = {}, Name = {}, Style = {}.", font.getFamily(), font.getName(), font.getStyle());
+                }
+            }
         }
     }
 }

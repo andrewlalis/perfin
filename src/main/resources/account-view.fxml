@@ -37,7 +37,7 @@
                                 <VBox>
                                     <Label text="Current Balance" styleClass="bold-text" fx:id="balanceLabel"/>
                                     <Text
-                                            style="-fx-font-size: x-small; -fx-fill: grey"
+                                            styleClass="small-font,secondary-color-fill"
                                             wrappingWidth="${balanceLabel.width}"
                                     >Computed using the last recorded balance and all transactions since.</Text>
                                 </VBox>
@@ -65,7 +65,7 @@
                 <Label text="History" styleClass="bold-text,std-padding"/>
                 <VBox>
                     <ScrollPane fitToHeight="true" fitToWidth="true">
-                        <VBox fx:id="historyItemsVBox" style="-fx-padding: 10px; -fx-spacing: 10px;"/>
+                        <VBox fx:id="historyItemsVBox" styleClass="padding-extra-1,spacing-extra-1"/>
                     </ScrollPane>
                     <AnchorPane>
                         <Button

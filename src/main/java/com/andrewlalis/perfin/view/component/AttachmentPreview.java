@@ -27,7 +27,7 @@ public class AttachmentPreview extends BorderPane {
     public AttachmentPreview(Attachment attachment) {
         BorderPane contentContainer = new BorderPane();
         Label nameLabel = new Label(attachment.getFilename());
-        nameLabel.setStyle("-fx-font-size: small;");
+        nameLabel.getStyleClass().add("small-font");
         VBox nameContainer = new VBox(nameLabel);
         nameContainer.setPrefHeight(LABEL_SIZE);
         nameContainer.setMaxHeight(LABEL_SIZE);

@@ -27,42 +27,30 @@ import static com.andrewlalis.perfin.PerfinApp.router;
  */
 public class TransactionTile extends BorderPane {
     public final BooleanProperty selected = new SimpleBooleanProperty(false);
-    private static final String UNSELECTED_STYLE = """
-            -fx-border-color: lightgray;
-            -fx-border-width: 1px;
-            -fx-border-style: solid;
-            -fx-border-radius: 5px;
-            -fx-padding: 5px;
-            -fx-cursor: hand;
-            """;
-    private static final String SELECTED_STYLE = """
-            -fx-border-color: white;
-            -fx-border-width: 1px;
-            -fx-border-style: solid;
-            -fx-border-radius: 5px;
-            -fx-padding: 5px;
-            -fx-cursor: hand;
-            """;
 
     public TransactionTile(Transaction transaction) {
-        setStyle(UNSELECTED_STYLE);
+        getStyleClass().addAll("tile", "hand-cursor");
 
         setTop(getHeader(transaction));
         setCenter(getBody(transaction));
         setBottom(getFooter(transaction));
 
-        styleProperty().bind(selected.map(value -> value ? SELECTED_STYLE : UNSELECTED_STYLE));
+        selected.addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                getStyleClass().add("tile-border-selected");
+            } else {
+                getStyleClass().remove("tile-border-selected");
+            }
+        });
     }
 
     private Node getHeader(Transaction transaction) {
         Label currencyLabel = new Label(CurrencyUtil.formatMoney(transaction.getMoneyAmount()));
-        currencyLabel.setStyle("-fx-font-family: monospace;");
+        currencyLabel.getStyleClass().add("mono-font");
         HBox headerHBox = new HBox(
                 currencyLabel
         );
-        headerHBox.setStyle("""
-                -fx-spacing: 3px;
-                """);
+        headerHBox.getStyleClass().addAll("std-spacing");
         return headerHBox;
     }
 
@@ -77,14 +65,14 @@ public class TransactionTile extends BorderPane {
                 Hyperlink link = new Hyperlink(acc.getShortName());
                 link.setOnAction(event -> router.navigate("account", acc));
                 Text prefix = new Text("Credited from");
-                prefix.setFill(Color.RED);
+                prefix.getStyleClass().add("negative-color-fill");
                 Platform.runLater(() -> bodyVBox.getChildren().add(new TextFlow(prefix, link)));
             });
             accounts.ifDebit(acc -> {
                 Hyperlink link = new Hyperlink(acc.getShortName());
                 link.setOnAction(event -> router.navigate("account", acc));
                 Text prefix = new Text("Debited to");
-                prefix.setFill(Color.GREEN);
+                prefix.getStyleClass().add("positive-color-fill");
                 Platform.runLater(() -> bodyVBox.getChildren().add(new TextFlow(prefix, link)));
             });
         });
@@ -96,10 +84,7 @@ public class TransactionTile extends BorderPane {
         HBox footerHBox = new HBox(
                 timestampLabel
         );
-        footerHBox.setStyle("""
-                -fx-spacing: 3px;
-                -fx-font-size: small;
-                """);
+        footerHBox.getStyleClass().addAll("std-spacing", "small-font");
         return footerHBox;
     }
 

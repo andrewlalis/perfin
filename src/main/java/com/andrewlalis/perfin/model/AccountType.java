@@ -4,14 +4,20 @@ package com.andrewlalis.perfin.model;
  * Represents the different possible account types in Perfin.
  */
 public enum AccountType {
-    CHECKING("Checking"),
-    SAVINGS("Savings"),
-    CREDIT_CARD("Credit Card");
+    CHECKING("Checking", true),
+    SAVINGS("Savings", true),
+    CREDIT_CARD("Credit Card", false);
 
     private final String name;
+    private final boolean debitsPositive;
 
-    AccountType(String name) {
+    AccountType(String name, boolean debitsPositive) {
         this.name = name;
+        this.debitsPositive = debitsPositive;
+    }
+
+    public boolean areDebitsPositive() {
+        return debitsPositive;
     }
 
     @Override

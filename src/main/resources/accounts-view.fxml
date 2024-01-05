@@ -19,7 +19,7 @@
     <center>
         <VBox>
             <ScrollPane fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
-                <FlowPane fx:id="accountsPane" BorderPane.alignment="TOP_LEFT" vgap="5" hgap="5" styleClass="std-padding"/>
+                <FlowPane fx:id="accountsPane" BorderPane.alignment="TOP_LEFT" vgap="10" hgap="10" styleClass="padding-extra-1"/>
             </ScrollPane>
             <Label fx:id="noAccountsLabel" BorderPane.alignment="TOP_LEFT" styleClass="std-padding" text="No accounts have been added to this profile."/>
         </VBox>

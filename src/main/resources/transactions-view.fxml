@@ -28,7 +28,7 @@
                 </top>
                 <center>
                     <ScrollPane fitToHeight="true" fitToWidth="true">
-                        <VBox fx:id="transactionsVBox" styleClass="std-padding,spacing-extra"/>
+                        <VBox fx:id="transactionsVBox" styleClass="padding-extra-1,spacing-extra-1"/>
                     </ScrollPane>
                 </center>
             </BorderPane>
