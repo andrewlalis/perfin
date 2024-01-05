@@ -7,8 +7,8 @@
 }
 
 #content {
-    -fx-font-family: monospace;
-    -fx-font-size: small;
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 12px;
     -fx-background-insets: 0;
     -fx-background-color: transparent;
     -fx-border-style: none;

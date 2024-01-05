@@ -1,3 +1,9 @@
+/*
+This stylesheet defines the base style for the application, and many utility
+classes to use for common style variants. Prefer to use the styles defined here
+rather than with your own CSS.
+*/
+
 .root {
     -fx-font-family: "Roboto", sans-serif;
     -fx-font-size: 14px;

@@ -80,7 +80,7 @@ public class StartupSplashScreen extends Stage implements Consumer<String> {
             }
             accept("Startup successful!");
             try {
-                Thread.sleep(1000);
+                Thread.sleep(500);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

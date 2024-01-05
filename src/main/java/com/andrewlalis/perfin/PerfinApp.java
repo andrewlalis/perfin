@@ -107,7 +107,10 @@ public class PerfinApp extends Application {
 
     private static void loadFonts() {
         List<String> fontResources = List.of(
-                "/font/JetBrainsMono-2.304/fonts/ttf/JetBrainsMono-Medium.ttf",
+                "/font/JetBrainsMono-2.304/fonts/ttf/JetBrainsMono-Regular.ttf",
+                "/font/JetBrainsMono-2.304/fonts/ttf/JetBrainsMono-Bold.ttf",
+                "/font/JetBrainsMono-2.304/fonts/ttf/JetBrainsMono-Italic.ttf",
+                "/font/JetBrainsMono-2.304/fonts/ttf/JetBrainsMono-BoldItalic.ttf",
                 "/font/Roboto/Roboto-Regular.ttf",
                 "/font/Roboto/Roboto-Bold.ttf",
                 "/font/Roboto/Roboto-Italic.ttf",
@@ -118,11 +121,11 @@ public class PerfinApp extends Application {
             if (resourceUrl == null) {
                 log.warn("Font resource {} was not found.", res);
             } else {
-                Font font = Font.loadFont(PerfinApp.class.getResource(res).toExternalForm(), 10);
+                Font font = Font.loadFont(resourceUrl.toExternalForm(), 10);
                 if (font == null) {
                     log.warn("Failed to load font {}.", res);
                 } else {
-                    log.debug("Loaded font: Family = {}, Name = {}, Style = {}.", font.getFamily(), font.getName(), font.getStyle());
+                    log.trace("Loaded font: Family = {}, Name = {}, Style = {}.", font.getFamily(), font.getName(), font.getStyle());
                 }
             }
         }
