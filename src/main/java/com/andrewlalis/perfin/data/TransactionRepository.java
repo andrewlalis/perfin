@@ -27,6 +27,7 @@ public interface TransactionRepository extends AutoCloseable {
     Page<Transaction> findAll(PageRequest pagination);
     long countAll();
     long countAllAfter(long transactionId);
+    long countAllByAccounts(Set<Long> accountIds);
     Page<Transaction> findAllByAccounts(Set<Long> accountIds, PageRequest pagination);
     CreditAndDebitAccounts findLinkedAccounts(long transactionId);
     List<Attachment> findAttachments(long transactionId);

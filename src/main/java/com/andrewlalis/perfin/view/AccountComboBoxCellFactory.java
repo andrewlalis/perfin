@@ -7,10 +7,22 @@ import javafx.scene.control.ListView;
 import javafx.util.Callback;
 
 public class AccountComboBoxCellFactory implements Callback<ListView<Account>, ListCell<Account>> {
+    private final String emptyCellText;
+
+    public AccountComboBoxCellFactory(String emptyCellText) {
+        this.emptyCellText = emptyCellText;
+    }
+
+    public AccountComboBoxCellFactory() {
+        this("None");
+    }
+
     public static class AccountListCell extends ListCell<Account> {
         private final Label label = new Label();
+        private final String emptyCellText;
 
-        public AccountListCell() {
+        public AccountListCell(String emptyCellText) {
+            this.emptyCellText = emptyCellText;
             label.setStyle("-fx-text-fill: black;");
         }
 
@@ -18,7 +30,7 @@ public class AccountComboBoxCellFactory implements Callback<ListView<Account>, L
         protected void updateItem(Account item, boolean empty) {
             super.updateItem(item, empty);
             if (item == null || empty) {
-                label.setText("None");
+                label.setText(emptyCellText);
             } else {
                 label.setText(item.getName() + " (" + item.getAccountNumberSuffix() + ")");
             }
@@ -28,6 +40,6 @@ public class AccountComboBoxCellFactory implements Callback<ListView<Account>, L
 
     @Override
     public ListCell<Account> call(ListView<Account> param) {
-        return new AccountListCell();
+        return new AccountListCell(emptyCellText);
     }
 }

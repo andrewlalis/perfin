@@ -5,21 +5,26 @@ import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.data.pagination.Sort;
 import com.andrewlalis.perfin.data.util.Pair;
+import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.model.Transaction;
+import com.andrewlalis.perfin.view.AccountComboBoxCellFactory;
 import com.andrewlalis.perfin.view.SceneUtil;
 import com.andrewlalis.perfin.view.component.DataSourcePaginationControls;
 import com.andrewlalis.perfin.view.component.TransactionTile;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.ComboBox;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
@@ -35,6 +40,7 @@ public class TransactionsViewController implements RouteSelectionListener {
     public record RouteContext(Long selectedTransactionId) {}
 
     @FXML public BorderPane transactionsListBorderPane;
+    @FXML public ComboBox<Account> filterByAccountComboBox;
     @FXML public VBox transactionsVBox;
     private DataSourcePaginationControls paginationControls;
 
@@ -44,20 +50,40 @@ public class TransactionsViewController implements RouteSelectionListener {
 
     @FXML public void initialize() {
         // Initialize the left-hand paginated transactions list.
+        var accountCellFactory = new AccountComboBoxCellFactory("All");
+        filterByAccountComboBox.setCellFactory(accountCellFactory);
+        filterByAccountComboBox.setButtonCell(accountCellFactory.call(null));
+        filterByAccountComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            paginationControls.setPage(1);
+            selectedTransaction.set(null);
+        });
+
         this.paginationControls = new DataSourcePaginationControls(
                 transactionsVBox.getChildren(),
                 new DataSourcePaginationControls.PageFetcherFunction() {
                     @Override
                     public Page<? extends Node> fetchPage(PageRequest pagination) throws Exception {
+                        Account accountFilter = filterByAccountComboBox.getValue();
                         try (var repo = Profile.getCurrent().getDataSource().getTransactionRepository()) {
-                            return repo.findAll(pagination).map(TransactionsViewController.this::makeTile);
+                            Page<Transaction> result;
+                            if (accountFilter == null) {
+                                result = repo.findAll(pagination);
+                            } else {
+                                result = repo.findAllByAccounts(Set.of(accountFilter.id), pagination);
+                            }
+                            return result.map(TransactionsViewController.this::makeTile);
                         }
                     }
 
                     @Override
                     public int getTotalCount() throws Exception {
+                        Account accountFilter = filterByAccountComboBox.getValue();
                         try (var repo = Profile.getCurrent().getDataSource().getTransactionRepository()) {
-                            return (int) repo.countAll();
+                            if (accountFilter == null) {
+                                return (int) repo.countAll();
+                            } else {
+                                return (int) repo.countAllByAccounts(Set.of(accountFilter.id));
+                            }
                         }
                     }
                 }
@@ -95,6 +121,21 @@ public class TransactionsViewController implements RouteSelectionListener {
         paginationControls.sorts.setAll(DEFAULT_SORTS);
         paginationControls.itemsPerPage.set(DEFAULT_ITEMS_PER_PAGE);
 
+        // Refresh account filter options.
+        Thread.ofVirtual().start(() -> {
+            Profile.getCurrent().getDataSource().useAccountRepository(repo -> {
+                List<Account> accounts = repo.findAll(PageRequest.unpaged(Sort.asc("name"))).items();
+                accounts.add(null);
+                Platform.runLater(() -> {
+                    filterByAccountComboBox.getItems().clear();
+                    filterByAccountComboBox.getItems().addAll(accounts);
+                    filterByAccountComboBox.getSelectionModel().selectLast();
+                    filterByAccountComboBox.getButtonCell().updateIndex(accounts.size() - 1);
+                });
+            });
+        });
+
+
         // If a transaction id is given in the route context, navigate to the page it's on and select it.
         if (context instanceof RouteContext ctx && ctx.selectedTransactionId != null) {
             Thread.ofVirtual().start(() -> {
@@ -108,6 +149,7 @@ public class TransactionsViewController implements RouteSelectionListener {
             });
         } else {
             paginationControls.setPage(1);
+            selectedTransaction.set(null);
         }
     }
 

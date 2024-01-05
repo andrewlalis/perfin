@@ -83,6 +83,18 @@ public record JdbcTransactionRepository(Connection conn, Path contentDir) implem
     }
 
     @Override
+    public long countAllByAccounts(Set<Long> accountIds) {
+        String idsStr = accountIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+        String query = String.format("""
+                SELECT COUNT(transaction.id)
+                FROM transaction
+                LEFT JOIN account_entry ON account_entry.transaction_id = transaction.id
+                WHERE account_entry.account_id IN (%s)
+                """, idsStr);
+        return DbUtil.findOne(conn, query, Collections.emptyList(), rs -> rs.getLong(1)).orElse(0L);
+    }
+
+    @Override
     public Page<Transaction> findAllByAccounts(Set<Long> accountIds, PageRequest pagination) {
         String idsStr = accountIds.stream().map(String::valueOf).collect(Collectors.joining(","));
         String query = String.format("""
