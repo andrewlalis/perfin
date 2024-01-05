@@ -24,3 +24,17 @@ assured that your data remains completely private.
 
 Currently, the application is still a work-in-progress, and is not yet suitable
 for actual usage with your real financial data, so stay tuned for updates.
+
+# Release Procedure
+
+Platform-specific package installers are generated automatically via GitHub
+Actions (see `.github/workflows/make-release.yaml`), which is triggered by a
+new tag being pushed to the `main` branch. Follow these steps to push a release:
+
+1. Run `java scripts/SetVersion.java 1.2.3` (replacing `1.2.3` with the new version number)
+to set the version everywhere that it needs to be.
+2. Add a tag to the `main` branch with `git tag v1.2.3`.
+3. Push the tag to GitHub with `git push origin v1.2.3`.
+
+Once that's done, the workflow will start, and you should see a release appear
+in the next few minutes.
