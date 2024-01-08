@@ -18,4 +18,5 @@ module com.andrewlalis.perfin {
     opens com.andrewlalis.perfin.control to javafx.fxml;
     opens com.andrewlalis.perfin.view to javafx.fxml;
     opens com.andrewlalis.perfin.view.component to javafx.fxml;
+    opens com.andrewlalis.perfin.view.component.validation to javafx.fxml;
 }

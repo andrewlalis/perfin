@@ -4,10 +4,21 @@ classes to use for common style variants. Prefer to use the styles defined here
 rather than with your own CSS.
 */
 
+* {
+    -fx-theme-text: rgb(26, 26, 26);
+    -fx-theme-text-secondary: rgb(99, 99, 99);
+    -fx-theme-background: rgb(237, 237, 237);
+    -fx-theme-background-2: rgb(232, 232, 232);
+    -fx-theme-background-3: rgb(220, 220, 220);
+    -fx-theme-negative: rgb(247, 37, 69);
+    -fx-theme-positive: rgb(43, 196, 77);
+}
+
 .root {
     -fx-font-family: "Roboto", sans-serif;
     -fx-font-size: 14px;
-    -fx-text-fill: rgb(26, 26, 26);
+    -fx-text-fill: -fx-theme-text;
+    -fx-background-color: -fx-theme-background;
 }
 
 .mono-font {
@@ -24,7 +35,7 @@ rather than with your own CSS.
 
 .error-text {
     -fx-font-size: small;
-    -fx-text-fill: red;
+    -fx-text-fill: -fx-theme-negative;
 }
 
 .bold-text {
@@ -65,38 +76,47 @@ rather than with your own CSS.
 
 /* Standard "tile" styling. */
 .tile {
-    -fx-border-color: lightgray;
-    -fx-border-width: 2px;
-    -fx-border-style: solid;
-    -fx-border-radius: 5px;
-    -fx-padding: 5px;
+    -fx-background-color: -fx-theme-background-2;
+    -fx-padding: 10px;
+}
+
+.tile:hover {
+    -fx-background-color: derive(-fx-theme-background-2, -5%);
 }
 
 .tile-border-selected {
-    -fx-border-color: darkgray;
+    -fx-background-color: -fx-theme-background-3;
+}
+
+/* Validation styling. */
+.validation-field-invalid {
+    -fx-border-color: -fx-theme-negative;
+    -fx-border-width: 2px;
+    -fx-border-style: solid;
+    -fx-border-radius: 2px;
 }
 
 /* Standard colors */
 .normal-color-text-fill {
-    -fx-text-fill: rgb(26, 26, 26);
+    -fx-text-fill: -fx-theme-text;
 }
 
 .secondary-color-fill {
-    -fx-fill: rgb(99, 99, 99);
+    -fx-fill: -fx-theme-text-secondary;
 }
 
 .negative-color-text-fill {
-    -fx-text-fill: rgb(247, 37, 69);
+    -fx-text-fill: -fx-theme-negative;
 }
 .negative-color-fill {
-    -fx-fill: rgb(247, 37, 69);
+    -fx-fill: -fx-theme-negative;
 }
 
 .positive-color-text-fill {
-    -fx-text-fill: rgb(43, 196, 77);
+    -fx-text-fill: -fx-theme-positive;
 }
 .positive-color-fill {
-    -fx-fill: rgb(43, 196, 77);
+    -fx-fill: -fx-theme-positive;
 }
 
 /* DEBUG BORDERS */

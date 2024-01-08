@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.andrewlalis.perfin.view.component.PropertiesPane?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <BorderPane xmlns="http://javafx.com/javafx"
@@ -9,64 +10,61 @@
 >
     <center>
         <ScrollPane fitToWidth="true" fitToHeight="true">
-            <VBox styleClass="std-spacing,std-padding" style="-fx-max-width: 500px;">
+            <VBox style="-fx-max-width: 400px;">
                 <!-- Basic properties -->
-                <VBox>
+                <PropertiesPane hgap="5" vgap="5" styleClass="std-padding">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="NEVER" halignment="LEFT" minWidth="150"/>
+                        <ColumnConstraints hgrow="ALWAYS" halignment="RIGHT"/>
+                    </columnConstraints>
+
                     <Label text="Timestamp" labelFor="${timestampField}" styleClass="bold-text"/>
                     <TextField fx:id="timestampField" styleClass="mono-font"/>
-                    <Label fx:id="timestampInvalidLabel" text="Invalid timestamp." styleClass="error-text"/>
-                    <Label fx:id="timestampFutureLabel" text="Timestamp cannot be in the future." styleClass="error-text"/>
-                </VBox>
-                <VBox>
+
                     <Label text="Amount" labelFor="${amountField}" styleClass="bold-text"/>
                     <TextField fx:id="amountField" styleClass="mono-font"/>
-                </VBox>
-                <VBox>
+
                     <Label text="Currency" labelFor="${currencyChoiceBox}" styleClass="bold-text"/>
                     <ChoiceBox fx:id="currencyChoiceBox"/>
-                </VBox>
-                <VBox>
+
                     <Label text="Description" labelFor="${descriptionField}" styleClass="bold-text"/>
-                    <Label text="Maximum of 255 characters." styleClass="small-font"/>
                     <TextArea
                             fx:id="descriptionField"
                             styleClass="mono-font"
                             wrapText="true"
                             style="-fx-pref-height: 100px;-fx-min-height: 100px;"
                     />
-                    <Label fx:id="descriptionErrorLabel" styleClass="error-text" wrapText="true"/>
-                </VBox>
+                </PropertiesPane>
+
                 <!-- Container for linked accounts -->
-                <VBox>
-                    <HBox styleClass="std-spacing">
-                        <VBox>
-                            <Label text="Debited Account" labelFor="${linkDebitAccountComboBox}" styleClass="bold-text"/>
-                            <ComboBox fx:id="linkDebitAccountComboBox">
-                                <tooltip><Tooltip text="The account whose assets will increase as a result of this transaction."/></tooltip>
-                            </ComboBox>
-                        </VBox>
-                        <VBox>
-                            <Label text="Credited Account" labelFor="${linkCreditAccountComboBox}" styleClass="bold-text"/>
-                            <ComboBox fx:id="linkCreditAccountComboBox">
-                                <tooltip><Tooltip text="The account whose assets will decrease as a result of this transaction."/></tooltip>
-                            </ComboBox>
-                        </VBox>
-                    </HBox>
-                    <Label fx:id="linkedAccountsErrorLabel" styleClass="error-text" wrapText="true"/>
-                </VBox>
+                <HBox styleClass="std-padding,std-spacing" fx:id="linkedAccountsContainer">
+                    <VBox>
+                        <Label text="Debited Account" labelFor="${linkDebitAccountComboBox}" styleClass="bold-text"/>
+                        <ComboBox fx:id="linkDebitAccountComboBox">
+                            <tooltip><Tooltip text="The account whose assets will increase as a result of this transaction."/></tooltip>
+                        </ComboBox>
+                    </VBox>
+                    <VBox>
+                        <Label text="Credited Account" labelFor="${linkCreditAccountComboBox}" styleClass="bold-text"/>
+                        <ComboBox fx:id="linkCreditAccountComboBox">
+                            <tooltip><Tooltip text="The account whose assets will decrease as a result of this transaction."/></tooltip>
+                        </ComboBox>
+                    </VBox>
+                </HBox>
                 <!-- Container for attachments -->
-                <VBox fx:id="attachmentsVBox">
+                <VBox fx:id="attachmentsVBox" styleClass="std-padding">
                     <Label text="Attachments" styleClass="bold-text"/>
                     <Label text="Attach receipts, invoices, or other content to this transaction." styleClass="small-font" wrapText="true"/>
                     <!-- FileSelectionArea inserted here! -->
                 </VBox>
+
+                <!-- Buttons -->
+                <Separator/>
+                <HBox styleClass="std-padding,std-spacing" alignment="CENTER_RIGHT">
+                    <Button text="Save" fx:id="saveButton" onAction="#save"/>
+                    <Button text="Cancel" onAction="#cancel"/>
+                </HBox>
             </VBox>
         </ScrollPane>
     </center>
-    <bottom>
-        <HBox styleClass="std-padding,std-spacing">
-            <Button text="Save" onAction="#save"/>
-            <Button text="Cancel" onAction="#cancel"/>
-        </HBox>
-    </bottom>
 </BorderPane>

@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.andrewlalis.perfin.view.component.PropertiesPane?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <BorderPane
         xmlns="http://javafx.com/javafx/17.0.2-ea"
         xmlns:fx="http://javafx.com/fxml/1"
         fx:controller="com.andrewlalis.perfin.control.EditAccountController"
-        stylesheets="@style/edit-account.css,@style/base.css"
+        stylesheets="@style/base.css"
 >
     <top>
         <HBox styleClass="std-padding,std-spacing">
@@ -14,34 +15,42 @@
         </HBox>
     </top>
     <center>
-        <GridPane BorderPane.alignment="TOP_LEFT" styleClass="fields-grid,std-padding">
-            <columnConstraints>
-                <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
-                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
-            </columnConstraints>
-            <Label GridPane.columnIndex="0" GridPane.rowIndex="0" text="Name"/>
-            <TextField fx:id="accountNameField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        <VBox style="-fx-max-width: 400px;" BorderPane.alignment="TOP_LEFT">
+            <PropertiesPane hgap="5" vgap="5" styleClass="std-padding">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="NEVER" halignment="LEFT" minWidth="150"/>
+                    <ColumnConstraints hgrow="ALWAYS" halignment="RIGHT"/>
+                </columnConstraints>
 
-            <Label GridPane.columnIndex="0" GridPane.rowIndex="1" text="Account Number"/>
-            <TextField fx:id="accountNumberField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Label text="Name" styleClass="bold-text"/>
+                <TextField fx:id="accountNameField"/>
 
-            <Label GridPane.columnIndex="0" GridPane.rowIndex="2" text="Currency"/>
-            <ComboBox fx:id="accountCurrencyComboBox" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                <Label text="Account Number" styleClass="bold-text"/>
+                <TextField fx:id="accountNumberField" styleClass="mono-font"/>
 
-            <Label GridPane.columnIndex="0" GridPane.rowIndex="3" text="Account Type"/>
-            <ChoiceBox fx:id="accountTypeChoiceBox" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                <Label text="Currency" styleClass="bold-text"/>
+                <ComboBox fx:id="accountCurrencyComboBox"/>
 
-            <VBox fx:id="initialBalanceContent" GridPane.columnIndex="0" GridPane.rowIndex="4" GridPane.columnSpan="2">
-                <Separator/>
+                <Label text="Account Type" styleClass="bold-text"/>
+                <ChoiceBox fx:id="accountTypeChoiceBox"/>
+            </PropertiesPane>
+
+            <!-- Initial balance content that's only visible when creating a new account. -->
+            <PropertiesPane fx:id="initialBalanceContent" hgap="5" vgap="5" styleClass="std-padding">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="NEVER" halignment="LEFT" minWidth="150"/>
+                    <ColumnConstraints hgrow="ALWAYS" halignment="RIGHT"/>
+                </columnConstraints>
+
                 <Label text="Initial Balance" styleClass="bold-text"/>
                 <TextField fx:id="initialBalanceField"/>
-            </VBox>
-        </GridPane>
+            </PropertiesPane>
+
+            <Separator/>
+            <HBox styleClass="std-padding,std-spacing" alignment="CENTER_RIGHT">
+                <Button text="Save" fx:id="saveButton" onAction="#save"/>
+                <Button text="Cancel" onAction="#cancel"/>
+            </HBox>
+        </VBox>
     </center>
-    <bottom>
-        <FlowPane BorderPane.alignment="CENTER_RIGHT">
-            <Button text="Save" onAction="#save"/>
-            <Button text="Cancel" onAction="#cancel"/>
-        </FlowPane>
-    </bottom>
 </BorderPane>

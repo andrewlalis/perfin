@@ -4,14 +4,15 @@ import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.AccountType;
 import com.andrewlalis.perfin.model.Profile;
+import com.andrewlalis.perfin.view.component.PropertiesPane;
+import com.andrewlalis.perfin.view.component.validation.ValidationApplier;
+import com.andrewlalis.perfin.view.component.validation.validators.CurrencyAmountValidator;
+import com.andrewlalis.perfin.view.component.validation.validators.PredicateValidator;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,12 +42,33 @@ public class EditAccountController implements RouteSelectionListener {
     @FXML
     public ChoiceBox<AccountType> accountTypeChoiceBox;
     @FXML
-    public VBox initialBalanceContent;
+    public PropertiesPane initialBalanceContent;
     @FXML
     public TextField initialBalanceField;
 
+    @FXML public Button saveButton;
+
     @FXML
     public void initialize() {
+        var nameValid = new ValidationApplier<>(new PredicateValidator<String>()
+                .addTerminalPredicate(s -> s != null && !s.isBlank(), "Name should not be empty.")
+                .addPredicate(s -> s.length() <= 63, "Name is too long.")
+        ).attachToTextField(accountNameField);
+
+        var numberValid = new ValidationApplier<>(new PredicateValidator<String>()
+                .addTerminalPredicate(s -> s != null && !s.isBlank(), "Account number should not be empty.")
+                .addPredicate(s -> s.length() <= 255, "Account number is too long.")
+                .addPredicate(s -> s.matches("\\d+"), "Account number should contain only numeric digits.")
+        ).attachToTextField(accountNumberField);
+
+        var balanceValid = new ValidationApplier<>(
+                new CurrencyAmountValidator(() -> accountCurrencyComboBox.getValue(), false, false)
+        ).attachToTextField(initialBalanceField, accountCurrencyComboBox.valueProperty());
+
+        // Combine validity of all fields for an expression that determines if the whole form is valid.
+        BooleanExpression formValid = nameValid.and(numberValid).and(balanceValid);
+        saveButton.disableProperty().bind(formValid.not());
+
         List<Currency> priorityCurrencies = Stream.of("USD", "EUR", "GBP", "CAD", "AUD")
                 .map(Currency::getInstance)
                 .toList();

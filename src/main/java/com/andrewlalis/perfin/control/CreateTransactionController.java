@@ -8,9 +8,15 @@ import com.andrewlalis.perfin.model.CreditAndDebitAccounts;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.view.AccountComboBoxCellFactory;
 import com.andrewlalis.perfin.view.component.FileSelectionArea;
+import com.andrewlalis.perfin.view.component.validation.ValidationApplier;
+import com.andrewlalis.perfin.view.component.validation.validators.CurrencyAmountValidator;
+import com.andrewlalis.perfin.view.component.validation.validators.PredicateValidator;
 import javafx.application.Platform;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.math.BigDecimal;
@@ -22,50 +28,58 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Currency;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
 public class CreateTransactionController implements RouteSelectionListener {
     @FXML public TextField timestampField;
-    @FXML public Label timestampInvalidLabel;
-    @FXML public Label timestampFutureLabel;
-
     @FXML public TextField amountField;
     @FXML public ChoiceBox<Currency> currencyChoiceBox;
     @FXML public TextArea descriptionField;
-    @FXML public Label descriptionErrorLabel;
 
+    @FXML public HBox linkedAccountsContainer;
     @FXML public ComboBox<Account> linkDebitAccountComboBox;
     @FXML public ComboBox<Account> linkCreditAccountComboBox;
-    @FXML public Label linkedAccountsErrorLabel;
 
     @FXML public VBox attachmentsVBox;
     private FileSelectionArea attachmentsSelectionArea;
 
+    @FXML public Button saveButton;
+
+    public CreateTransactionController() {
+    }
+
     @FXML public void initialize() {
         // Setup error field validation.
-        timestampInvalidLabel.managedProperty().bind(timestampInvalidLabel.visibleProperty());
-        timestampFutureLabel.managedProperty().bind(timestampFutureLabel.visibleProperty());
-        timestampField.textProperty().addListener((observable, oldValue, newValue) -> {
-            LocalDateTime parsedTimestamp = parseTimestamp();
-            timestampInvalidLabel.setVisible(parsedTimestamp == null);
-            timestampFutureLabel.setVisible(parsedTimestamp != null && parsedTimestamp.isAfter(LocalDateTime.now()));
-        });
-        descriptionErrorLabel.managedProperty().bind(descriptionErrorLabel.visibleProperty());
-        descriptionErrorLabel.visibleProperty().bind(descriptionErrorLabel.textProperty().isNotEmpty());
-        descriptionField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null && newValue.length() > 255) {
-                descriptionErrorLabel.setText("Description is too long.");
-            } else {
-                descriptionErrorLabel.setText(null);
-            }
-        });
-        linkedAccountsErrorLabel.managedProperty().bind(linkedAccountsErrorLabel.visibleProperty());
-        linkedAccountsErrorLabel.visibleProperty().bind(linkedAccountsErrorLabel.textProperty().isNotEmpty());
-        linkDebitAccountComboBox.valueProperty().addListener((observable, oldValue, newValue) -> onLinkedAccountsUpdated());
-        linkCreditAccountComboBox.valueProperty().addListener((observable, oldValue, newValue) -> onLinkedAccountsUpdated());
+        var timestampValid = new ValidationApplier<>(new PredicateValidator<String>()
+                .addTerminalPredicate(s -> parseTimestamp() != null, "Invalid timestamp.")
+                .addPredicate(s -> {
+                    LocalDateTime ts = parseTimestamp();
+                    return ts != null && ts.isBefore(LocalDateTime.now());
+                }, "Timestamp cannot be in the future.")
+        ).validatedInitially().attachToTextField(timestampField);
 
+        var amountValid = new ValidationApplier<>(
+                new CurrencyAmountValidator(() -> currencyChoiceBox.getValue(), false, false)
+        ).validatedInitially().attachToTextField(amountField, currencyChoiceBox.valueProperty());
+
+        var descriptionValid = new ValidationApplier<>(new PredicateValidator<String>()
+                .addTerminalPredicate(s -> s == null || s.length() <= 255, "Description is too long.")
+        ).validatedInitially().attach(descriptionField, descriptionField.textProperty());
+
+        Property<CreditAndDebitAccounts> linkedAccountsProperty = new SimpleObjectProperty<>(getSelectedAccounts());
+        linkDebitAccountComboBox.valueProperty().addListener((observable, oldValue, newValue) -> linkedAccountsProperty.setValue(getSelectedAccounts()));
+        linkCreditAccountComboBox.valueProperty().addListener((observable, oldValue, newValue) -> linkedAccountsProperty.setValue(getSelectedAccounts()));
+        var linkedAccountsValid = new ValidationApplier<>(new PredicateValidator<CreditAndDebitAccounts>()
+                .addPredicate(accounts -> accounts.hasCredit() || accounts.hasDebit(), "At least one account must be linked.")
+                .addPredicate(
+                        accounts -> (!accounts.hasCredit() || !accounts.hasDebit()) || !accounts.creditAccount().equals(accounts.debitAccount()),
+                        "The credit and debit accounts cannot be the same."
+                )
+        ).validatedInitially().attach(linkedAccountsContainer, linkedAccountsProperty);
+
+        var formValid = timestampValid.and(amountValid).and(descriptionValid).and(linkedAccountsValid);
+        saveButton.disableProperty().bind(formValid.not());
 
         // Update the lists of accounts available for linking based on the selected currency.
         var cellFactory = new AccountComboBoxCellFactory();
@@ -87,35 +101,23 @@ public class CreateTransactionController implements RouteSelectionListener {
     }
 
     @FXML public void save() {
-        var validationMessages = validateFormData();
-        if (!validationMessages.isEmpty()) {
-            Alert alert = new Alert(
-                    Alert.AlertType.WARNING,
-                    "There are some issues with your data:\n\n" +
-                            validationMessages.stream()
-                                    .map(s -> "- " + s)
-                                    .collect(Collectors.joining("\n\n"))
+        LocalDateTime utcTimestamp = DateUtil.localToUTC(parseTimestamp());
+        BigDecimal amount = new BigDecimal(amountField.getText());
+        Currency currency = currencyChoiceBox.getValue();
+        String description = descriptionField.getText() == null ? null : descriptionField.getText().strip();
+        CreditAndDebitAccounts linkedAccounts = getSelectedAccounts();
+        List<Path> attachments = attachmentsSelectionArea.getSelectedFiles();
+        Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
+            repo.insert(
+                    utcTimestamp,
+                    amount,
+                    currency,
+                    description,
+                    linkedAccounts,
+                    attachments
             );
-            alert.show();
-        } else {
-            LocalDateTime utcTimestamp = DateUtil.localToUTC(parseTimestamp());
-            BigDecimal amount = new BigDecimal(amountField.getText());
-            Currency currency = currencyChoiceBox.getValue();
-            String description = descriptionField.getText() == null ? null : descriptionField.getText().strip();
-            CreditAndDebitAccounts linkedAccounts = getSelectedAccounts();
-            List<Path> attachments = attachmentsSelectionArea.getSelectedFiles();
-            Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
-                repo.insert(
-                        utcTimestamp,
-                        amount,
-                        currency,
-                        description,
-                        linkedAccounts,
-                        attachments
-                );
-            });
-            router.navigateBackAndClear();
-        }
+        });
+        router.navigateBackAndClear();
     }
 
     @FXML public void cancel() {
@@ -129,7 +131,7 @@ public class CreateTransactionController implements RouteSelectionListener {
 
     private void resetForm() {
         timestampField.setText(LocalDateTime.now().format(DateUtil.DEFAULT_DATETIME_FORMAT));
-        amountField.setText("0");
+        amountField.setText(null);
         descriptionField.setText(null);
         attachmentsSelectionArea.clear();
         Thread.ofVirtual().start(() -> {
@@ -190,42 +192,5 @@ public class CreateTransactionController implements RouteSelectionListener {
                 });
             });
         });
-    }
-
-    private void onLinkedAccountsUpdated() {
-        Account debitAccount = linkDebitAccountComboBox.getValue();
-        Account creditAccount = linkCreditAccountComboBox.getValue();
-        if (debitAccount == null && creditAccount == null) {
-            linkedAccountsErrorLabel.setText("At least one credit or debit account must be linked to the transaction for it to have any effect.");
-        } else if (debitAccount != null && debitAccount.equals(creditAccount)) {
-            linkedAccountsErrorLabel.setText("Cannot link the same account to both credit and debit.");
-        } else {
-            linkedAccountsErrorLabel.setText(null);
-        }
-    }
-
-    private List<String> validateFormData() {
-        List<String> errorMessages = new ArrayList<>();
-        if (parseTimestamp() == null) errorMessages.add("Invalid or missing timestamp.");
-        if (descriptionField.getText() != null && descriptionField.getText().strip().length() > 255) {
-            errorMessages.add("Description is too long.");
-        }
-        try {
-            BigDecimal value = new BigDecimal(amountField.getText());
-            if (value.compareTo(BigDecimal.ZERO) <= 0) {
-                errorMessages.add("Amount should be a positive number.");
-            }
-        } catch (NumberFormatException e) {
-            errorMessages.add("Invalid or missing amount.");
-        }
-        Account debitAccount = linkDebitAccountComboBox.getValue();
-        Account creditAccount = linkCreditAccountComboBox.getValue();
-        if (debitAccount == null && creditAccount == null) {
-            errorMessages.add("At least one account must be linked to this transaction.");
-        }
-        if (debitAccount != null && debitAccount.equals(creditAccount)) {
-            errorMessages.add("Credit and debit accounts cannot be the same.");
-        }
-        return errorMessages;
     }
 }
