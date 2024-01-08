@@ -118,6 +118,7 @@ public class TransactionsViewController implements RouteSelectionListener {
     @Override
     public void onRouteSelected(Object context) {
         paginationControls.sorts.setAll(DEFAULT_SORTS);
+        transactionsVBox.getChildren().clear(); // Clear the transactions before reload initially.
 
         // Refresh account filter options.
         Thread.ofVirtual().start(() -> {
