@@ -12,6 +12,7 @@ rather than with your own CSS.
     -fx-theme-background-3: rgb(220, 220, 220);
     -fx-theme-negative: rgb(247, 37, 69);
     -fx-theme-positive: rgb(43, 196, 77);
+    -fx-theme-warning: rgb(250, 177, 2);
 }
 
 .root {
@@ -125,6 +126,10 @@ rather than with your own CSS.
 }
 .positive-color-fill {
     -fx-fill: -fx-theme-positive;
+}
+
+.warning-color-text-fill {
+    -fx-text-fill: -fx-theme-warning;
 }
 
 /* DEBUG BORDERS */

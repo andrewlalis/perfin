@@ -1,6 +1,5 @@
 package com.andrewlalis.perfin.data;
 
-import com.andrewlalis.perfin.data.pagination.Sort;
 import com.andrewlalis.perfin.model.AccountEntry;
 
 import java.math.BigDecimal;

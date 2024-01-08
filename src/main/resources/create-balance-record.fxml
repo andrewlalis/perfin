@@ -39,7 +39,16 @@
                 <TextField fx:id="timestampField" styleClass="mono-font"/>
 
                 <Label text="Balance" labelFor="${balanceField}" styleClass="bold-text"/>
-                <TextField fx:id="balanceField" styleClass="mono-font"/>
+                <VBox>
+                    <TextField fx:id="balanceField" styleClass="mono-font"/>
+                    <Label
+                            fx:id="balanceWarningLabel"
+                            styleClass="warning-color-text-fill,small-font"
+                            wrapText="true"
+                            text="Balance isn't what Perfin expects, according to your transactions."
+                    />
+                </VBox>
+
 
                 <Label text="Attachments" styleClass="bold-text"/>
             </PropertiesPane>

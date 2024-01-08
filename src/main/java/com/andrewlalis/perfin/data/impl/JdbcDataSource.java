@@ -36,7 +36,7 @@ public class JdbcDataSource implements DataSource {
 
     @Override
     public AccountRepository getAccountRepository() {
-        return new JdbcAccountRepository(getConnection());
+        return new JdbcAccountRepository(getConnection(), contentDir);
     }
 
     @Override

@@ -2,7 +2,6 @@ package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.AccountEntryRepository;
 import com.andrewlalis.perfin.data.AccountHistoryItemRepository;
-import com.andrewlalis.perfin.data.pagination.Sort;
 import com.andrewlalis.perfin.data.util.DbUtil;
 import com.andrewlalis.perfin.model.AccountEntry;
 
