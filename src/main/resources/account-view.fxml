@@ -63,8 +63,8 @@
             <VBox VBox.vgrow="ALWAYS">
                 <Label text="History" styleClass="bold-text,std-padding"/>
                 <VBox>
-                    <ScrollPane fitToHeight="true" fitToWidth="true">
-                        <VBox fx:id="historyItemsVBox" styleClass="padding-extra-1,spacing-extra-1"/>
+                    <ScrollPane styleClass="tile-container-scroll">
+                        <VBox fx:id="historyItemsVBox" styleClass="tile-container"/>
                     </ScrollPane>
                     <AnchorPane>
                         <Button

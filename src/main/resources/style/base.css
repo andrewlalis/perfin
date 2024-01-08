@@ -23,10 +23,14 @@ rather than with your own CSS.
     -fx-font-family: "Roboto", sans-serif;
     -fx-font-size: 14px;
     -fx-text-fill: -fx-theme-text;
-    -fx-fill: -fx-theme-text;
     -fx-background-color: -fx-theme-background;
 }
 
+Text {
+    -fx-fill: -fx-theme-text;
+}
+
+/* Font/text styles */
 .mono-font {
     -fx-font-family: "JetBrains Mono", monospace;
 }
@@ -86,6 +90,17 @@ rather than with your own CSS.
 }
 
 /* Standard "tile" styling. */
+.tile-container {
+    -fx-padding: 10px;
+    -fx-spacing: 10px;
+    -fx-hgap: 10px;
+    -fx-vgap: 10px;
+}
+.tile-container-scroll {
+    -fx-fit-to-height: true;
+    -fx-fit-to-width: true;
+}
+
 .tile {
     -fx-background-color: -fx-theme-background-2;
     -fx-padding: 10px;

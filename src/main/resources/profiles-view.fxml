@@ -9,24 +9,31 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.andrewlalis.perfin.control.ProfilesViewController"
-            stylesheets="@style/base.css"
             prefWidth="500"
             prefHeight="400"
 >
     <top>
-        <VBox styleClass="std-padding,std-spacing">
+        <VBox styleClass="padding-extra-1,std-spacing">
             <TextFlow>
-                <Text text="In Perfin, all your accounts, transactions, files, and other financial data are stored in a single "/>
-                <Text text="profile" styleClass="bold-text"/>
-                <Text text=". By default, Perfin uses the "/>
-                <Text text="default" style="-fx-font-style: italic;"/>
-                <Text text=" profile, and this should be sufficient for most users, but you can also add new profiles if you'd like to track some finances separately."/>
+                <Text>
+                    In Perfin, all your accounts, transactions, attachment files,
+                    and other financial data are stored in a single
+                </Text>
+                <Text styleClass="italic-text">&#160;profile</Text>
+                <Text>.</Text>
+            </TextFlow>
+            <TextFlow>
+                <Text>
+                    Usually, a single profile will be sufficient for most users,
+                    but you can add new profiles if you'd like to track certain
+                    finances separately.
+                </Text>
             </TextFlow>
         </VBox>
     </top>
     <center>
         <ScrollPane fitToWidth="true" fitToHeight="true">
-            <VBox fx:id="profilesVBox" styleClass="std-padding,spacing-extra"/>
+            <VBox fx:id="profilesVBox" styleClass="tile-container"/>
         </ScrollPane>
     </center>
     <bottom>

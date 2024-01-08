@@ -27,8 +27,8 @@
                     </HBox>
                 </top>
                 <center>
-                    <ScrollPane fitToHeight="true" fitToWidth="true">
-                        <VBox fx:id="transactionsVBox" styleClass="padding-extra-1,spacing-extra-1"/>
+                    <ScrollPane styleClass="tile-container-scroll">
+                        <VBox fx:id="transactionsVBox" styleClass="tile-container"/>
                     </ScrollPane>
                 </center>
             </BorderPane>

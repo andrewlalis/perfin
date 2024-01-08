@@ -16,11 +16,11 @@
         </HBox>
     </top>
     <center>
-        <VBox>
-            <ScrollPane fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
-                <FlowPane fx:id="accountsPane" BorderPane.alignment="TOP_LEFT" vgap="10" hgap="10" styleClass="padding-extra-1"/>
+        <VBox BorderPane.alignment="TOP_LEFT">
+            <ScrollPane styleClass="tile-container-scroll" VBox.vgrow="ALWAYS">
+                <FlowPane fx:id="accountsPane" styleClass="tile-container"/>
             </ScrollPane>
-            <Label fx:id="noAccountsLabel" BorderPane.alignment="TOP_LEFT" styleClass="std-padding" text="No accounts have been added to this profile."/>
+            <Label fx:id="noAccountsLabel" styleClass="std-padding" text="No accounts have been added to this profile."/>
         </VBox>
     </center>
 </BorderPane>

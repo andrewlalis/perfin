@@ -1,5 +1,6 @@
 package com.andrewlalis.perfin.view;
 
+import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -15,7 +16,11 @@ public class ProfilesStage extends Stage {
         setTitle("Profiles");
         setAlwaysOnTop(false);
         initModality(Modality.APPLICATION_MODAL);
-        setScene(SceneUtil.load("/profiles-view.fxml"));
+        Scene scene = SceneUtil.load("/profiles-view.fxml");
+        scene.getStylesheets().addAll(
+                ProfilesStage.class.getResource("/style/base.css").toExternalForm()
+        );
+        setScene(scene);
     }
 
     public static void open(Window owner) {

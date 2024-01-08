@@ -61,6 +61,9 @@ public class PerfinApp extends Application {
         Platform.runLater(() -> {
             stage.hide();
             Scene mainViewScene = SceneUtil.load("/main-view.fxml");
+            mainViewScene.getStylesheets().addAll(
+                    PerfinApp.class.getResource("/style/base.css").toExternalForm()
+            );
             stage.setScene(mainViewScene);
             stage.setTitle("Perfin");
             stage.getIcons().add(ImageCache.getLogo64());
