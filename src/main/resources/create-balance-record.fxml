@@ -1,35 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.andrewlalis.perfin.view.component.PropertiesPane?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.andrewlalis.perfin.control.CreateBalanceRecordController"
+            stylesheets="@style/base.css"
 >
     <top>
-        <HBox styleClass="std-padding,std-spacing">
-            <Label text="Create New Balance Record" styleClass="large-text,bold-text"/>
-        </HBox>
+        <Label text="Create New Balance Record" styleClass="large-text,bold-text,std-padding"/>
     </top>
     <center>
-        <VBox styleClass="std-padding,std-spacing">
-            <VBox>
-                <Label text="Timestamp" labelFor="${timestampField}"/>
-                <TextField fx:id="timestampField"/>
+        <VBox styleClass="std-padding,std-spacing" style="-fx-max-width: 500px;" BorderPane.alignment="TOP_LEFT">
+            <VBox styleClass="padding-extra,spacing-extra,small-font">
+                <TextFlow>
+                    <Text styleClass="secondary-color-fill">
+                        Create a new recording of the current balance of your
+                        account. This will serve as a sort of key-frame; a true,
+                        known balance that Perfin will use to derive your account's
+                        current balance by applying recent transactions to it.
+                    </Text>
+                </TextFlow>
+                <TextFlow>
+                    <Text styleClass="secondary-color-fill">
+                        Therefore, it's important to make balance records
+                        periodically so that Perfin's calculations are accurate, and
+                        it serves as a nice sanity-check to make sure all your
+                        transactions add up.
+                    </Text>
+                </TextFlow>
             </VBox>
-            <VBox>
-                <Label text="Balance" labelFor="${balanceField}"/>
-                <TextField fx:id="balanceField"/>
-            </VBox>
-            <VBox fx:id="attachmentsVBox">
-                <Label text="Attachments"/>
-            </VBox>
+
+            <PropertiesPane vgap="5" hgap="5" fx:id="propertiesPane">
+                <Label text="Timestamp" labelFor="${timestampField}" styleClass="bold-text"/>
+                <TextField fx:id="timestampField" styleClass="mono-font"/>
+
+                <Label text="Balance" labelFor="${balanceField}" styleClass="bold-text"/>
+                <TextField fx:id="balanceField" styleClass="mono-font"/>
+
+                <Label text="Attachments" styleClass="bold-text"/>
+            </PropertiesPane>
+
+            <Separator/>
+            <HBox styleClass="std-padding,std-spacing">
+                <Button text="Save" fx:id="saveButton" onAction="#save"/>
+                <Button text="Cancel" onAction="#cancel"/>
+            </HBox>
         </VBox>
     </center>
-    <bottom>
-        <HBox styleClass="std-padding,std-spacing">
-            <Button text="Save" onAction="#save"/>
-            <Button text="Cancel" onAction="#cancel"/>
-        </HBox>
-    </bottom>
 </BorderPane>

@@ -1,5 +1,6 @@
 package com.andrewlalis.perfin.data;
 
+import com.andrewlalis.perfin.data.pagination.Sort;
 import com.andrewlalis.perfin.model.AccountEntry;
 
 import java.math.BigDecimal;
@@ -17,4 +18,5 @@ public interface AccountEntryRepository extends AutoCloseable {
             Currency currency
     );
     List<AccountEntry> findAllByAccountId(long accountId);
+    List<AccountEntry> findAllByAccountIdBetween(long accountId, LocalDateTime utcMin, LocalDateTime utcMax);
 }

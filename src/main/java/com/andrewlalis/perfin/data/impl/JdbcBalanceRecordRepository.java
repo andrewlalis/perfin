@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.Currency;
 import java.util.List;
+import java.util.Optional;
 
 public record JdbcBalanceRecordRepository(Connection conn, Path contentDir) implements BalanceRecordRepository {
     @Override
@@ -49,6 +50,26 @@ public record JdbcBalanceRecordRepository(Connection conn, Path contentDir) impl
                 List.of(accountId),
                 JdbcBalanceRecordRepository::parse
         ).orElse(null);
+    }
+
+    @Override
+    public Optional<BalanceRecord> findClosestBefore(long accountId, LocalDateTime utcTimestamp) {
+        return DbUtil.findOne(
+                conn,
+                "SELECT * FROM balance_record WHERE account_id = ? AND timestamp <= ? ORDER BY timestamp DESC LIMIT 1",
+                List.of(accountId, DbUtil.timestampFromUtcLDT(utcTimestamp)),
+                JdbcBalanceRecordRepository::parse
+        );
+    }
+
+    @Override
+    public Optional<BalanceRecord> findClosestAfter(long accountId, LocalDateTime utcTimestamp) {
+        return DbUtil.findOne(
+                conn,
+                "SELECT * FROM balance_record WHERE account_id = ? AND timestamp >= ? ORDER BY timestamp ASC LIMIT 1",
+                List.of(accountId, DbUtil.timestampFromUtcLDT(utcTimestamp)),
+                JdbcBalanceRecordRepository::parse
+        );
     }
 
     @Override

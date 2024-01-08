@@ -1,6 +1,8 @@
 package com.andrewlalis.perfin.data.impl;
 
+import com.andrewlalis.perfin.data.AccountEntryRepository;
 import com.andrewlalis.perfin.data.AccountRepository;
+import com.andrewlalis.perfin.data.BalanceRecordRepository;
 import com.andrewlalis.perfin.data.EntityNotFoundException;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
@@ -10,16 +12,22 @@ import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.AccountEntry;
 import com.andrewlalis.perfin.model.AccountType;
 import com.andrewlalis.perfin.model.BalanceRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 
-public record JdbcAccountRepository(Connection conn) implements AccountRepository {
+public record JdbcAccountRepository(Connection conn, Path contentDir) implements AccountRepository {
+    private static final Logger log = LoggerFactory.getLogger(JdbcAccountRepository.class);
+
     @Override
     public long insert(AccountType type, String accountNumber, String name, Currency currency) {
         return DbUtil.doTransaction(conn, () -> {
@@ -84,49 +92,37 @@ public record JdbcAccountRepository(Connection conn) implements AccountRepositor
         // First find the account itself, since its properties influence the balance.
         Account account = findById(accountId).orElse(null);
         if (account == null) throw new EntityNotFoundException(Account.class, accountId);
+        LocalDateTime utcTimestamp = timestamp.atZone(ZoneOffset.UTC).toLocalDateTime();
+        BalanceRecordRepository balanceRecordRepo = new JdbcBalanceRecordRepository(conn, contentDir);
+        AccountEntryRepository accountEntryRepo = new JdbcAccountEntryRepository(conn);
         // Find the most recent balance record before timestamp.
-        Optional<BalanceRecord> closestPastRecord = DbUtil.findOne(
-                conn,
-                "SELECT * FROM balance_record WHERE account_id = ? AND timestamp <= ? ORDER BY timestamp DESC LIMIT 1",
-                List.of(accountId, DbUtil.timestampFromInstant(timestamp)),
-                JdbcBalanceRecordRepository::parse
-        );
+        Optional<BalanceRecord> closestPastRecord = balanceRecordRepo.findClosestBefore(account.id, utcTimestamp);
         if (closestPastRecord.isPresent()) {
             // Then find any entries on the account since that balance record and the timestamp.
-            List<AccountEntry> entriesAfterRecord = DbUtil.findAll(
-                    conn,
-                    "SELECT * FROM account_entry WHERE account_id = ? AND timestamp >= ? AND timestamp <= ? ORDER BY timestamp ASC",
-                    List.of(
-                            accountId,
-                            DbUtil.timestampFromUtcLDT(closestPastRecord.get().getTimestamp()),
-                            DbUtil.timestampFromInstant(timestamp)
-                    ),
-                    JdbcAccountEntryRepository::parse
+            List<AccountEntry> entriesBetweenRecentRecordAndNow = accountEntryRepo.findAllByAccountIdBetween(
+                    account.id,
+                    closestPastRecord.get().getTimestamp(),
+                    utcTimestamp
             );
-            return computeBalanceWithEntriesAfter(account, closestPastRecord.get(), entriesAfterRecord);
+            return computeBalanceWithEntries(account.getType(), closestPastRecord.get(), entriesBetweenRecentRecordAndNow);
         } else {
             // There is no balance record present before the given timestamp. Try and find the closest one after.
-            Optional<BalanceRecord> closestFutureRecord = DbUtil.findOne(
-                    conn,
-                    "SELECT * FROM balance_record WHERE account_id = ? AND timestamp >= ? ORDER BY timestamp ASC LIMIT 1",
-                    List.of(accountId, DbUtil.timestampFromInstant(timestamp)),
-                    JdbcBalanceRecordRepository::parse
-            );
-            if (closestFutureRecord.isEmpty()) {
-                throw new IllegalStateException("No balance record exists for account " + accountId);
+            Optional<BalanceRecord> closestFutureRecord = balanceRecordRepo.findClosestAfter(account.id, utcTimestamp);
+            if (closestFutureRecord.isPresent()) {
+                // Now find any entries on the account from the timestamp until that balance record.
+                List<AccountEntry> entriesBetweenNowAndFutureRecord = accountEntryRepo.findAllByAccountIdBetween(
+                        account.id,
+                        utcTimestamp,
+                        closestFutureRecord.get().getTimestamp()
+                );
+                return computeBalanceWithEntries(account.getType(), closestFutureRecord.get(), entriesBetweenNowAndFutureRecord);
+            } else {
+                // No balance records exist for the account! Assume balance of 0 when the account was created.
+                log.warn("No balance record exists for account {}! Assuming balance was 0 at account creation.", account.getShortName());
+                BalanceRecord placeholder = new BalanceRecord(-1, account.getCreatedAt(), account.id, BigDecimal.ZERO, account.getCurrency());
+                List<AccountEntry> entriesSinceAccountCreated = accountEntryRepo.findAllByAccountIdBetween(account.id, account.getCreatedAt(), utcTimestamp);
+                return computeBalanceWithEntries(account.getType(), placeholder, entriesSinceAccountCreated);
             }
-            // Now find any entries on the account from the timestamp until that balance record.
-            List<AccountEntry> entriesBeforeRecord = DbUtil.findAll(
-                    conn,
-                    "SELECT * FROM account_entry WHERE account_id = ? AND timestamp <= ? AND timestamp >= ? ORDER BY timestamp DESC",
-                    List.of(
-                            accountId,
-                            DbUtil.timestampFromUtcLDT(closestFutureRecord.get().getTimestamp()),
-                            DbUtil.timestampFromInstant(timestamp)
-                    ),
-                    JdbcAccountEntryRepository::parse
-            );
-            return computeBalanceWithEntriesBefore(account, closestFutureRecord.get(), entriesBeforeRecord);
         }
     }
 
@@ -191,18 +187,19 @@ public record JdbcAccountRepository(Connection conn) implements AccountRepositor
         conn.close();
     }
 
-    private BigDecimal computeBalanceWithEntriesAfter(Account account, BalanceRecord balanceRecord, List<AccountEntry> entriesAfterRecord) {
-        BigDecimal balance = balanceRecord.getBalance();
-        for (AccountEntry entry : entriesAfterRecord) {
-            balance = balance.add(entry.getEffectiveValue(account.getType()));
-        }
-        return balance;
-    }
-
-    private BigDecimal computeBalanceWithEntriesBefore(Account account, BalanceRecord balanceRecord, List<AccountEntry> entriesBeforeRecord) {
+    private BigDecimal computeBalanceWithEntries(AccountType accountType, BalanceRecord balanceRecord, List<AccountEntry> entries) {
+        List<AccountEntry> entriesBeforeRecord = entries.stream()
+                .filter(entry -> entry.getTimestamp().isBefore(balanceRecord.getTimestamp()))
+                .toList();
+        List<AccountEntry> entriesAfterRecord = entries.stream()
+                .filter(entry -> entry.getTimestamp().isAfter(balanceRecord.getTimestamp()))
+                .toList();
         BigDecimal balance = balanceRecord.getBalance();
         for (AccountEntry entry : entriesBeforeRecord) {
-            balance = balance.subtract(entry.getEffectiveValue(account.getType()));
+            balance = balance.subtract(entry.getEffectiveValue(accountType));
+        }
+        for (AccountEntry entry : entriesAfterRecord) {
+            balance = balance.add(entry.getEffectiveValue(accountType));
         }
         return balance;
     }

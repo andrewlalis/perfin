@@ -15,7 +15,7 @@
         </HBox>
     </top>
     <center>
-        <VBox style="-fx-max-width: 400px;" BorderPane.alignment="TOP_LEFT">
+        <VBox style="-fx-max-width: 500px;" BorderPane.alignment="TOP_LEFT">
             <PropertiesPane hgap="5" vgap="5" styleClass="std-padding">
                 <columnConstraints>
                     <ColumnConstraints hgrow="NEVER" halignment="LEFT" minWidth="150"/>

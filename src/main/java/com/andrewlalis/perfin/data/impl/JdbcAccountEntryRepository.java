@@ -2,6 +2,7 @@ package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.AccountEntryRepository;
 import com.andrewlalis.perfin.data.AccountHistoryItemRepository;
+import com.andrewlalis.perfin.data.pagination.Sort;
 import com.andrewlalis.perfin.data.util.DbUtil;
 import com.andrewlalis.perfin.model.AccountEntry;
 
@@ -42,6 +43,20 @@ public record JdbcAccountEntryRepository(Connection conn) implements AccountEntr
                 conn,
                 "SELECT * FROM account_entry WHERE account_id = ? ORDER BY timestamp DESC",
                 List.of(accountId),
+                JdbcAccountEntryRepository::parse
+        );
+    }
+
+    @Override
+    public List<AccountEntry> findAllByAccountIdBetween(long accountId, LocalDateTime utcMin, LocalDateTime utcMax) {
+        return DbUtil.findAll(
+                conn,
+                "SELECT * FROM account_entry WHERE account_id = ? AND timestamp >= ? AND timestamp <= ? ORDER BY timestamp ASC",
+                List.of(
+                        accountId,
+                        DbUtil.timestampFromUtcLDT(utcMin),
+                        DbUtil.timestampFromUtcLDT(utcMax)
+                ),
                 JdbcAccountEntryRepository::parse
         );
     }

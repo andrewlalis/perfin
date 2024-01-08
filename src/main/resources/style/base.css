@@ -25,11 +25,16 @@ rather than with your own CSS.
     -fx-font-family: "JetBrains Mono", monospace;
 }
 
+.largest-font {
+    -fx-font-size: 24px;
+}
 .large-font {
     -fx-font-size: 18px;
 }
-
 .small-font {
+    -fx-font-size: 12px;
+}
+.smallest-font {
     -fx-font-size: 10px;
 }
 
@@ -101,6 +106,9 @@ rather than with your own CSS.
     -fx-text-fill: -fx-theme-text;
 }
 
+.secondary-color-text-fill {
+    -fx-text-fill: -fx-theme-text-secondary;
+}
 .secondary-color-fill {
     -fx-fill: -fx-theme-text-secondary;
 }

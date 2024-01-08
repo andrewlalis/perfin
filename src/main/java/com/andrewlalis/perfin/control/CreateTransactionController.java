@@ -46,9 +46,6 @@ public class CreateTransactionController implements RouteSelectionListener {
 
     @FXML public Button saveButton;
 
-    public CreateTransactionController() {
-    }
-
     @FXML public void initialize() {
         // Setup error field validation.
         var timestampValid = new ValidationApplier<>(new PredicateValidator<String>()

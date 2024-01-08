@@ -10,7 +10,7 @@
 >
     <center>
         <ScrollPane fitToWidth="true" fitToHeight="true">
-            <VBox style="-fx-max-width: 400px;">
+            <VBox style="-fx-max-width: 500px;">
                 <!-- Basic properties -->
                 <PropertiesPane hgap="5" vgap="5" styleClass="std-padding">
                     <columnConstraints>
