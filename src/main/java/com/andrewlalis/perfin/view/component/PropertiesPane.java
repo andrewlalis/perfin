@@ -21,13 +21,20 @@ public class PropertiesPane extends GridPane {
     private final ColumnConstraints defaultValueColumnConstraints;
     private boolean columnConstraintsSet = false;
 
-    public PropertiesPane() {
+    public PropertiesPane(int keyColumnMinWidth) {
         defaultKeyColumnConstraints = new ColumnConstraints();
         defaultKeyColumnConstraints.setHgrow(Priority.NEVER);
         defaultKeyColumnConstraints.setHalignment(HPos.LEFT);
+        if (keyColumnMinWidth != -1) {
+            defaultKeyColumnConstraints.setMinWidth(keyColumnMinWidth);
+        }
         defaultValueColumnConstraints = new ColumnConstraints();
         defaultValueColumnConstraints.setHgrow(Priority.ALWAYS);
         defaultValueColumnConstraints.setHalignment(HPos.LEFT);
+    }
+
+    public PropertiesPane() {
+        this(-1);
     }
 
     @Override

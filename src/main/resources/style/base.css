@@ -13,12 +13,17 @@ rather than with your own CSS.
     -fx-theme-negative: rgb(247, 37, 69);
     -fx-theme-positive: rgb(43, 196, 77);
     -fx-theme-warning: rgb(250, 177, 2);
+
+    -fx-theme-account-type-checking: rgb(3, 127, 252);
+    -fx-theme-account-type-savings: rgb(57, 158, 74);
+    -fx-theme-account-type-credit-card: rgb(207, 8, 68);
 }
 
 .root {
     -fx-font-family: "Roboto", sans-serif;
     -fx-font-size: 14px;
     -fx-text-fill: -fx-theme-text;
+    -fx-fill: -fx-theme-text;
     -fx-background-color: -fx-theme-background;
 }
 
@@ -90,7 +95,7 @@ rather than with your own CSS.
     -fx-background-color: derive(-fx-theme-background-2, -5%);
 }
 
-.tile-border-selected {
+.tile-selected {
     -fx-background-color: -fx-theme-background-3;
 }
 
@@ -105,6 +110,9 @@ rather than with your own CSS.
 /* Standard colors */
 .normal-color-text-fill {
     -fx-text-fill: -fx-theme-text;
+}
+.normal-color-fill {
+    -fx-fill: -fx-theme-text;
 }
 
 .secondary-color-text-fill {

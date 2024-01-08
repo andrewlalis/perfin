@@ -14,8 +14,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -26,10 +24,10 @@ import static com.andrewlalis.perfin.PerfinApp.router;
  * A compact tile that displays information about an account.
  */
 public class AccountTile extends BorderPane {
-    private static final Map<AccountType, Color> ACCOUNT_TYPE_COLORS = Map.of(
-            AccountType.CHECKING, Color.rgb(3, 127, 252),
-            AccountType.SAVINGS, Color.rgb(57, 158, 74),
-            AccountType.CREDIT_CARD, Color.rgb(207, 8, 68)
+    private static final Map<AccountType, String> ACCOUNT_TYPE_COLORS = Map.of(
+            AccountType.CHECKING, "-fx-theme-account-type-checking",
+            AccountType.SAVINGS, "-fx-theme-account-type-savings",
+            AccountType.CREDIT_CARD, "-fx-theme-account-type-credit-card"
     );
 
     public AccountTile(Account account) {
@@ -44,9 +42,9 @@ public class AccountTile extends BorderPane {
     }
 
     private Node getHeader(Account account) {
-        Text title = new Text("Account #" + account.id);
-        title.getStyleClass().addAll("large-font", "bold-text");
-        return title;
+        Label titleLabel = new Label(account.getName());
+        titleLabel.getStyleClass().addAll("large-font", "bold-text");
+        return titleLabel;
     }
 
     private Node getFooter(Account account) {
@@ -70,16 +68,12 @@ public class AccountTile extends BorderPane {
         valueConstraints.setHalignment(HPos.RIGHT);
         propertiesPane.getColumnConstraints().setAll(keyConstraints, valueConstraints);
 
-        Label accountNameLabel = new Label(account.getName());
-        accountNameLabel.setWrapText(true);
-        accountNameLabel.getStyleClass().add("italic-text");
-
         Label accountNumberLabel = new Label(account.getAccountNumber());
         accountNumberLabel.getStyleClass().add("mono-font");
 
         Label accountTypeLabel = new Label(account.getType().toString());
-        accountTypeLabel.setTextFill(ACCOUNT_TYPE_COLORS.get(account.getType()));
         accountTypeLabel.getStyleClass().add("bold-text");
+        accountTypeLabel.setStyle("-fx-text-fill: " + ACCOUNT_TYPE_COLORS.get(account.getType()));
 
         Label balanceLabel = new Label("Computing balance...");
         balanceLabel.getStyleClass().addAll("mono-font");
@@ -103,8 +97,6 @@ public class AccountTile extends BorderPane {
         });
 
         propertiesPane.getChildren().addAll(
-                newPropertyLabel("Account Name"),
-                accountNameLabel,
                 newPropertyLabel("Account Number"),
                 accountNumberLabel,
                 newPropertyLabel("Account Type"),

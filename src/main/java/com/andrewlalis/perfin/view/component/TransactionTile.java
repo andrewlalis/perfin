@@ -3,6 +3,7 @@ package com.andrewlalis.perfin.view.component;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.model.CreditAndDebitAccounts;
+import com.andrewlalis.perfin.model.MoneyValue;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.model.Transaction;
 import javafx.application.Platform;
@@ -14,7 +15,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
@@ -37,28 +37,38 @@ public class TransactionTile extends BorderPane {
 
         selected.addListener((observable, oldValue, newValue) -> {
             if (newValue) {
-                getStyleClass().add("tile-border-selected");
+                getStyleClass().add("tile-selected");
             } else {
-                getStyleClass().remove("tile-border-selected");
+                getStyleClass().remove("tile-selected");
             }
         });
     }
 
     private Node getHeader(Transaction transaction) {
-        Label currencyLabel = new Label(CurrencyUtil.formatMoney(transaction.getMoneyAmount()));
-        currencyLabel.getStyleClass().add("mono-font");
-        HBox headerHBox = new HBox(
-                currencyLabel
-        );
-        headerHBox.getStyleClass().addAll("std-spacing");
-        return headerHBox;
+        Label headerLabel = new Label("Transaction #" + transaction.id);
+        headerLabel.getStyleClass().addAll("bold-text");
+        return headerLabel;
     }
 
     private Node getBody(Transaction transaction) {
-        Label descriptionLabel = new Label(transaction.getDescription());
-        descriptionLabel.setWrapText(true);
+        PropertiesPane propertiesPane = new PropertiesPane(150);
+        Label amountLabel = new Label("Amount");
+        amountLabel.getStyleClass().add("bold-text");
+        Label amountValue = new Label(CurrencyUtil.formatMoneyWithCurrencyPrefix(transaction.getMoneyAmount()));
+        amountValue.getStyleClass().add("mono-font");
+
+        Label descriptionLabel = new Label("Description");
+        descriptionLabel.getStyleClass().add("bold-text");
+        Label descriptionValue = new Label(transaction.getDescription());
+        descriptionValue.setWrapText(true);
+
+        propertiesPane.getChildren().addAll(
+                amountLabel, amountValue,
+                descriptionLabel, descriptionValue
+        );
+
         VBox bodyVBox = new VBox(
-                descriptionLabel
+                propertiesPane
         );
         getCreditAndDebitAccounts(transaction).thenAccept(accounts -> {
             accounts.ifCredit(acc -> {

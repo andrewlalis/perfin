@@ -8,7 +8,6 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.andrewlalis.perfin.control.CreateBalanceRecordController"
-            stylesheets="@style/base.css"
 >
     <top>
         <Label text="Create New Balance Record" styleClass="large-text,bold-text,std-padding"/>
