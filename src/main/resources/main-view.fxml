@@ -22,7 +22,7 @@
     </top>
     <bottom>
         <HBox styleClass="std-padding,std-spacing">
-            <Label text="Perfin Version 1.1.0"/>
+            <Label text="Perfin Version 1.2.0"/>
         </HBox>
     </bottom>
 </BorderPane>

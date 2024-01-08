@@ -36,7 +36,6 @@ import static com.andrewlalis.perfin.PerfinApp.router;
  */
 public class TransactionsViewController implements RouteSelectionListener {
     public static List<Sort> DEFAULT_SORTS = List.of(Sort.desc("timestamp"));
-    public static int DEFAULT_ITEMS_PER_PAGE = 5;
     public record RouteContext(Long selectedTransactionId) {}
 
     @FXML public BorderPane transactionsListBorderPane;
@@ -119,7 +118,6 @@ public class TransactionsViewController implements RouteSelectionListener {
     @Override
     public void onRouteSelected(Object context) {
         paginationControls.sorts.setAll(DEFAULT_SORTS);
-        paginationControls.itemsPerPage.set(DEFAULT_ITEMS_PER_PAGE);
 
         // Refresh account filter options.
         Thread.ofVirtual().start(() -> {
@@ -142,7 +140,7 @@ public class TransactionsViewController implements RouteSelectionListener {
                 Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
                     repo.findById(ctx.selectedTransactionId).ifPresent(tx -> {
                         long offset = repo.countAllAfter(tx.id);
-                        int pageNumber = (int) (offset / DEFAULT_ITEMS_PER_PAGE) + 1;
+                        int pageNumber = (int) (offset / paginationControls.getItemsPerPage()) + 1;
                         paginationControls.setPage(pageNumber).thenRun(() -> selectedTransaction.set(tx));
                     });
                 });
