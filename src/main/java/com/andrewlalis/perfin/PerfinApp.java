@@ -7,6 +7,7 @@ import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.view.ImageCache;
 import com.andrewlalis.perfin.view.SceneUtil;
 import com.andrewlalis.perfin.view.StartupSplashScreen;
+import com.andrewlalis.perfin.view.component.ScrollPaneRouterView;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -38,7 +39,7 @@ public class PerfinApp extends Application {
      * A router that controls which help page is being viewed in the side-pane.
      * Certain user actions may cause this router to navigate to certain pages.
      */
-    public static final SceneRouter helpRouter = new SceneRouter(new AnchorPaneRouterView(true));
+    public static final SceneRouter helpRouter = new SceneRouter(new ScrollPaneRouterView());
 
     public static void main(String[] args) {
         launch(args);
@@ -75,23 +76,24 @@ public class PerfinApp extends Application {
         });
     }
 
-    private static void mapResourceRoute(String route, String resource) {
-        router.map(route, PerfinApp.class.getResource(resource));
-    }
-
     private static void defineRoutes(Consumer<String> msgConsumer) {
         msgConsumer.accept("Initializing application views.");
         Platform.runLater(() -> {
-            mapResourceRoute("accounts", "/accounts-view.fxml");
-            mapResourceRoute("account", "/account-view.fxml");
-            mapResourceRoute("edit-account", "/edit-account.fxml");
-            mapResourceRoute("transactions", "/transactions-view.fxml");
-            mapResourceRoute("create-transaction", "/create-transaction.fxml");
-            mapResourceRoute("create-balance-record", "/create-balance-record.fxml");
+            // App pages.
+            router.map("accounts", PerfinApp.class.getResource("/accounts-view.fxml"));
+            router.map("account", PerfinApp.class.getResource("/account-view.fxml"));
+            router.map("edit-account", PerfinApp.class.getResource("/edit-account.fxml"));
+            router.map("transactions", PerfinApp.class.getResource("/transactions-view.fxml"));
+            router.map("create-transaction", PerfinApp.class.getResource("/create-transaction.fxml"));
+            router.map("create-balance-record", PerfinApp.class.getResource("/create-balance-record.fxml"));
 
-            // Map help pages.
-            helpRouter.map("help-test", PerfinApp.class.getResource("/help-pages/help-test.fxml"));
+            // Help pages.
             helpRouter.map("home", PerfinApp.class.getResource("/help-pages/home.fxml"));
+            helpRouter.map("accounts", PerfinApp.class.getResource("/help-pages/accounts-view.fxml"));
+            helpRouter.map("adding-an-account", PerfinApp.class.getResource("/help-pages/adding-an-account.fxml"));
+            helpRouter.map("transactions", PerfinApp.class.getResource("/help-pages/transactions-view.fxml"));
+            helpRouter.map("adding-a-transaction", PerfinApp.class.getResource("/help-pages/adding-a-transaction.fxml"));
+            helpRouter.map("profiles", PerfinApp.class.getResource("/help-pages/profiles.fxml"));
         });
     }
 

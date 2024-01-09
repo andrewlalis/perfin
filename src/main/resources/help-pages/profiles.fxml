@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.VBox?>
+<?import com.andrewlalis.perfin.view.component.StyledText?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+>
+    <StyledText>
+        ## Profiles ##
+        In *Perfin*, all the accounts, transactions, attachments, bank
+        statements, and other financial data, are stored in a *profile*. You can
+        think of it as a save file. It's a single folder that encapsulates all
+        your data.
+        --
+        Perfin uses profiles to make it easy to work with multiple financial
+        portfolios, export and import bulk data, and to let *you*, the user,
+        access your data directly, as opposed to hiding it in some proprietary
+        file format.
+        --
+        A running Perfin program always has one profile open at a time. You can
+        change the active profile by clicking **Profiles** from the app's top
+        menu, and then clicking **Open** next to the profile you'd like to use.
+        --
+        By default, when you first start Perfin, a profile named *default* is
+        created for you to use. Most of the time, you won't need to worry about
+        using other profiles, but if you do, now you know how.
+    </StyledText>
+</VBox>

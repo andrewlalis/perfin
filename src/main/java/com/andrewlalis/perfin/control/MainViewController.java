@@ -3,12 +3,13 @@ package com.andrewlalis.perfin.control;
 import com.andrewlalis.javafx_scene_router.AnchorPaneRouterView;
 import com.andrewlalis.perfin.view.BindingUtil;
 import com.andrewlalis.perfin.view.ProfilesStage;
+import com.andrewlalis.perfin.view.component.ScrollPaneRouterView;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 
 import static com.andrewlalis.perfin.PerfinApp.helpRouter;
 import static com.andrewlalis.perfin.PerfinApp.router;
@@ -19,7 +20,8 @@ public class MainViewController {
 
     @FXML public Button showManualButton;
     @FXML public Button hideManualButton;
-    @FXML public VBox manualVBox;
+    @FXML public BorderPane helpPane;
+    @FXML public Button helpBackButton;
 
     @FXML public void initialize() {
         AnchorPaneRouterView routerView = (AnchorPaneRouterView) router.getView();
@@ -41,15 +43,26 @@ public class MainViewController {
         router.navigate("accounts");
 
         // Initialize the help manual components.
-        manualVBox.managedProperty().bind(manualVBox.visibleProperty());
-        manualVBox.setVisible(false);
+        helpPane.managedProperty().bind(helpPane.visibleProperty());
+        helpPane.setVisible(false);
         showManualButton.managedProperty().bind(showManualButton.visibleProperty());
-        showManualButton.visibleProperty().bind(manualVBox.visibleProperty().not());
+        showManualButton.visibleProperty().bind(helpPane.visibleProperty().not());
         hideManualButton.managedProperty().bind(hideManualButton.visibleProperty());
-        hideManualButton.visibleProperty().bind(manualVBox.visibleProperty());
+        hideManualButton.visibleProperty().bind(helpPane.visibleProperty());
 
-        AnchorPaneRouterView helpRouterView = (AnchorPaneRouterView) helpRouter.getView();
-        manualVBox.getChildren().add(helpRouterView.getAnchorPane());
+        helpBackButton.managedProperty().bind(helpBackButton.visibleProperty());
+        helpRouter.currentRouteProperty().addListener((observable, oldValue, newValue) -> {
+            helpBackButton.setVisible(helpRouter.getHistory().canGoBack());
+        });
+        helpBackButton.setOnAction(event -> helpRouter.navigateBack());
+
+        ScrollPaneRouterView helpRouterView = (ScrollPaneRouterView) helpRouter.getView();
+        ScrollPane helpRouterScrollPane = helpRouterView.getScrollPane();
+        helpRouterScrollPane.setMinWidth(200.0);
+        helpRouterScrollPane.setMaxWidth(400.0);
+        helpRouterScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        helpRouterScrollPane.getStyleClass().addAll("padding-extra");
+        helpPane.setCenter(helpRouterScrollPane);
 
         helpRouter.navigate("home");
     }
@@ -77,10 +90,25 @@ public class MainViewController {
     }
 
     @FXML public void showManual() {
-        manualVBox.setVisible(true);
+        helpPane.setVisible(true);
     }
 
     @FXML public void hideManual() {
-        manualVBox.setVisible(false);
+        helpPane.setVisible(false);
+    }
+
+    @FXML public void helpViewHome() {
+        helpRouter.getHistory().clear();
+        helpRouter.navigate("home");
+    }
+
+    @FXML public void helpViewAccounts() {
+        helpRouter.getHistory().clear();
+        helpRouter.navigate("accounts");
+    }
+
+    @FXML public void helpViewTransactions() {
+        helpRouter.getHistory().clear();
+        helpRouter.navigate("transactions");
     }
 }

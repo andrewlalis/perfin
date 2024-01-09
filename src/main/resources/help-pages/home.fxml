@@ -1,29 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Label?>
+<?import com.andrewlalis.perfin.view.component.StyledText?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Text?>
-<?import javafx.scene.text.TextFlow?>
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
+      styleClass="std-spacing"
 >
-    <Label styleClass="large-font,bold-text" text="Perfin Help Pages"/>
-    <TextFlow>
-        <Text>
-            This is the homepage for Perfin's help pages: a manual for how to
-            use Perfin safely and effectively to manage your personal finances.
-        </Text>
-    </TextFlow>
-    <TextFlow>
-        <Text>
-            Search for a topic below, or click on the help icon beside some
-            component to navigate to its page.
-        </Text>
-    </TextFlow>
+    <StyledText>
+        ## Homepage ##
+        This is the homepage for Perfin's help pages: a manual for how to use
+        Perfin safely and effectively to manage your personal finances.
+        --
+        Search for a topic below, or follow one of the index links.
+    </StyledText>
     <HBox>
-        <Label text="Search!"/>
-        <TextField/>
+        <TextField disable="true" text="Searching is WIP" HBox.hgrow="ALWAYS"/>
     </HBox>
+    <StyledText>
+        # Help Pages Index #
+        The following is a list of all help pages.
+        --
+        [Accounts View](help:accounts)
+        --
+        [Adding an Account](help:adding-an-account)
+        --
+        [Transactions View](help:transactions)
+        --
+        [Adding a Transaction](help:adding-a-transaction)
+        --
+        [Profiles](help:profiles)
+    </StyledText>
 </VBox>

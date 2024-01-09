@@ -5,8 +5,8 @@ import com.andrewlalis.perfin.data.ProfileLoadException;
 import com.andrewlalis.perfin.data.util.FileUtil;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.view.ProfilesStage;
-import javafx.beans.binding.BooleanExpression;
-import javafx.beans.property.BooleanProperty;
+import com.andrewlalis.perfin.view.component.validation.ValidationApplier;
+import com.andrewlalis.perfin.view.component.validation.validators.PredicateValidator;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -16,6 +16,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,22 +26,16 @@ import java.util.List;
 import static com.andrewlalis.perfin.PerfinApp.router;
 
 public class ProfilesViewController {
+    private static final Logger log = LoggerFactory.getLogger(ProfilesViewController.class);
+
     @FXML public VBox profilesVBox;
     @FXML public TextField newProfileNameField;
-    @FXML public Text newProfileNameErrorLabel;
     @FXML public Button addProfileButton;
 
     @FXML public void initialize() {
-        BooleanExpression newProfileNameValid = BooleanProperty.booleanExpression(newProfileNameField.textProperty()
-                .map(text -> (
-                        text != null &&
-                        !text.isBlank() &&
-                        Profile.validateName(text) &&
-                        !Profile.getAvailableProfiles().contains(text)
-                )));
-        newProfileNameErrorLabel.managedProperty().bind(newProfileNameErrorLabel.visibleProperty());
-        newProfileNameErrorLabel.visibleProperty().bind(newProfileNameValid.not().and(newProfileNameField.textProperty().isNotEmpty()));
-        newProfileNameErrorLabel.wrappingWidthProperty().bind(newProfileNameField.widthProperty());
+        var newProfileNameValid = new ValidationApplier<>(new PredicateValidator<String>()
+                .addPredicate(s -> s == null || s.isBlank() || Profile.validateName(s), "Profile name should consist of only lowercase numbers.")
+        ).attachToTextField(newProfileNameField);
         addProfileButton.disableProperty().bind(newProfileNameValid.not());
 
         refreshAvailableProfiles();
@@ -106,7 +102,7 @@ public class ProfilesViewController {
     }
 
     private boolean openProfile(String name, boolean showPopup) {
-        System.out.println("Opening profile: " + name);
+        log.info("Opening profile \"{}\".", name);
         try {
             Profile.load(name);
             ProfilesStage.closeView();

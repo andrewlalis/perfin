@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.andrewlalis.perfin.view.component.StyledText?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      styleClass="std-spacing"
+>
+    <StyledText>
+        ## The Transactions View ##
+        In the *Transactions view*, you're shown a list of all transactions that
+        have been added to your *Perfin* profile, along with some controls for
+        navigating this list.
+        --
+        The transactions are ordered, by default, according to their timestamp,
+        with recent transactions appearing before older ones.
+        --
+        Simply click on a transaction to view its details or make changes.
+        --
+        To add a new transaction, click **Add Transaction** in the top menu. You
+        can read more about adding a transaction [here](help:adding-a-transaction).
+    </StyledText>
+</VBox>

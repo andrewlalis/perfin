@@ -62,10 +62,15 @@ public class StartupSplashScreen extends Stage implements Consumer<String> {
 
     private void runTasks() {
         Thread.ofVirtual().start(() -> {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
             for (var task : tasks) {
                 try {
                     task.accept(this);
-                    Thread.sleep(100);
+                    Thread.sleep(500);
                 } catch (Exception e) {
                     accept("Startup failed: " + e.getMessage());
                     e.printStackTrace(System.err);
@@ -80,7 +85,7 @@ public class StartupSplashScreen extends Stage implements Consumer<String> {
             }
             accept("Startup successful!");
             try {
-                Thread.sleep(500);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

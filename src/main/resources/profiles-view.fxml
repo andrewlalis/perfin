@@ -39,19 +39,13 @@
     <bottom>
         <BorderPane>
             <left>
-                <VBox styleClass="std-padding">
-                    <Label text="Add New Profile"/>
-                </VBox>
+                <AnchorPane styleClass="std-padding">
+                    <Label text="Add New Profile" styleClass="bold-text" AnchorPane.leftAnchor="0" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"/>
+                </AnchorPane>
             </left>
             <center>
                 <VBox styleClass="std-padding">
                     <TextField fx:id="newProfileNameField" style="-fx-min-width: 50px; -fx-pref-width: 50px;"/>
-                    <Text
-                            fx:id="newProfileNameErrorLabel"
-                            styleClass="error-text"
-                            style="-fx-fill: red;"
-                            text="Invalid profile name. Profile names must only contain lowercase text."
-                    />
                 </VBox>
             </center>
             <right>

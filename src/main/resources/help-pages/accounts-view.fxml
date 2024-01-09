@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.andrewlalis.perfin.view.component.StyledText?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      styleClass="std-spacing"
+>
+    <StyledText>
+        ## The Accounts View ##
+        In the *Accounts view*, you'll see an overview of all the active
+        accounts in your *Perfin* profile.
+        --
+        To add a new account, simply click on **Add an Account** from the menu
+        at the top. [Read about how to add an account here.](help:adding-an-account)
+        --
+        Additionally, the top menu also shows an overview of the derived total
+        balance for each currency you own. This adds up the balances of all
+        accounts of like currency, and gives you a total of each.
+        --
+        Accounts are, by default, ordered according to the most recent activity.
+        That means that your most active accounts will appear *first* in this
+        page, and your least active accounts will appear *last*.
+
+        # Account Tiles #
+        Each account's tile displays some basic information about the account
+        up-front, like its name, number, balance, and type. Click on a tile to
+        navigate to that account's page for more detailed information, and to
+        make changes to the account.
+        --
+        The *current balance* shown in each account tile is derived from the
+        account's last-known **balance record**, and all transactions  that have
+        happened between then and now.
+    </StyledText>
+</VBox>

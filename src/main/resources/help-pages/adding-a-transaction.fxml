@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.VBox?>
+<?import com.andrewlalis.perfin.view.component.StyledText?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+>
+    <StyledText>
+        ## Adding a Transaction ##
+        When you're adding a new transaction to your *Perfin* profile, there are
+        some details that you should be aware of.
+
+        # Timestamp #
+        The timestamp is the date and time at which the transaction took place,
+        in your local time zone. Generally, it's encouraged to set this as the
+        real timestamp at which the transaction took place (the time shown on a
+        receipt or invoice, for example), rather than the timestamp provided by
+        your financial institution once the payment has been processed.
+        --
+        It's formatted as `yyyy-mm-dd HH:MM:SS`, so for example, November 14th,
+        2015 at 4:15pm would be written as `2015-11-14 16:15:00`. You can omit
+        the seconds if you like, however.
+        --
+        Also note that you may not enter timestamps from the future; it just
+        doesn't make sense to do so.
+
+        # Amount #
+        The total amount of the transaction, as a positive decimal value. This
+        is the final amount which you've paid or received, including any tax,
+        tips, or transaction fees.
+
+        # Currency #
+        The currency of the transaction. This should be the same currency as the
+        account(s) that the transaction is linked to.
+
+        # Linked Debit and Credit Accounts #
+        Every transaction, for it to mean something, needs to be linked to one
+        (or sometimes two) of your accounts. A transaction's impact on an
+        account depends on whether the transaction is being treated as a **Debit**
+        or a **Credit** on the account.
+        --
+        The account linked as **Debit** is the one whose assets will
+        **increase** as a result of the transaction. Some common examples of
+        transactions with debit-linked accounts include deposits to checking
+        or savings accounts, or refunds to credit cards.
+        --
+        The account linked as **Credit** is the one whose assets will
+        **decrease** as a result of the transaction. Some common examples of
+        transactions with credit-linked accounts include payments or purchases
+        with a checking or savings account, or a credit card.
+        --
+        In short, if your account is *gaining money*, link it under **debit**.
+        If your account is *losing money*, link it under **credit**.
+        --
+        For transfers between two accounts that are both tracked in *Perfin*,
+        the *sending* account should be linked under **credit**, and the
+        *receiving* account under **debit**.
+
+        # Attachments #
+        Often, you'll have a receipt, invoice, bank statement, or some other
+        document which acts as proof of a transaction. You can attach files to
+        a transaction to save those files with it, as a reference. The files
+        will be copied to your *Perfin* profile.
+    </StyledText>
+</VBox>

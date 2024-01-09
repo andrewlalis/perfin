@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.VBox?>
+<?import com.andrewlalis.perfin.view.component.StyledText?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+>
+    <StyledText>
+        ## Adding an Account ##
+        When adding an account, you'll need to provide some basic information
+        about the account so that Perfin can integrate it with its automatic
+        balance calculations and other functions.
+
+        # Name #
+        The name of the account is just a bit of text that you can use to
+        identify the account from the rest of yours. Make sure it's unique, and
+        to-the-point, since the account's name is used elsewhere in the app to
+        refer to the account.
+
+        # Number #
+        The number of the account is the unique account number provided by your
+        financial institution. For checking and savings accounts, it'll be the
+        account number provided by your bank, and for credit cards, it'll be the
+        credit card's number.
+
+        # Currency #
+        The currency is pretty self-explanatory; simply select the currency that
+        your account uses. Perfin uses 3-character *currency codes* quite often,
+        and you can read about them [here](https://en.wikipedia.org/wiki/ISO_4217#List_of_currency_codes).
+
+        # Account Type #
+        The account's type determines how certain balance calculations and
+        properties of the account work. For instance, a **Credit Card**
+        account's balance is interpreted to be the amount you owe to the card's
+        provider (the amount you need to pay off), while a **Checking**
+        account's balance is naturally the amount of money in your account.
+
+        # Initial Balance #
+        In order to accurately compute your account's balance (without needing
+        to check back every hour with your financial institution), Perfin needs
+        to know what your account's starting balance is. This way, it can use
+        that balance, combined with any transactions you add, to tell you your
+        balance at any moment in time.
+    </StyledText>
+</VBox>
