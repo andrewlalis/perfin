@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.andrewlalis.perfin.view.component.StyledText?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+>
+    <StyledText>
+        ## About Perfin ##
+        Perfin was created by [Andrew Lalis](https://andrewlalis.com/) as a
+        modern solution to personal accounting which didn't rely in some way on
+        internet services that are probably selling, using, or storing your data
+        in ways you're not comfortable with.
+        --
+        It's designed around the concept of personal ownership of your financial
+        data. You can, at any time, inspect the data that Perfin stores, and you
+        can be sure that none of that will ever leave your computer.
+        --
+        Perfin was built using Java 21 and JavaFX, and stores most data in an
+        H2 database file for each profile. Attachment files are copied into the
+        profile's *content* directory, and can be accessed directly.
+
+        # About the Author #
+        Andrew is a software engineer whose work consists of a variety of web
+        and desktop applications that range in scope from simple tools to huge
+        microservice-architecture web projects. He has professional experience
+        in development for personal accounting software, as well as internal
+        back-office systems, and educational course management software.
+        --
+        Aside from development, Andrew's primary interests are in long-distance
+        running, powerlifting, and cooking.
+    </StyledText>
+</VBox>

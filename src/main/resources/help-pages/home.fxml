@@ -22,6 +22,8 @@
         # Help Pages Index #
         The following is a list of all help pages.
         --
+        [About Perfin](help:about)
+        --
         [Accounts View](help:accounts)
         --
         [Adding an Account](help:adding-an-account)

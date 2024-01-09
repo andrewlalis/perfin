@@ -94,6 +94,7 @@ public class PerfinApp extends Application {
             helpRouter.map("transactions", PerfinApp.class.getResource("/help-pages/transactions-view.fxml"));
             helpRouter.map("adding-a-transaction", PerfinApp.class.getResource("/help-pages/adding-a-transaction.fxml"));
             helpRouter.map("profiles", PerfinApp.class.getResource("/help-pages/profiles.fxml"));
+            helpRouter.map("about", PerfinApp.class.getResource("/help-pages/about.fxml"));
         });
     }
 
