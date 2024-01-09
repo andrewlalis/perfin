@@ -15,7 +15,6 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -66,7 +65,7 @@ public class PerfinApp extends Application {
             );
             stage.setScene(mainViewScene);
             stage.setTitle("Perfin");
-            stage.getIcons().add(ImageCache.getLogo64());
+            stage.getIcons().add(ImageCache.getLogo256());
         });
     }
 

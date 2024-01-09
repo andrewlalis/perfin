@@ -26,7 +26,7 @@ public class StartupSplashScreen extends Stage implements Consumer<String> {
         setTitle("Starting Perfin...");
         setResizable(false);
         initStyle(StageStyle.UNDECORATED);
-        getIcons().add(ImageCache.getLogo64());
+        getIcons().add(ImageCache.getLogo256());
 
         setScene(buildScene());
         setOnShowing(event -> runTasks());

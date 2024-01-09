@@ -34,7 +34,7 @@ public class ImageCache {
                 "S-" + smooth;
     }
 
-    public static Image getLogo64() {
-        return instance.get("/images/perfin-logo_64.png", 64, 64, true, true);
+    public static Image getLogo256() {
+        return instance.get("/images/perfin-logo_256.png", 256, 256, true, true);
     }
 }
