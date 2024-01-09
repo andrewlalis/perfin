@@ -24,10 +24,7 @@ checking, credit, etc.).
 Because the app lives and works entirely on your local computer, you can rest
 assured that your data remains completely private.
 
-Currently, the application is still a work-in-progress, and is not yet suitable
-for actual usage with your real financial data, so stay tuned for updates.
-
-# Release Procedure
+## Release Procedure
 
 Platform-specific package installers are generated automatically via GitHub
 Actions (see `.github/workflows/make-release.yaml`), which is triggered by a
