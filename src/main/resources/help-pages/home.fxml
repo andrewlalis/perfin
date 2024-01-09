@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+>
+    <Label styleClass="large-font,bold-text" text="Perfin Help Pages"/>
+    <TextFlow>
+        <Text>
+            This is the homepage for Perfin's help pages: a manual for how to
+            use Perfin safely and effectively to manage your personal finances.
+        </Text>
+    </TextFlow>
+    <TextFlow>
+        <Text>
+            Search for a topic below, or click on the help icon beside some
+            component to navigate to its page.
+        </Text>
+    </TextFlow>
+    <HBox>
+        <Label text="Search!"/>
+        <TextField/>
+    </HBox>
+</VBox>

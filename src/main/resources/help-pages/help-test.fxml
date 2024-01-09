@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+>
+    <TextFlow>
+        <Text>
+            This is a testing help page, which is meant to be shown only for
+            testing the help system and navigation.
+        </Text>
+    </TextFlow>
+</VBox>

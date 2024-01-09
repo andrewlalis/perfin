@@ -10,6 +10,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+import static com.andrewlalis.perfin.PerfinApp.helpRouter;
 import static com.andrewlalis.perfin.PerfinApp.router;
 
 public class MainViewController {
@@ -37,6 +38,9 @@ public class MainViewController {
                 }
         );
 
+        router.navigate("accounts");
+
+        // Initialize the help manual components.
         manualVBox.managedProperty().bind(manualVBox.visibleProperty());
         manualVBox.setVisible(false);
         showManualButton.managedProperty().bind(showManualButton.visibleProperty());
@@ -44,7 +48,10 @@ public class MainViewController {
         hideManualButton.managedProperty().bind(hideManualButton.visibleProperty());
         hideManualButton.visibleProperty().bind(manualVBox.visibleProperty());
 
-        router.navigate("accounts");
+        AnchorPaneRouterView helpRouterView = (AnchorPaneRouterView) helpRouter.getView();
+        manualVBox.getChildren().add(helpRouterView.getAnchorPane());
+
+        helpRouter.navigate("home");
     }
 
     @FXML public void goBack() {

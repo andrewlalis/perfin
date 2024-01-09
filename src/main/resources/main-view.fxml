@@ -2,8 +2,6 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.TextFlow?>
-<?import javafx.scene.text.Text?>
 <BorderPane
         xmlns="http://javafx.com/javafx"
         xmlns:fx="http://javafx.com/fxml"
@@ -31,14 +29,6 @@
         </HBox>
     </bottom>
     <right>
-        <VBox fx:id="manualVBox" style="-fx-min-width: 400px;" styleClass="padding-extra-1,std-spacing">
-            <Label text="Perfin User Manual" styleClass="large-font,bold-text"/>
-            <TextFlow>
-                <Text>
-                    This manual is your guide on how to properly use Perfin to
-                    manage your personal finances.
-                </Text>
-            </TextFlow>
-        </VBox>
+        <VBox fx:id="manualVBox" style="-fx-min-width: 400px;" styleClass="padding-extra-1"/>
     </right>
 </BorderPane>

@@ -34,6 +34,12 @@ public class PerfinApp extends Application {
      */
     public static final SceneRouter router = new SceneRouter(new AnchorPaneRouterView(true));
 
+    /**
+     * A router that controls which help page is being viewed in the side-pane.
+     * Certain user actions may cause this router to navigate to certain pages.
+     */
+    public static final SceneRouter helpRouter = new SceneRouter(new AnchorPaneRouterView(true));
+
     public static void main(String[] args) {
         launch(args);
     }
@@ -82,6 +88,10 @@ public class PerfinApp extends Application {
             mapResourceRoute("transactions", "/transactions-view.fxml");
             mapResourceRoute("create-transaction", "/create-transaction.fxml");
             mapResourceRoute("create-balance-record", "/create-balance-record.fxml");
+
+            // Map help pages.
+            helpRouter.map("help-test", PerfinApp.class.getResource("/help-pages/help-test.fxml"));
+            helpRouter.map("home", PerfinApp.class.getResource("/help-pages/home.fxml"));
         });
     }
 
