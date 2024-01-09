@@ -10,7 +10,7 @@
         fx:controller="com.andrewlalis.perfin.control.AccountViewController"
 >
     <top>
-        <Label fx:id="titleLabel" styleClass="std-padding,large-text,bold-text"/>
+        <Label fx:id="titleLabel" styleClass="std-padding,large-font,bold-text"/>
     </top>
     <center>
         <VBox>

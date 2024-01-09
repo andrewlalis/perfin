@@ -10,7 +10,7 @@
             fx:controller="com.andrewlalis.perfin.control.CreateBalanceRecordController"
 >
     <top>
-        <Label text="Create New Balance Record" styleClass="large-text,bold-text,std-padding"/>
+        <Label text="Create New Balance Record" styleClass="large-font,bold-text,std-padding"/>
     </top>
     <center>
         <VBox styleClass="std-padding,std-spacing" style="-fx-max-width: 500px;" BorderPane.alignment="TOP_LEFT">

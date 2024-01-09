@@ -11,7 +11,7 @@
 >
     <top>
         <HBox styleClass="std-padding,std-spacing">
-            <Label fx:id="titleLabel" styleClass="large-text,bold-text"/>
+            <Label fx:id="titleLabel" styleClass="large-font,bold-text"/>
         </HBox>
     </top>
     <center>

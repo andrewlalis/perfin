@@ -61,10 +61,6 @@ Text {
     -fx-font-style: italic;
 }
 
-.large-text {
-    -fx-font-size: large;
-}
-
 .std-padding {
     -fx-padding: 3px;
 }
