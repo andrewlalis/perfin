@@ -58,15 +58,9 @@ public record JdbcAttachmentRepository(Connection conn, Path contentDir) impleme
 
     @Override
     public void deleteById(long attachmentId) {
-        // First get it and try to delete the stored file.
         var optionalAttachment = findById(attachmentId);
         if (optionalAttachment.isPresent()) {
-            try {
-                Files.delete(optionalAttachment.get().getPath(contentDir));
-            } catch (IOException e) {
-                e.printStackTrace(System.err);
-                // TODO: Add some sort of persistent error logging.
-            }
+            deleteFileOnDisk(optionalAttachment.get());
             DbUtil.updateOne(conn, "DELETE FROM attachment WHERE id = ?", List.of(attachmentId));
         }
     }
@@ -84,24 +78,13 @@ public record JdbcAttachmentRepository(Connection conn, Path contentDir) impleme
                     JdbcAttachmentRepository::parseAttachment
             );
             for (Attachment orphan : orphans) {
+                deleteFileOnDisk(orphan);
                 DbUtil.updateOne(
                         conn,
                         "DELETE FROM attachment WHERE id = ?",
                         List.of(orphan.id)
                 );
-                Path filePath = orphan.getPath(contentDir);
-                try {
-                    Files.deleteIfExists(filePath);
-                    Path parentDir = filePath.getParent();
-                    try (var filesRemaining = Files.list(parentDir)) {
-                        if (filesRemaining.findAny().isEmpty()) {
-                            Files.delete(parentDir);
-                        }
-                    }
-                } catch (IOException e) {
-                    log.warn("Failed to delete attachment at " + filePath + ".", e);
-                }
-                log.debug("Deleted orphan attachment with id {} at {}.", orphan.id, filePath);
+                log.debug("Deleted orphan attachment with id {} at {}.", orphan.id, orphan.getPath(contentDir));
             }
         });
     }
@@ -119,5 +102,28 @@ public record JdbcAttachmentRepository(Connection conn, Path contentDir) impleme
                 rs.getString("filename"),
                 rs.getString("content_type")
         );
+    }
+
+    /**
+     * Internal method that's used when deleting attachments, to also remove the
+     * actual file contents from the Perfin profile's content directory. This
+     * will delete the file, and also remove the parent directory if it's empty.
+     * @param attachment The attachment to delete the file for.
+     */
+    private void deleteFileOnDisk(Attachment attachment) {
+        Path filePath = attachment.getPath(contentDir);
+        if (Files.exists(filePath)) {
+            try {
+                Files.delete(filePath);
+                // Try and delete the parent directory if it's empty now.
+                try (var files = Files.list(filePath.getParent())) {
+                    if (files.findAny().isEmpty()) {
+                        Files.delete(filePath.getParent());
+                    }
+                }
+            } catch (IOException e) {
+                log.warn("Failed to delete file {} for deleted attachment {}.", filePath, attachment.id);
+            }
+        }
     }
 }

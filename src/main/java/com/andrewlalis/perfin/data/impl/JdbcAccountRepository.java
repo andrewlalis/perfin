@@ -62,6 +62,7 @@ public record JdbcAccountRepository(Connection conn, Path contentDir) implements
                 SELECT DISTINCT ON (account.id) account.*, ahi.timestamp AS _
                 FROM account
                 LEFT OUTER JOIN account_history_item ahi ON ahi.account_id = account.id
+                WHERE NOT account.archived
                 ORDER BY ahi.timestamp DESC, account.created_at DESC""",
                 JdbcAccountRepository::parseAccount
         );
@@ -84,7 +85,7 @@ public record JdbcAccountRepository(Connection conn, Path contentDir) implements
 
     @Override
     public void updateName(long id, String name) {
-        DbUtil.updateOne(conn, "UPDATE account SET name = ? WHERE id = ?", List.of(name, id));
+        DbUtil.updateOne(conn, "UPDATE account SET name = ? WHERE id = ? AND NOT archived", List.of(name, id));
     }
 
     @Override
