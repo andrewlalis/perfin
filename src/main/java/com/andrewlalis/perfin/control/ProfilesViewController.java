@@ -106,8 +106,7 @@ public class ProfilesViewController {
         try {
             Profile.load(name);
             ProfilesStage.closeView();
-            router.getHistory().clear();
-            router.navigate("accounts");
+            router.replace("accounts");
             if (showPopup) Popups.message("The profile \"" + name + "\" has been loaded.");
             return true;
         } catch (ProfileLoadException e) {

@@ -95,8 +95,7 @@ public class TransactionViewController {
             Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
                 // TODO: Delete attachments first!
                 repo.delete(transaction.id);
-                router.getHistory().clear();
-                router.navigate("transactions");
+                router.replace("transactions");
             });
         }
     }

@@ -151,6 +151,7 @@ public record JdbcTransactionRepository(Connection conn, Path contentDir) implem
     @Override
     public void delete(long transactionId) {
         DbUtil.updateOne(conn, "DELETE FROM transaction WHERE id = ?", List.of(transactionId));
+        new JdbcAttachmentRepository(conn, contentDir).deleteAllOrphans();
     }
 
     @Override

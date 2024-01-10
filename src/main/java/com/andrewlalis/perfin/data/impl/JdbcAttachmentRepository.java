@@ -5,6 +5,8 @@ import com.andrewlalis.perfin.data.ulid.UlidCreator;
 import com.andrewlalis.perfin.data.util.DbUtil;
 import com.andrewlalis.perfin.data.util.FileUtil;
 import com.andrewlalis.perfin.model.Attachment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -18,6 +20,8 @@ import java.util.List;
 import java.util.Optional;
 
 public record JdbcAttachmentRepository(Connection conn, Path contentDir) implements AttachmentRepository {
+    private static final Logger log = LoggerFactory.getLogger(JdbcAttachmentRepository.class);
+
     @Override
     public Attachment insert(Path sourcePath) {
         String filename = sourcePath.getFileName().toString();
@@ -65,6 +69,41 @@ public record JdbcAttachmentRepository(Connection conn, Path contentDir) impleme
             }
             DbUtil.updateOne(conn, "DELETE FROM attachment WHERE id = ?", List.of(attachmentId));
         }
+    }
+
+    @Override
+    public void deleteAllOrphans() {
+        DbUtil.doTransaction(conn, () -> {
+            List<Attachment> orphans = DbUtil.findAll(
+                    conn,
+                    """
+                    SELECT * FROM attachment
+                    WHERE
+                        id NOT IN (SELECT attachment_id FROM transaction_attachment) AND
+                        id NOT IN (SELECT attachment_id FROM balance_record_attachment)""",
+                    JdbcAttachmentRepository::parseAttachment
+            );
+            for (Attachment orphan : orphans) {
+                DbUtil.updateOne(
+                        conn,
+                        "DELETE FROM attachment WHERE id = ?",
+                        List.of(orphan.id)
+                );
+                Path filePath = orphan.getPath(contentDir);
+                try {
+                    Files.deleteIfExists(filePath);
+                    Path parentDir = filePath.getParent();
+                    try (var filesRemaining = Files.list(parentDir)) {
+                        if (filesRemaining.findAny().isEmpty()) {
+                            Files.delete(parentDir);
+                        }
+                    }
+                } catch (IOException e) {
+                    log.warn("Failed to delete attachment at " + filePath + ".", e);
+                }
+                log.debug("Deleted orphan attachment with id {} at {}.", orphan.id, filePath);
+            }
+        });
     }
 
     @Override

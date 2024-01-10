@@ -94,8 +94,7 @@ public class AccountViewController implements RouteSelectionListener {
         );
         if (confirmResult) {
             Profile.getCurrent().getDataSource().useAccountRepository(repo -> repo.archive(account.id));
-            router.getHistory().clear();
-            router.navigate("accounts");
+            router.replace("accounts");
         }
     }
 
@@ -106,8 +105,7 @@ public class AccountViewController implements RouteSelectionListener {
         );
         if (confirm) {
             Profile.getCurrent().getDataSource().useAccountRepository(repo -> repo.unarchive(account.id));
-            router.getHistory().clear();
-            router.navigate("accounts");
+            router.replace("accounts");
         }
     }
 
@@ -122,8 +120,7 @@ public class AccountViewController implements RouteSelectionListener {
         );
         if (confirm) {
             Profile.getCurrent().getDataSource().useAccountRepository(repo -> repo.delete(account));
-            router.getHistory().clear();
-            router.navigate("accounts");
+            router.replace("accounts");
         }
     }
 

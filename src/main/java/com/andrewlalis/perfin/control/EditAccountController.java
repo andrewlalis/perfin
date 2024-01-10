@@ -124,8 +124,7 @@ public class EditAccountController implements RouteSelectionListener {
 
                     // Once we create the new account, go to the account.
                     Account newAccount = accountRepo.findById(id).orElseThrow();
-                    router.getHistory().clear();
-                    router.navigate("account", newAccount);
+                    router.replace("account", newAccount);
                 }
             } else {
                 log.debug("Updating account {}", account.id);
@@ -135,8 +134,7 @@ public class EditAccountController implements RouteSelectionListener {
                 account.setCurrency(accountCurrencyComboBox.getValue());
                 accountRepo.update(account);
                 Account updatedAccount = accountRepo.findById(account.id).orElseThrow();
-                router.getHistory().clear();
-                router.navigate("account", updatedAccount);
+                router.replace("account", updatedAccount);
             }
         } catch (Exception e) {
             log.error("Failed to save (or update) account " + account.id, e);

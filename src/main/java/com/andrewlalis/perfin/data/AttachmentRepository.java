@@ -10,4 +10,5 @@ public interface AttachmentRepository extends AutoCloseable {
     Optional<Attachment> findById(long attachmentId);
     Optional<Attachment> findByIdentifier(String identifier);
     void deleteById(long attachmentId);
+    void deleteAllOrphans();
 }
