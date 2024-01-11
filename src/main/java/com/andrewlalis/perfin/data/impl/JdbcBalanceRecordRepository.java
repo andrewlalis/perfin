@@ -73,6 +73,21 @@ public record JdbcBalanceRecordRepository(Connection conn, Path contentDir) impl
     }
 
     @Override
+    public List<Attachment> findAttachments(long recordId) {
+        return DbUtil.findAll(
+                conn,
+                """
+                        SELECT *
+                        FROM attachment
+                        LEFT JOIN balance_record_attachment ba ON ba.attachment_id = attachment.id
+                        WHERE ba.balance_record_id = ?
+                        ORDER BY uploaded_at ASC, filename ASC""",
+                List.of(recordId),
+                JdbcAttachmentRepository::parseAttachment
+        );
+    }
+
+    @Override
     public void deleteById(long id) {
         DbUtil.updateOne(conn, "DELETE FROM balance_record WHERE id = ?", List.of(id));
     }

@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.andrewlalis.perfin.view.component.AttachmentsViewPane?>
+<?import com.andrewlalis.perfin.view.component.PropertiesPane?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.text.TextFlow?>
-<?import com.andrewlalis.perfin.view.component.PropertiesPane?>
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.andrewlalis.perfin.control.TransactionViewController"
@@ -22,7 +23,7 @@
                         <ColumnConstraints minWidth="100" halignment="LEFT" hgrow="NEVER"/>
                         <ColumnConstraints hgrow="ALWAYS" halignment="LEFT"/>
                     </columnConstraints>
-                    <Label text="Amount" styleClass="bold-text" style="-fx-min-width: 100px;"/>
+                    <Label text="Amount" styleClass="bold-text"/>
                     <Label fx:id="amountLabel" styleClass="mono-font"/>
 
                     <Label text="Timestamp" styleClass="bold-text"/>
@@ -41,12 +42,7 @@
                         <Hyperlink fx:id="creditAccountLink"/>
                     </TextFlow>
                 </VBox>
-                <VBox fx:id="attachmentsContainer">
-                    <Label text="Attachments" styleClass="bold-text"/>
-                    <ScrollPane fitToWidth="true" fitToHeight="true">
-                        <HBox fx:id="attachmentsHBox" styleClass="std-padding,std-spacing"/>
-                    </ScrollPane>
-                </VBox>
+                <AttachmentsViewPane fx:id="attachmentsViewPane"/>
                 <FlowPane styleClass="std-padding, std-spacing">
                     <Button text="Delete this transaction" onAction="#deleteTransaction"/>
                 </FlowPane>

@@ -1,5 +1,6 @@
 package com.andrewlalis.perfin.data;
 
+import com.andrewlalis.perfin.model.Attachment;
 import com.andrewlalis.perfin.model.BalanceRecord;
 
 import java.math.BigDecimal;
@@ -14,5 +15,6 @@ public interface BalanceRecordRepository extends AutoCloseable {
     BalanceRecord findLatestByAccountId(long accountId);
     Optional<BalanceRecord> findClosestBefore(long accountId, LocalDateTime utcTimestamp);
     Optional<BalanceRecord> findClosestAfter(long accountId, LocalDateTime utcTimestamp);
+    List<Attachment> findAttachments(long recordId);
     void deleteById(long id);
 }

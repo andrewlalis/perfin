@@ -6,18 +6,11 @@ import com.andrewlalis.perfin.model.Attachment;
 import com.andrewlalis.perfin.model.CreditAndDebitAccounts;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.model.Transaction;
-import com.andrewlalis.perfin.view.BindingUtil;
-import com.andrewlalis.perfin.view.component.AttachmentPreview;
+import com.andrewlalis.perfin.view.component.AttachmentsViewPane;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleListProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.TextFlow;
 
 import java.util.List;
@@ -36,9 +29,13 @@ public class TransactionViewController {
     @FXML public Hyperlink debitAccountLink;
     @FXML public Hyperlink creditAccountLink;
 
-    @FXML public VBox attachmentsContainer;
-    @FXML public HBox attachmentsHBox;
-    private final ObservableList<Attachment> attachmentsList = FXCollections.observableArrayList();
+    @FXML public AttachmentsViewPane attachmentsViewPane;
+
+    @FXML public void initialize() {
+        configureAccountLinkBindings(debitAccountLink);
+        configureAccountLinkBindings(creditAccountLink);
+        attachmentsViewPane.hideIfEmpty();
+    }
 
     public void setTransaction(Transaction transaction) {
         this.transaction = transaction;
@@ -48,8 +45,6 @@ public class TransactionViewController {
         timestampLabel.setText(DateUtil.formatUTCAsLocalWithZone(transaction.getTimestamp()));
         descriptionLabel.setText(transaction.getDescription());
 
-        configureAccountLinkBindings(debitAccountLink);
-        configureAccountLinkBindings(creditAccountLink);
         Thread.ofVirtual().start(() -> {
             Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
                 CreditAndDebitAccounts accounts = repo.findLinkedAccounts(transaction.id);
@@ -66,19 +61,12 @@ public class TransactionViewController {
             });
         });
 
-        attachmentsContainer.managedProperty().bind(attachmentsContainer.visibleProperty());
-        attachmentsContainer.visibleProperty().bind(new SimpleListProperty<>(attachmentsList).emptyProperty().not());
         Thread.ofVirtual().start(() -> {
             Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
                 List<Attachment> attachments = repo.findAttachments(transaction.id);
-                Platform.runLater(() -> attachmentsList.setAll(attachments));
+                Platform.runLater(() -> attachmentsViewPane.setAttachments(attachments));
             });
         });
-        attachmentsHBox.setMinHeight(AttachmentPreview.HEIGHT);
-        attachmentsHBox.setPrefHeight(AttachmentPreview.HEIGHT);
-        ((ScrollPane) attachmentsHBox.getParent().getParent().getParent()).minHeightProperty().bind(attachmentsHBox.heightProperty().map(n -> n.doubleValue() + 2));
-        ((ScrollPane) attachmentsHBox.getParent().getParent().getParent()).prefHeightProperty().bind(attachmentsHBox.heightProperty().map(n -> n.doubleValue() + 2));
-        BindingUtil.mapContent(attachmentsHBox.getChildren(), attachmentsList, AttachmentPreview::new);
     }
 
     @FXML public void deleteTransaction() {
@@ -93,7 +81,6 @@ public class TransactionViewController {
         );
         if (confirm) {
             Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
-                // TODO: Delete attachments first!
                 repo.delete(transaction.id);
                 router.replace("transactions");
             });

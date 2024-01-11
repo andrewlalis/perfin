@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.andrewlalis.perfin.view.component.AttachmentsViewPane?>
+<?import com.andrewlalis.perfin.view.component.PropertiesPane?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.andrewlalis.perfin.control.BalanceRecordViewController"
+>
+    <top>
+        <Label fx:id="titleLabel" styleClass="large-font,bold-text,std-padding"/>
+    </top>
+    <center>
+        <VBox styleClass="std-padding,std-spacing">
+            <PropertiesPane vgap="5" hgap="5">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="100" halignment="LEFT" hgrow="NEVER"/>
+                    <ColumnConstraints hgrow="ALWAYS" halignment="LEFT"/>
+                </columnConstraints>
+
+                <Label text="Timestamp" styleClass="bold-text"/>
+                <Label fx:id="timestampLabel" styleClass="mono-font"/>
+
+                <Label text="Balance" styleClass="bold-text"/>
+                <Label fx:id="balanceLabel" styleClass="mono-font"/>
+
+                <Label text="Currency" styleClass="bold-text"/>
+                <Label fx:id="currencyLabel" styleClass="mono-font"/>
+            </PropertiesPane>
+            <AttachmentsViewPane fx:id="attachmentsViewPane"/>
+        </VBox>
+    </center>
+    <bottom>
+        <FlowPane styleClass="std-padding,std-spacing">
+            <Button text="Delete" onAction="#delete"/>
+        </FlowPane>
+    </bottom>
+</BorderPane>
