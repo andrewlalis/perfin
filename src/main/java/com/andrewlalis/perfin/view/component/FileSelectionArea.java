@@ -61,6 +61,10 @@ public class FileSelectionArea extends VBox {
         selectedFiles.clear();
     }
 
+    public void setSelectedFiles(List<Path> files) {
+        selectedFiles.setAll(files);
+    }
+
     private Node buildFileItem(Path path) {
         Label filenameLabel = new Label(path.getFileName().toString());
         filenameLabel.getStyleClass().addAll("mono-font");

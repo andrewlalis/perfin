@@ -1,11 +1,13 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
+import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.data.util.FileUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.CreditAndDebitAccounts;
 import com.andrewlalis.perfin.model.Profile;
+import com.andrewlalis.perfin.model.Transaction;
 import com.andrewlalis.perfin.view.AccountComboBoxCellFactory;
 import com.andrewlalis.perfin.view.component.FileSelectionArea;
 import com.andrewlalis.perfin.view.component.validation.ValidationApplier;
@@ -31,7 +33,9 @@ import java.util.List;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
-public class CreateTransactionController implements RouteSelectionListener {
+public class EditTransactionController implements RouteSelectionListener {
+    @FXML public Label titleLabel;
+
     @FXML public TextField timestampField;
     @FXML public TextField amountField;
     @FXML public ChoiceBox<Currency> currencyChoiceBox;
@@ -55,15 +59,13 @@ public class CreateTransactionController implements RouteSelectionListener {
                     return ts != null && ts.isBefore(LocalDateTime.now());
                 }, "Timestamp cannot be in the future.")
         ).validatedInitially().attachToTextField(timestampField);
-
         var amountValid = new ValidationApplier<>(
                 new CurrencyAmountValidator(() -> currencyChoiceBox.getValue(), false, false)
         ).validatedInitially().attachToTextField(amountField, currencyChoiceBox.valueProperty());
-
         var descriptionValid = new ValidationApplier<>(new PredicateValidator<String>()
                 .addTerminalPredicate(s -> s == null || s.length() <= 255, "Description is too long.")
         ).validatedInitially().attach(descriptionField, descriptionField.textProperty());
-
+        // Linked accounts will use a property derived from both the debit and credit selections.
         Property<CreditAndDebitAccounts> linkedAccountsProperty = new SimpleObjectProperty<>(getSelectedAccounts());
         linkDebitAccountComboBox.valueProperty().addListener((observable, oldValue, newValue) -> linkedAccountsProperty.setValue(getSelectedAccounts()));
         linkCreditAccountComboBox.valueProperty().addListener((observable, oldValue, newValue) -> linkedAccountsProperty.setValue(getSelectedAccounts()));
@@ -85,6 +87,7 @@ public class CreateTransactionController implements RouteSelectionListener {
         linkCreditAccountComboBox.setCellFactory(cellFactory);
         linkCreditAccountComboBox.setButtonCell(cellFactory.call(null));
         currencyChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            System.out.println("Set currency to " + newValue);
             updateLinkAccountComboBoxes(newValue);
         });
 
@@ -123,25 +126,49 @@ public class CreateTransactionController implements RouteSelectionListener {
 
     @Override
     public void onRouteSelected(Object context) {
-        resetForm();
-    }
+        Transaction transaction = (Transaction) context;
+        boolean creatingNew = transaction == null;
 
-    private void resetForm() {
-        timestampField.setText(LocalDateTime.now().format(DateUtil.DEFAULT_DATETIME_FORMAT));
-        amountField.setText(null);
-        descriptionField.setText(null);
-        attachmentsSelectionArea.clear();
-        Thread.ofVirtual().start(() -> {
-            Profile.getCurrent().getDataSource().useAccountRepository(repo -> {
-                var currencies = repo.findAllUsedCurrencies().stream()
-                        .sorted(Comparator.comparing(Currency::getCurrencyCode))
-                        .toList();
+        if (creatingNew) {
+            titleLabel.setText("Create New Transaction");
+            timestampField.setText(LocalDateTime.now().format(DateUtil.DEFAULT_DATETIME_FORMAT));
+            amountField.setText(null);
+            currencyChoiceBox.getSelectionModel().selectFirst();
+            descriptionField.setText(null);
+            attachmentsSelectionArea.clear();
+
+        } else {
+            titleLabel.setText("Edit Transaction #" + transaction.id);
+            timestampField.setText(DateUtil.formatUTCAsLocal(transaction.getTimestamp()));
+            amountField.setText(CurrencyUtil.formatMoneyAsBasicNumber(transaction.getMoneyAmount()));
+            currencyChoiceBox.setValue(transaction.getCurrency());
+            descriptionField.setText(transaction.getDescription());
+            // TODO: Add an editable list of attachments from which some can be added and removed.
+            Thread.ofVirtual().start(() -> Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
+                CreditAndDebitAccounts accounts = repo.findLinkedAccounts(transaction.id);
                 Platform.runLater(() -> {
-                    currencyChoiceBox.getItems().setAll(currencies);
-                    currencyChoiceBox.getSelectionModel().selectFirst();
+                    System.out.println(linkCreditAccountComboBox.getItems().indexOf(accounts.creditAccount()));
+//                    linkCreditAccountComboBox.getSelectionModel().select(accounts.creditAccount());
+//                    linkCreditAccountComboBox.getButtonCell().updateIndex(linkCreditAccountComboBox.getSelectionModel().getSelectedIndex());
+//                    linkDebitAccountComboBox.getSelectionModel().select(accounts.debitAccount());
+//                    linkDebitAccountComboBox.getButtonCell().updateIndex(linkDebitAccountComboBox.getSelectionModel().getSelectedIndex());
                 });
+            }));
+        }
+
+        Thread.ofVirtual().start(() -> Profile.getCurrent().getDataSource().useAccountRepository(repo -> {
+            var currencies = repo.findAllUsedCurrencies().stream()
+                    .sorted(Comparator.comparing(Currency::getCurrencyCode))
+                    .toList();
+            Platform.runLater(() -> {
+                currencyChoiceBox.getItems().setAll(currencies);
+                if (creatingNew) {
+                    currencyChoiceBox.getSelectionModel().selectFirst();
+                } else {
+                    currencyChoiceBox.getSelectionModel().select(transaction.getCurrency());
+                }
             });
-        });
+        }));
     }
 
     private CreditAndDebitAccounts getSelectedAccounts() {
@@ -186,6 +213,7 @@ public class CreateTransactionController implements RouteSelectionListener {
                     linkCreditAccountComboBox.getItems().addAll(availableAccounts);
                     linkCreditAccountComboBox.getSelectionModel().selectLast();
                     linkCreditAccountComboBox.getButtonCell().updateIndex(availableAccounts.size() - 1);
+                    System.out.println("link account boxes updated.");
                 });
             });
         });

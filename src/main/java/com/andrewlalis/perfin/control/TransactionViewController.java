@@ -69,6 +69,10 @@ public class TransactionViewController {
         });
     }
 
+    @FXML public void editTransaction() {
+        router.navigate("edit-transaction", this.transaction);
+    }
+
     @FXML public void deleteTransaction() {
         boolean confirm = Popups.confirm(
             "Are you sure you want to delete this transaction? This will " +

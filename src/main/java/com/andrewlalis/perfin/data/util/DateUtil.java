@@ -18,6 +18,12 @@ public class DateUtil {
                 .format(DEFAULT_DATETIME_FORMAT_WITH_ZONE);
     }
 
+    public static String formatUTCAsLocal(LocalDateTime utcTimestamp) {
+        return utcTimestamp.atOffset(ZoneOffset.UTC)
+                .atZoneSameInstant(ZoneId.systemDefault())
+                .format(DEFAULT_DATETIME_FORMAT);
+    }
+
     public static LocalDateTime localToUTC(LocalDateTime localTime, ZoneId localZone) {
         return localTime.atZone(localZone).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
     }

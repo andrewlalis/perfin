@@ -158,7 +158,7 @@ public class TransactionsViewController implements RouteSelectionListener {
     }
 
     @FXML public void addTransaction() {
-        router.navigate("create-transaction");
+        router.navigate("edit-transaction");
     }
 
     @FXML public void exportTransactions() {

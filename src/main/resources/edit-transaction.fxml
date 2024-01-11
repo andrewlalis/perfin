@@ -5,8 +5,11 @@
 <?import javafx.scene.layout.*?>
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.andrewlalis.perfin.control.CreateTransactionController"
+            fx:controller="com.andrewlalis.perfin.control.EditTransactionController"
 >
+    <top>
+        <Label fx:id="titleLabel" styleClass="large-font,bold-text,std-padding"/>
+    </top>
     <center>
         <ScrollPane fitToWidth="true" fitToHeight="true">
             <VBox style="-fx-max-width: 500px;">

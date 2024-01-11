@@ -43,9 +43,10 @@
                     </TextFlow>
                 </VBox>
                 <AttachmentsViewPane fx:id="attachmentsViewPane"/>
-                <FlowPane styleClass="std-padding, std-spacing">
+                <HBox styleClass="std-padding,std-spacing" alignment="CENTER_LEFT">
+                    <Button text="Edit" onAction="#editTransaction"/>
                     <Button text="Delete this transaction" onAction="#deleteTransaction"/>
-                </FlowPane>
+                </HBox>
             </VBox>
         </ScrollPane>
     </center>

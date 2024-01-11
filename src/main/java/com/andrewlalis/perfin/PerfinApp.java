@@ -84,7 +84,7 @@ public class PerfinApp extends Application {
             router.map("account", PerfinApp.class.getResource("/account-view.fxml"));
             router.map("edit-account", PerfinApp.class.getResource("/edit-account.fxml"));
             router.map("transactions", PerfinApp.class.getResource("/transactions-view.fxml"));
-            router.map("create-transaction", PerfinApp.class.getResource("/create-transaction.fxml"));
+            router.map("edit-transaction", PerfinApp.class.getResource("/edit-transaction.fxml"));
             router.map("create-balance-record", PerfinApp.class.getResource("/create-balance-record.fxml"));
             router.map("balance-record", PerfinApp.class.getResource("/balance-record-view.fxml"));
 
