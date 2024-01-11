@@ -101,7 +101,7 @@ public class CreateTransactionController implements RouteSelectionListener {
         LocalDateTime utcTimestamp = DateUtil.localToUTC(parseTimestamp());
         BigDecimal amount = new BigDecimal(amountField.getText());
         Currency currency = currencyChoiceBox.getValue();
-        String description = descriptionField.getText() == null ? null : descriptionField.getText().strip();
+        String description = getSanitizedDescription();
         CreditAndDebitAccounts linkedAccounts = getSelectedAccounts();
         List<Path> attachments = attachmentsSelectionArea.getSelectedFiles();
         Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
@@ -189,5 +189,12 @@ public class CreateTransactionController implements RouteSelectionListener {
                 });
             });
         });
+    }
+
+    private String getSanitizedDescription() {
+        String raw = descriptionField.getText();
+        if (raw == null) return null;
+        if (raw.isBlank()) return null;
+        return raw.strip();
     }
 }

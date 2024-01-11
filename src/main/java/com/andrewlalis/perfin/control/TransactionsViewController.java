@@ -4,6 +4,7 @@ import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.data.pagination.Sort;
+import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.data.util.Pair;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.Profile;
@@ -22,7 +23,11 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 
+import java.io.File;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
 
@@ -152,9 +157,36 @@ public class TransactionsViewController implements RouteSelectionListener {
         }
     }
 
-    @FXML
-    public void addTransaction() {
+    @FXML public void addTransaction() {
         router.navigate("create-transaction");
+    }
+
+    @FXML public void exportTransactions() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Transactions");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", ".csv"));
+        File file = fileChooser.showSaveDialog(detailPanel.getScene().getWindow());
+        if (file != null) {
+            try (
+                    var repo = Profile.getCurrent().getDataSource().getTransactionRepository();
+                    var out = new PrintWriter(file, StandardCharsets.UTF_8)
+            ) {
+                out.println("id,utc-timestamp,amount,currency,description");
+
+                List<Transaction> allTransactions = repo.findAll(PageRequest.unpaged(Sort.desc("timestamp"))).items();
+                for (Transaction tx : allTransactions) {
+                    out.println("%d,%s,%s,%s,%s".formatted(
+                            tx.id,
+                            tx.getTimestamp().format(DateUtil.DEFAULT_DATETIME_FORMAT),
+                            tx.getAmount().toPlainString(),
+                            tx.getCurrency().getCurrencyCode(),
+                            tx.getDescription() == null ? "" : tx.getDescription()
+                    ));
+                }
+            } catch (Exception e) {
+                Popups.error("An error occurred: " + e.getMessage());
+            }
+        }
     }
 
     private TransactionTile makeTile(Transaction transaction) {

@@ -13,6 +13,7 @@
     <top>
         <HBox styleClass="std-padding,std-spacing">
             <Button text="Add Transaction" onAction="#addTransaction"/>
+            <Button text="Export Transactions" onAction="#exportTransactions"/>
         </HBox>
     </top>
     <center>
