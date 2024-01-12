@@ -8,7 +8,7 @@ import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.CreditAndDebitAccounts;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.model.Transaction;
-import com.andrewlalis.perfin.view.AccountComboBoxCellFactory;
+import com.andrewlalis.perfin.view.component.AccountSelectionBox;
 import com.andrewlalis.perfin.view.component.FileSelectionArea;
 import com.andrewlalis.perfin.view.component.validation.ValidationApplier;
 import com.andrewlalis.perfin.view.component.validation.validators.CurrencyAmountValidator;
@@ -42,13 +42,15 @@ public class EditTransactionController implements RouteSelectionListener {
     @FXML public TextArea descriptionField;
 
     @FXML public HBox linkedAccountsContainer;
-    @FXML public ComboBox<Account> linkDebitAccountComboBox;
-    @FXML public ComboBox<Account> linkCreditAccountComboBox;
+    @FXML public AccountSelectionBox debitAccountSelector;
+    @FXML public AccountSelectionBox creditAccountSelector;
 
     @FXML public VBox attachmentsVBox;
     private FileSelectionArea attachmentsSelectionArea;
 
     @FXML public Button saveButton;
+
+    private Transaction transaction;
 
     @FXML public void initialize() {
         // Setup error field validation.
@@ -67,8 +69,8 @@ public class EditTransactionController implements RouteSelectionListener {
         ).validatedInitially().attach(descriptionField, descriptionField.textProperty());
         // Linked accounts will use a property derived from both the debit and credit selections.
         Property<CreditAndDebitAccounts> linkedAccountsProperty = new SimpleObjectProperty<>(getSelectedAccounts());
-        linkDebitAccountComboBox.valueProperty().addListener((observable, oldValue, newValue) -> linkedAccountsProperty.setValue(getSelectedAccounts()));
-        linkCreditAccountComboBox.valueProperty().addListener((observable, oldValue, newValue) -> linkedAccountsProperty.setValue(getSelectedAccounts()));
+        debitAccountSelector.valueProperty().addListener((observable, oldValue, newValue) -> linkedAccountsProperty.setValue(getSelectedAccounts()));
+        creditAccountSelector.valueProperty().addListener((observable, oldValue, newValue) -> linkedAccountsProperty.setValue(getSelectedAccounts()));
         var linkedAccountsValid = new ValidationApplier<>(new PredicateValidator<CreditAndDebitAccounts>()
                 .addPredicate(accounts -> accounts.hasCredit() || accounts.hasDebit(), "At least one account must be linked.")
                 .addPredicate(
@@ -81,13 +83,7 @@ public class EditTransactionController implements RouteSelectionListener {
         saveButton.disableProperty().bind(formValid.not());
 
         // Update the lists of accounts available for linking based on the selected currency.
-        var cellFactory = new AccountComboBoxCellFactory();
-        linkDebitAccountComboBox.setCellFactory(cellFactory);
-        linkDebitAccountComboBox.setButtonCell(cellFactory.call(null));
-        linkCreditAccountComboBox.setCellFactory(cellFactory);
-        linkCreditAccountComboBox.setButtonCell(cellFactory.call(null));
         currencyChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> {
-            System.out.println("Set currency to " + newValue);
             updateLinkAccountComboBoxes(newValue);
         });
 
@@ -126,7 +122,7 @@ public class EditTransactionController implements RouteSelectionListener {
 
     @Override
     public void onRouteSelected(Object context) {
-        Transaction transaction = (Transaction) context;
+        transaction = (Transaction) context;
         boolean creatingNew = transaction == null;
 
         if (creatingNew) {
@@ -147,11 +143,8 @@ public class EditTransactionController implements RouteSelectionListener {
             Thread.ofVirtual().start(() -> Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
                 CreditAndDebitAccounts accounts = repo.findLinkedAccounts(transaction.id);
                 Platform.runLater(() -> {
-                    System.out.println(linkCreditAccountComboBox.getItems().indexOf(accounts.creditAccount()));
-//                    linkCreditAccountComboBox.getSelectionModel().select(accounts.creditAccount());
-//                    linkCreditAccountComboBox.getButtonCell().updateIndex(linkCreditAccountComboBox.getSelectionModel().getSelectedIndex());
-//                    linkDebitAccountComboBox.getSelectionModel().select(accounts.debitAccount());
-//                    linkDebitAccountComboBox.getButtonCell().updateIndex(linkDebitAccountComboBox.getSelectionModel().getSelectedIndex());
+                    debitAccountSelector.getSelectionModel().select(accounts.debitAccount());
+                    creditAccountSelector.getSelectionModel().select(accounts.creditAccount());
                 });
             }));
         }
@@ -173,8 +166,8 @@ public class EditTransactionController implements RouteSelectionListener {
 
     private CreditAndDebitAccounts getSelectedAccounts() {
         return new CreditAndDebitAccounts(
-                linkCreditAccountComboBox.getValue(),
-                linkDebitAccountComboBox.getValue()
+                creditAccountSelector.getValue(),
+                debitAccountSelector.getValue()
         );
     }
 
@@ -202,18 +195,16 @@ public class EditTransactionController implements RouteSelectionListener {
             Profile.getCurrent().getDataSource().useAccountRepository(repo -> {
                 List<Account> availableAccounts = new ArrayList<>();
                 if (currency != null) availableAccounts.addAll(repo.findAllByCurrency(currency));
-                availableAccounts.add(null);
                 Platform.runLater(() -> {
-                    linkDebitAccountComboBox.getItems().clear();
-                    linkDebitAccountComboBox.getItems().addAll(availableAccounts);
-                    linkDebitAccountComboBox.getSelectionModel().selectLast();
-                    linkDebitAccountComboBox.getButtonCell().updateIndex(availableAccounts.size() - 1);
-
-                    linkCreditAccountComboBox.getItems().clear();
-                    linkCreditAccountComboBox.getItems().addAll(availableAccounts);
-                    linkCreditAccountComboBox.getSelectionModel().selectLast();
-                    linkCreditAccountComboBox.getButtonCell().updateIndex(availableAccounts.size() - 1);
-                    System.out.println("link account boxes updated.");
+                    debitAccountSelector.setAccounts(availableAccounts);
+                    creditAccountSelector.setAccounts(availableAccounts);
+                    if (transaction != null) {
+                        Profile.getCurrent().getDataSource().useTransactionRepository(transactionRepo -> {
+                            var linkedAccounts = transactionRepo.findLinkedAccounts(transaction.id);
+                            debitAccountSelector.getSelectionModel().select(linkedAccounts.debitAccount());
+                            creditAccountSelector.getSelectionModel().select(linkedAccounts.creditAccount());
+                        });
+                    }
                 });
             });
         });

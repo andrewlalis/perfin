@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.andrewlalis.perfin.view.component.AccountSelectionBox?>
 <?import com.andrewlalis.perfin.view.component.PropertiesPane?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
@@ -41,16 +42,12 @@
                 <!-- Container for linked accounts -->
                 <HBox styleClass="std-padding,std-spacing" fx:id="linkedAccountsContainer">
                     <VBox>
-                        <Label text="Debited Account" labelFor="${linkDebitAccountComboBox}" styleClass="bold-text"/>
-                        <ComboBox fx:id="linkDebitAccountComboBox">
-                            <tooltip><Tooltip text="The account whose assets will increase as a result of this transaction."/></tooltip>
-                        </ComboBox>
+                        <Label text="Debited Account" labelFor="${debitAccountSelector}" styleClass="bold-text"/>
+                        <AccountSelectionBox fx:id="debitAccountSelector" allowNone="true"/>
                     </VBox>
                     <VBox>
-                        <Label text="Credited Account" labelFor="${linkCreditAccountComboBox}" styleClass="bold-text"/>
-                        <ComboBox fx:id="linkCreditAccountComboBox">
-                            <tooltip><Tooltip text="The account whose assets will decrease as a result of this transaction."/></tooltip>
-                        </ComboBox>
+                        <Label text="Credited Account" labelFor="${creditAccountSelector}" styleClass="bold-text"/>
+                        <AccountSelectionBox fx:id="creditAccountSelector" allowNone="true"/>
                     </VBox>
                 </HBox>
                 <!-- Container for attachments -->

@@ -24,6 +24,7 @@ public class AccountComboBoxCellFactory implements Callback<ListView<Account>, L
         public AccountListCell(String emptyCellText) {
             this.emptyCellText = emptyCellText;
             label.getStyleClass().add("normal-color-text-fill");
+            setGraphic(label);
         }
 
         @Override
