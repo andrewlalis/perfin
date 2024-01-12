@@ -31,7 +31,9 @@ public class AccountTile extends BorderPane {
     );
 
     public AccountTile(Account account) {
+        setMinWidth(300.0);
         setPrefWidth(350.0);
+        setMaxWidth(400.0);
         getStyleClass().addAll("tile", "hand-cursor");
 
         setTop(getHeader(account));

@@ -1,5 +1,7 @@
 package com.andrewlalis.perfin.model;
 
+import com.andrewlalis.perfin.data.util.DateUtil;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Currency;
@@ -42,5 +44,17 @@ public class Transaction extends IdEntity {
 
     public MoneyValue getMoneyAmount() {
         return new MoneyValue(amount, currency);
+    }
+
+    @Override
+    public String toString() {
+        return String.format(
+                "Transaction (id=%d, timestamp=%s, amount=%s, currency=%s, description=%s)",
+                id,
+                timestamp.format(DateUtil.DEFAULT_DATETIME_FORMAT),
+                amount.toPlainString(),
+                currency.getCurrencyCode(),
+                description
+        );
     }
 }

@@ -9,8 +9,8 @@ import com.andrewlalis.perfin.data.util.Pair;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.model.Transaction;
-import com.andrewlalis.perfin.view.AccountComboBoxCellFactory;
 import com.andrewlalis.perfin.view.SceneUtil;
+import com.andrewlalis.perfin.view.component.AccountSelectionBox;
 import com.andrewlalis.perfin.view.component.DataSourcePaginationControls;
 import com.andrewlalis.perfin.view.component.TransactionTile;
 import javafx.application.Platform;
@@ -19,7 +19,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.ComboBox;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -44,7 +43,7 @@ public class TransactionsViewController implements RouteSelectionListener {
     public record RouteContext(Long selectedTransactionId) {}
 
     @FXML public BorderPane transactionsListBorderPane;
-    @FXML public ComboBox<Account> filterByAccountComboBox;
+    @FXML public AccountSelectionBox filterByAccountComboBox;
     @FXML public VBox transactionsVBox;
     private DataSourcePaginationControls paginationControls;
 
@@ -54,9 +53,6 @@ public class TransactionsViewController implements RouteSelectionListener {
 
     @FXML public void initialize() {
         // Initialize the left-hand paginated transactions list.
-        var accountCellFactory = new AccountComboBoxCellFactory("All");
-        filterByAccountComboBox.setCellFactory(accountCellFactory);
-        filterByAccountComboBox.setButtonCell(accountCellFactory.call(null));
         filterByAccountComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
             paginationControls.setPage(1);
             selectedTransaction.set(null);
