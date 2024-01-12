@@ -43,11 +43,11 @@
                 <HBox styleClass="std-padding,std-spacing" fx:id="linkedAccountsContainer">
                     <VBox>
                         <Label text="Debited Account" labelFor="${debitAccountSelector}" styleClass="bold-text"/>
-                        <AccountSelectionBox fx:id="debitAccountSelector" allowNone="true"/>
+                        <AccountSelectionBox fx:id="debitAccountSelector" allowNone="true" showBalance="true"/>
                     </VBox>
                     <VBox>
                         <Label text="Credited Account" labelFor="${creditAccountSelector}" styleClass="bold-text"/>
-                        <AccountSelectionBox fx:id="creditAccountSelector" allowNone="true"/>
+                        <AccountSelectionBox fx:id="creditAccountSelector" allowNone="true" showBalance="true"/>
                     </VBox>
                 </HBox>
                 <!-- Container for attachments -->

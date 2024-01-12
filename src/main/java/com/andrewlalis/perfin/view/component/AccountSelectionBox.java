@@ -1,26 +1,32 @@
 package com.andrewlalis.perfin.view.component;
 
+import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.model.Account;
+import com.andrewlalis.perfin.model.MoneyValue;
+import com.andrewlalis.perfin.model.Profile;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
  * A box that allows the user to select one account from a list of options.
  */
 public class AccountSelectionBox extends ComboBox<Account> {
-    private final CellFactory cellFactory = new CellFactory();
     private final BooleanProperty allowNoneProperty = new SimpleBooleanProperty(true);
+    private final BooleanProperty showBalanceProperty = new SimpleBooleanProperty(false);
 
     public AccountSelectionBox() {
-        setCellFactory(cellFactory);
-        setButtonCell(cellFactory.call(null));
+        setCellFactory(new CellFactory(showBalanceProperty));
+        setButtonCell(new AccountListCell(new SimpleBooleanProperty(false)));
     }
 
     public void setAccounts(List<Account> accounts) {
@@ -37,7 +43,7 @@ public class AccountSelectionBox extends ComboBox<Account> {
     }
 
     public void select(Account account) {
-        setButtonCell(cellFactory.call(null));
+        setButtonCell(new AccountListCell(new SimpleBooleanProperty(false)));
         getSelectionModel().select(account);
     }
 
@@ -53,28 +59,63 @@ public class AccountSelectionBox extends ComboBox<Account> {
         allowNoneProperty.set(value);
     }
 
+    public final BooleanProperty showBalanceProperty() {
+        return showBalanceProperty;
+    }
+
+    public final boolean getShowBalance() {
+        return showBalanceProperty.get();
+    }
+
+    public final void setShowBalance(boolean value) {
+        showBalanceProperty.set(value);
+    }
+
     private static class CellFactory implements Callback<ListView<Account>, ListCell<Account>> {
+        private final BooleanProperty showBalanceProp;
+
+        private CellFactory(BooleanProperty showBalanceProp) {
+            this.showBalanceProp = showBalanceProp;
+        }
+
         @Override
         public ListCell<Account> call(ListView<Account> param) {
-            return new AccountListCell();
+            return new AccountListCell(showBalanceProp);
         }
     }
 
     private static class AccountListCell extends ListCell<Account> {
-        private final Label label = new Label();
+        private final BooleanProperty showBalanceProp;
+        private final Label nameLabel = new Label();
+        private final Label balanceLabel = new Label();
 
-        public AccountListCell() {
-            setGraphic(label);
-            label.getStyleClass().add("normal-color-text-fill");
+        public AccountListCell(BooleanProperty showBalanceProp) {
+            this.showBalanceProp = showBalanceProp;
+            nameLabel.getStyleClass().add("normal-color-text-fill");
+            balanceLabel.getStyleClass().addAll("secondary-color-text-fill", "mono-font", "smallest-font", "italic-text");
+            balanceLabel.managedProperty().bind(balanceLabel.visibleProperty());
+            balanceLabel.setVisible(false);
+            setGraphic(new VBox(nameLabel, balanceLabel));
         }
 
         @Override
         protected void updateItem(Account item, boolean empty) {
             super.updateItem(item, empty);
             if (item == null || empty) {
-                label.setText("None");
-            } else {
-                label.setText(item.getName() + " " + item.getAccountNumberSuffix());
+                nameLabel.setText("None");
+                balanceLabel.setVisible(false);
+                return;
+            }
+
+            nameLabel.setText(item.getName() + " (" + item.getAccountNumberSuffix() + ")");
+            if (showBalanceProp.get()) {
+                Thread.ofVirtual().start(() -> Profile.getCurrent().getDataSource().useAccountRepository(repo -> {
+                    BigDecimal balance = repo.deriveCurrentBalance(item.id);
+                    Platform.runLater(() -> {
+                        balanceLabel.setText(CurrencyUtil.formatMoney(new MoneyValue(balance, item.getCurrency())));
+                        balanceLabel.setVisible(true);
+                    });
+                }));
             }
         }
     }

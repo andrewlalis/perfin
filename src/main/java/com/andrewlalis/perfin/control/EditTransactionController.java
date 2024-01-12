@@ -82,6 +82,13 @@ public class EditTransactionController implements RouteSelectionListener {
                         accounts -> (!accounts.hasCredit() || !accounts.hasDebit()) || !accounts.creditAccount().equals(accounts.debitAccount()),
                         "The credit and debit accounts cannot be the same."
                 )
+                .addPredicate(
+                        accounts -> (
+                                (!accounts.hasCredit() || accounts.creditAccount().getCurrency().equals(currencyChoiceBox.getValue())) ||
+                                (!accounts.hasDebit() || accounts.debitAccount().getCurrency().equals(currencyChoiceBox.getValue()))
+                        ),
+                        "Linked accounts must use the same currency."
+                )
         ).validatedInitially().attach(linkedAccountsContainer, linkedAccountsProperty);
 
         var formValid = timestampValid.and(amountValid).and(descriptionValid).and(linkedAccountsValid);
