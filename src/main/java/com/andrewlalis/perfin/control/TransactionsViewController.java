@@ -1,6 +1,8 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
+import com.andrewlalis.perfin.data.AccountRepository;
+import com.andrewlalis.perfin.data.TransactionRepository;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.data.pagination.Sort;
@@ -122,27 +124,25 @@ public class TransactionsViewController implements RouteSelectionListener {
         transactionsVBox.getChildren().clear(); // Clear the transactions before reload initially.
 
         // Refresh account filter options.
-        Thread.ofVirtual().start(() -> {
-            Profile.getCurrent().getDataSource().useAccountRepository(repo -> {
-                List<Account> accounts = repo.findAll(PageRequest.unpaged(Sort.asc("name"))).items();
-                accounts.add(null);
-                Platform.runLater(() -> {
-                    filterByAccountComboBox.getItems().clear();
-                    filterByAccountComboBox.getItems().addAll(accounts);
-                    filterByAccountComboBox.getSelectionModel().selectLast();
-                    filterByAccountComboBox.getButtonCell().updateIndex(accounts.size() - 1);
-                });
+        Profile.getCurrent().getDataSource().useRepoAsync(AccountRepository.class, repo -> {
+            List<Account> accounts = repo.findAll(PageRequest.unpaged(Sort.asc("name"))).items();
+            accounts.add(null);
+            Platform.runLater(() -> {
+                filterByAccountComboBox.getItems().clear();
+                filterByAccountComboBox.getItems().addAll(accounts);
+                filterByAccountComboBox.getSelectionModel().selectLast();
+                filterByAccountComboBox.getButtonCell().updateIndex(accounts.size() - 1);
             });
         });
 
 
         // If a transaction id is given in the route context, navigate to the page it's on and select it.
         if (context instanceof RouteContext ctx && ctx.selectedTransactionId != null) {
-            Thread.ofVirtual().start(() -> {
-                Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
-                    repo.findById(ctx.selectedTransactionId).ifPresent(tx -> {
-                        long offset = repo.countAllAfter(tx.id);
-                        int pageNumber = (int) (offset / paginationControls.getItemsPerPage()) + 1;
+            Profile.getCurrent().getDataSource().useRepoAsync(TransactionRepository.class, repo -> {
+                repo.findById(ctx.selectedTransactionId).ifPresent(tx -> {
+                    long offset = repo.countAllAfter(tx.id);
+                    int pageNumber = (int) (offset / paginationControls.getItemsPerPage()) + 1;
+                    Platform.runLater(() -> {
                         paginationControls.setPage(pageNumber).thenRun(() -> selectedTransaction.set(tx));
                     });
                 });

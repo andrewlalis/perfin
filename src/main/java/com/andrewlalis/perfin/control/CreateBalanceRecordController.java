@@ -1,6 +1,8 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
+import com.andrewlalis.perfin.data.AccountRepository;
+import com.andrewlalis.perfin.data.BalanceRecordRepository;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.data.util.FileUtil;
@@ -59,12 +61,12 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
                 return;
             }
             BigDecimal reportedBalance = new BigDecimal(newValue);
-            Thread.ofVirtual().start(() -> Profile.getCurrent().getDataSource().useAccountRepository(repo -> {
+            Profile.getCurrent().getDataSource().useRepoAsync(AccountRepository.class, repo -> {
                 BigDecimal derivedBalance = repo.deriveCurrentBalance(account.id);
                 Platform.runLater(() -> balanceWarningLabel.visibleProperty().set(
                         !reportedBalance.setScale(derivedBalance.scale(), RoundingMode.HALF_UP).equals(derivedBalance)
                 ));
-            }));
+            });
         });
 
         var formValid = timestampValid.and(balanceValid);
@@ -83,12 +85,12 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
     public void onRouteSelected(Object context) {
         this.account = (Account) context;
         timestampField.setText(LocalDateTime.now().format(DateUtil.DEFAULT_DATETIME_FORMAT));
-        Thread.ofVirtual().start(() -> Profile.getCurrent().getDataSource().useAccountRepository(repo -> {
+        Profile.getCurrent().getDataSource().useRepoAsync(AccountRepository.class, repo -> {
             BigDecimal value = repo.deriveCurrentBalance(account.id);
             Platform.runLater(() -> balanceField.setText(
                     CurrencyUtil.formatMoneyAsBasicNumber(new MoneyValue(value, account.getCurrency()))
             ));
-        }));
+        });
         attachmentSelectionArea.clear();
     }
 
@@ -102,7 +104,7 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
                 localTimestamp.atZone(ZoneId.systemDefault()).format(DateUtil.DEFAULT_DATETIME_FORMAT_WITH_ZONE)
         ));
         if (confirm && confirmIfInconsistentBalance(reportedBalance)) {
-            Profile.getCurrent().getDataSource().useBalanceRecordRepository(repo -> {
+            Profile.getCurrent().getDataSource().useRepo(BalanceRecordRepository.class, repo -> {
                 repo.insert(
                         DateUtil.localToUTC(localTimestamp),
                         account.id,
@@ -120,12 +122,10 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
     }
 
     private boolean confirmIfInconsistentBalance(BigDecimal reportedBalance) {
-        BigDecimal currentDerivedBalance;
-        try (var accountRepo = Profile.getCurrent().getDataSource().getAccountRepository()) {
-            currentDerivedBalance = accountRepo.deriveCurrentBalance(account.id);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        BigDecimal currentDerivedBalance = Profile.getCurrent().getDataSource().mapRepo(
+                AccountRepository.class,
+                repo -> repo.deriveCurrentBalance(account.id)
+        );
         if (!reportedBalance.setScale(currentDerivedBalance.scale(), RoundingMode.HALF_UP).equals(currentDerivedBalance)) {
             String msg = "The balance you reported (%s) doesn't match the balance that Perfin derived from your account's transactions (%s). It's encouraged to go back and add any missing transactions first, but you may proceed now if you understand the consequences of an inconsistent account balance history.\n\nAre you absolutely sure you want to create this balance record?".formatted(
                     CurrencyUtil.formatMoney(new MoneyValue(reportedBalance, account.getCurrency())),

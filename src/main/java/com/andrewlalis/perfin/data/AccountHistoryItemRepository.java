@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface AccountHistoryItemRepository extends AutoCloseable {
+public interface AccountHistoryItemRepository extends Repository, AutoCloseable {
     void recordAccountEntry(LocalDateTime timestamp, long accountId, long entryId);
     void recordBalanceRecord(LocalDateTime timestamp, long accountId, long recordId);
     void recordText(LocalDateTime timestamp, long accountId, String text);

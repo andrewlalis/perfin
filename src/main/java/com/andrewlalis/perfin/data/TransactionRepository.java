@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-public interface TransactionRepository extends AutoCloseable {
+public interface TransactionRepository extends Repository, AutoCloseable {
     long insert(
             LocalDateTime utcTimestamp,
             BigDecimal amount,

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-public interface AccountRepository extends AutoCloseable {
+public interface AccountRepository extends Repository, AutoCloseable {
     long insert(AccountType type, String accountNumber, String name, Currency currency);
     Page<Account> findAll(PageRequest pagination);
     List<Account> findAllOrderedByRecentHistory();

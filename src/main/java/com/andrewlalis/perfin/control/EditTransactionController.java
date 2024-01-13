@@ -1,6 +1,7 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
+import com.andrewlalis.perfin.data.TransactionRepository;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.data.pagination.Sort;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
@@ -104,23 +105,25 @@ public class EditTransactionController implements RouteSelectionListener {
     }
 
     @FXML public void save() {
-        LocalDateTime utcTimestamp = DateUtil.localToUTC(parseTimestamp());
-        BigDecimal amount = new BigDecimal(amountField.getText());
-        Currency currency = currencyChoiceBox.getValue();
-        String description = getSanitizedDescription();
-        CreditAndDebitAccounts linkedAccounts = getSelectedAccounts();
-        List<Path> attachments = attachmentsSelectionArea.getSelectedFiles();
-        Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
-            repo.insert(
-                    utcTimestamp,
-                    amount,
-                    currency,
-                    description,
-                    linkedAccounts,
-                    attachments
-            );
-        });
-        router.navigateBackAndClear();
+        final long idToNavigate;
+        if (transaction == null) {
+            LocalDateTime utcTimestamp = DateUtil.localToUTC(parseTimestamp());
+            BigDecimal amount = new BigDecimal(amountField.getText());
+            Currency currency = currencyChoiceBox.getValue();
+            String description = getSanitizedDescription();
+            CreditAndDebitAccounts linkedAccounts = getSelectedAccounts();
+            List<Path> attachments = attachmentsSelectionArea.getSelectedFiles();
+            Profile.getCurrent().getDataSource().useRepo(TransactionRepository.class, repo -> {
+                repo.insert(
+                        utcTimestamp,
+                        amount,
+                        currency,
+                        description,
+                        linkedAccounts,
+                        attachments
+                );
+            });
+        }
     }
 
     @FXML public void cancel() {

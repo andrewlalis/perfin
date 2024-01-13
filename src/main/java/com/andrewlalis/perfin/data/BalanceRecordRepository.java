@@ -10,7 +10,7 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 
-public interface BalanceRecordRepository extends AutoCloseable {
+public interface BalanceRecordRepository extends Repository, AutoCloseable {
     long insert(LocalDateTime utcTimestamp, long accountId, BigDecimal balance, Currency currency, List<Path> attachments);
     BalanceRecord findLatestByAccountId(long accountId);
     Optional<BalanceRecord> findClosestBefore(long accountId, LocalDateTime utcTimestamp);

@@ -1,6 +1,7 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
+import com.andrewlalis.perfin.data.BalanceRecordRepository;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.model.Attachment;
@@ -40,19 +41,16 @@ public class BalanceRecordViewController implements RouteSelectionListener {
         timestampLabel.setText(DateUtil.formatUTCAsLocalWithZone(balanceRecord.getTimestamp()));
         balanceLabel.setText(CurrencyUtil.formatMoney(balanceRecord.getMoneyAmount()));
         currencyLabel.setText(balanceRecord.getCurrency().getDisplayName());
-
-        Thread.ofVirtual().start(() -> Profile.getCurrent().getDataSource().useBalanceRecordRepository(repo -> {
+        Profile.getCurrent().getDataSource().useRepoAsync(BalanceRecordRepository.class, repo -> {
             List<Attachment> attachments = repo.findAttachments(balanceRecord.id);
             Platform.runLater(() -> attachmentsViewPane.setAttachments(attachments));
-        }));
+        });
     }
 
     @FXML public void delete() {
         boolean confirm = Popups.confirm("Are you sure you want to delete this balance record? This may have an effect on the derived balance of your account, as shown in Perfin.");
         if (confirm) {
-            Profile.getCurrent().getDataSource().useBalanceRecordRepository(repo -> {
-                repo.deleteById(balanceRecord.id);
-            });
+            Profile.getCurrent().getDataSource().useRepo(BalanceRecordRepository.class, repo -> repo.deleteById(balanceRecord.id));
             router.navigateBackAndClear();
         }
     }

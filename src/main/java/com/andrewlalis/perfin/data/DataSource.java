@@ -2,8 +2,6 @@ package com.andrewlalis.perfin.data;
 
 import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
-import com.andrewlalis.perfin.data.util.DbUtil;
-import com.andrewlalis.perfin.data.util.ThrowableConsumer;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.AccountType;
 import com.andrewlalis.perfin.model.MoneyValue;
@@ -11,11 +9,11 @@ import javafx.application.Platform;
 
 import java.math.BigDecimal;
 import java.nio.file.Path;
-import java.util.Currency;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Interface for methods to obtain any data from a {@link com.andrewlalis.perfin.model.Profile}
@@ -35,30 +33,70 @@ public interface DataSource {
     AttachmentRepository getAttachmentRepository();
     AccountHistoryItemRepository getAccountHistoryItemRepository();
 
-    default void useAccountRepository(ThrowableConsumer<AccountRepository> repoConsumer) {
-        DbUtil.useClosable(this::getAccountRepository, repoConsumer);
+    // Repository helper methods:
+
+    @SuppressWarnings("unchecked")
+    default <R extends Repository, T> T mapRepo(Class<R> repoType, Function<R, T> action) {
+        Supplier<R> repoSupplier = getRepo(repoType);
+        if (repoSupplier == null) throw new IllegalArgumentException("Repository type " + repoType + " is not supported.");
+        boolean repoCloseable = Arrays.asList(repoType.getInterfaces()).contains(AutoCloseable.class);
+        if (repoCloseable) {
+            try (AutoCloseable c = (AutoCloseable) repoSupplier.get()) {
+                R repo = (R) c;
+                return action.apply(repo);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            R repo = repoSupplier.get();
+            return action.apply(repo);
+        }
     }
 
-    default void useBalanceRecordRepository(ThrowableConsumer<BalanceRecordRepository> repoConsumer) {
-        DbUtil.useClosable(this::getBalanceRecordRepository, repoConsumer);
+    default <R extends Repository, T> CompletableFuture<T> mapRepoAsync(Class<R> repoType, Function<R, T> action) {
+        CompletableFuture<T> cf = new CompletableFuture<>();
+        Thread.ofVirtual().start(() -> {
+            cf.complete(mapRepo(repoType, action));
+        });
+        return cf;
     }
 
-    default void useTransactionRepository(ThrowableConsumer<TransactionRepository> repoConsumer) {
-        DbUtil.useClosable(this::getTransactionRepository, repoConsumer);
+    default <R extends Repository> void useRepo(Class<R> repoType, Consumer<R> action) {
+        mapRepo(repoType, (Function<R, Void>) repo -> {
+            action.accept(repo);
+            return null;
+        });
     }
 
-    default void useAttachmentRepository(ThrowableConsumer<AttachmentRepository> repoConsumer) {
-        DbUtil.useClosable(this::getAttachmentRepository, repoConsumer);
+    default <R extends Repository> CompletableFuture<Void> useRepoAsync(Class<R> repoType, Consumer<R> action) {
+        return mapRepoAsync(repoType, repo -> {
+            action.accept(repo);
+            return null;
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    private <R extends Repository> Supplier<R> getRepo(Class<R> type) {
+        final Map<Class<? extends Repository>, Supplier<? extends Repository>> repoSuppliers = Map.of(
+                AccountRepository.class, this::getAccountRepository,
+                BalanceRecordRepository.class, this::getBalanceRecordRepository,
+                TransactionRepository.class, this::getTransactionRepository,
+                AttachmentRepository.class, this::getAttachmentRepository,
+                AccountHistoryItemRepository.class, this::getAccountHistoryItemRepository
+        );
+        return (Supplier<R>) repoSuppliers.get(type);
     }
 
     // Utility methods:
 
-    default void getAccountBalanceText(Account account, Consumer<String> balanceConsumer) {
-        Thread.ofVirtual().start(() -> useAccountRepository(repo -> {
+    default CompletableFuture<String> getAccountBalanceText(Account account) {
+        CompletableFuture<String> cf = new CompletableFuture<>();
+        mapRepoAsync(AccountRepository.class, repo -> {
             BigDecimal balance = repo.deriveCurrentBalance(account.id);
             MoneyValue money = new MoneyValue(balance, account.getCurrency());
-            Platform.runLater(() -> balanceConsumer.accept(CurrencyUtil.formatMoney(money)));
-        }));
+            return CurrencyUtil.formatMoney(money);
+        }).thenAccept(s -> Platform.runLater(() -> cf.complete(s)));
+        return cf;
     }
 
     default Map<Currency, BigDecimal> getCombinedAccountBalances() {

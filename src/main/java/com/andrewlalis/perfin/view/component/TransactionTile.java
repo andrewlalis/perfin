@@ -1,5 +1,6 @@
 package com.andrewlalis.perfin.view.component;
 
+import com.andrewlalis.perfin.data.TransactionRepository;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.model.CreditAndDebitAccounts;
@@ -99,13 +100,9 @@ public class TransactionTile extends BorderPane {
     }
 
     private CompletableFuture<CreditAndDebitAccounts> getCreditAndDebitAccounts(Transaction transaction) {
-        CompletableFuture<CreditAndDebitAccounts> cf = new CompletableFuture<>();
-        Thread.ofVirtual().start(() -> {
-            Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
-                CreditAndDebitAccounts accounts = repo.findLinkedAccounts(transaction.id);
-                cf.complete(accounts);
-            });
-        });
-        return cf;
+        return Profile.getCurrent().getDataSource().mapRepoAsync(
+                TransactionRepository.class,
+                repo -> repo.findLinkedAccounts(transaction.id)
+        );
     }
 }

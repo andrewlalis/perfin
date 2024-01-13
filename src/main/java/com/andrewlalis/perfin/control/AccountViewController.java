@@ -1,6 +1,8 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
+import com.andrewlalis.perfin.data.AccountHistoryItemRepository;
+import com.andrewlalis.perfin.data.AccountRepository;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.Profile;
@@ -62,7 +64,8 @@ public class AccountViewController implements RouteSelectionListener {
         accountNumberLabel.setText(account.getAccountNumber());
         accountCurrencyLabel.setText(account.getCurrency().getDisplayName());
         accountCreatedAtLabel.setText(DateUtil.formatUTCAsLocalWithZone(account.getCreatedAt()));
-        Profile.getCurrent().getDataSource().getAccountBalanceText(account, accountBalanceLabel::setText);
+        Profile.getCurrent().getDataSource().getAccountBalanceText(account)
+                .thenAccept(accountBalanceLabel::setText);
 
         reloadHistory();
     }
@@ -93,7 +96,7 @@ public class AccountViewController implements RouteSelectionListener {
                         "later if you need to."
         );
         if (confirmResult) {
-            Profile.getCurrent().getDataSource().useAccountRepository(repo -> repo.archive(account.id));
+            Profile.getCurrent().getDataSource().useRepo(AccountRepository.class, repo -> repo.archive(account.id));
             router.replace("accounts");
         }
     }
@@ -104,7 +107,7 @@ public class AccountViewController implements RouteSelectionListener {
                         "status?"
         );
         if (confirm) {
-            Profile.getCurrent().getDataSource().useAccountRepository(repo -> repo.unarchive(account.id));
+            Profile.getCurrent().getDataSource().useRepo(AccountRepository.class, repo -> repo.unarchive(account.id));
             router.replace("accounts");
         }
     }
@@ -119,31 +122,27 @@ public class AccountViewController implements RouteSelectionListener {
                         "want to hide it."
         );
         if (confirm) {
-            Profile.getCurrent().getDataSource().useAccountRepository(repo -> repo.delete(account));
+            Profile.getCurrent().getDataSource().useRepo(AccountRepository.class, repo -> repo.delete(account));
             router.replace("accounts");
         }
     }
 
     @FXML public void loadMoreHistory() {
-        Thread.ofVirtual().start(() -> {
-            try (var historyRepo = Profile.getCurrent().getDataSource().getAccountHistoryItemRepository()) {
-                List<AccountHistoryItem> historyItems = historyRepo.findMostRecentForAccount(
-                        account.id,
-                        loadHistoryFrom,
-                        historyLoadSize
-                );
-                if (historyItems.size() < historyLoadSize) {
-                    Platform.runLater(() -> loadMoreHistoryButton.setDisable(true));
-                } else {
-                    loadHistoryFrom = historyItems.getLast().getTimestamp();
-                }
-                List<? extends Node> nodes = historyItems.stream()
-                        .map(item -> AccountHistoryItemTile.forItem(item, historyRepo, this))
-                        .toList();
-                Platform.runLater(() -> historyItemsVBox.getChildren().addAll(nodes));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+        Profile.getCurrent().getDataSource().useRepoAsync(AccountHistoryItemRepository.class, repo -> {
+            List<AccountHistoryItem> historyItems = repo.findMostRecentForAccount(
+                    account.id,
+                    loadHistoryFrom,
+                    historyLoadSize
+            );
+            if (historyItems.size() < historyLoadSize) {
+                Platform.runLater(() -> loadMoreHistoryButton.setDisable(true));
+            } else {
+                loadHistoryFrom = historyItems.getLast().getTimestamp();
             }
+            List<? extends Node> nodes = historyItems.stream()
+                    .map(item -> AccountHistoryItemTile.forItem(item, repo, this))
+                    .toList();
+            Platform.runLater(() -> historyItemsVBox.getChildren().addAll(nodes));
         });
     }
 }

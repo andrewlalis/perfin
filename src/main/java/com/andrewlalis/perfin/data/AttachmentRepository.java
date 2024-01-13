@@ -5,7 +5,7 @@ import com.andrewlalis.perfin.model.Attachment;
 import java.nio.file.Path;
 import java.util.Optional;
 
-public interface AttachmentRepository extends AutoCloseable {
+public interface AttachmentRepository extends Repository, AutoCloseable {
     Attachment insert(Path sourcePath);
     Optional<Attachment> findById(long attachmentId);
     Optional<Attachment> findByIdentifier(String identifier);

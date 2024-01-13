@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.Currency;
 import java.util.List;
 
-public interface AccountEntryRepository extends AutoCloseable {
+public interface AccountEntryRepository extends Repository, AutoCloseable {
     long insert(
             LocalDateTime timestamp,
             long accountId,

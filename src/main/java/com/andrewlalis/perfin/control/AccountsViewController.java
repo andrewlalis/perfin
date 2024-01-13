@@ -1,6 +1,7 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
+import com.andrewlalis.perfin.data.AccountRepository;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.MoneyValue;
@@ -48,14 +49,14 @@ public class AccountsViewController implements RouteSelectionListener {
 
     public void refreshAccounts() {
         Profile.whenLoaded(profile -> {
-            Thread.ofVirtual().start(() -> profile.getDataSource().useAccountRepository(repo -> {
+            profile.getDataSource().useRepoAsync(AccountRepository.class, repo -> {
                 List<Account> accounts = repo.findAllOrderedByRecentHistory();
                 Platform.runLater(() -> accountsPane.getChildren()
                         .setAll(accounts.stream()
                                 .map(AccountTile::new)
                                 .toList()
                         ));
-            }));
+            });
             // Compute grand totals!
             Thread.ofVirtual().start(() -> {
                 var totals = profile.getDataSource().getCombinedAccountBalances();

@@ -1,5 +1,6 @@
 package com.andrewlalis.perfin.view.component;
 
+import com.andrewlalis.perfin.data.AccountRepository;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.AccountType;
@@ -80,7 +81,7 @@ public class AccountTile extends BorderPane {
         Label balanceLabel = new Label("Computing balance...");
         balanceLabel.getStyleClass().addAll("mono-font");
         balanceLabel.setDisable(true);
-        Thread.ofVirtual().start(() -> Profile.getCurrent().getDataSource().useAccountRepository(repo -> {
+        Profile.getCurrent().getDataSource().useRepoAsync(AccountRepository.class, repo -> {
             BigDecimal balance = repo.deriveCurrentBalance(account.id);
             String text = CurrencyUtil.formatMoney(new MoneyValue(balance, account.getCurrency()));
             Platform.runLater(() -> {
@@ -92,10 +93,6 @@ public class AccountTile extends BorderPane {
                 }
                 balanceLabel.setDisable(false);
             });
-        }));
-        Profile.getCurrent().getDataSource().getAccountBalanceText(account, text -> {
-            balanceLabel.setText(text);
-            balanceLabel.setDisable(false);
         });
 
         propertiesPane.getChildren().addAll(

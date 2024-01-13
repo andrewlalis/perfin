@@ -1,5 +1,6 @@
 package com.andrewlalis.perfin.control;
 
+import com.andrewlalis.perfin.data.TransactionRepository;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.model.Attachment;
@@ -44,27 +45,19 @@ public class TransactionViewController {
         amountLabel.setText(CurrencyUtil.formatMoney(transaction.getMoneyAmount()));
         timestampLabel.setText(DateUtil.formatUTCAsLocalWithZone(transaction.getTimestamp()));
         descriptionLabel.setText(transaction.getDescription());
-
-        Thread.ofVirtual().start(() -> {
-            Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
-                CreditAndDebitAccounts accounts = repo.findLinkedAccounts(transaction.id);
-                Platform.runLater(() -> {
-                    accounts.ifDebit(acc -> {
-                        debitAccountLink.setText(acc.getShortName());
-                        debitAccountLink.setOnAction(event -> router.navigate("account", acc));
-                    });
-                    accounts.ifCredit(acc -> {
-                        creditAccountLink.setText(acc.getShortName());
-                        creditAccountLink.setOnAction(event -> router.navigate("account", acc));
-                    });
+        Profile.getCurrent().getDataSource().useRepoAsync(TransactionRepository.class, repo -> {
+            CreditAndDebitAccounts accounts = repo.findLinkedAccounts(transaction.id);
+            List<Attachment> attachments = repo.findAttachments(transaction.id);
+            Platform.runLater(() -> {
+                accounts.ifDebit(acc -> {
+                    debitAccountLink.setText(acc.getShortName());
+                    debitAccountLink.setOnAction(event -> router.navigate("account", acc));
                 });
-            });
-        });
-
-        Thread.ofVirtual().start(() -> {
-            Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
-                List<Attachment> attachments = repo.findAttachments(transaction.id);
-                Platform.runLater(() -> attachmentsViewPane.setAttachments(attachments));
+                accounts.ifCredit(acc -> {
+                    creditAccountLink.setText(acc.getShortName());
+                    creditAccountLink.setOnAction(event -> router.navigate("account", acc));
+                });
+                attachmentsViewPane.setAttachments(attachments);
             });
         });
     }
@@ -84,10 +77,8 @@ public class TransactionViewController {
             "it's derived from the most recent balance-record, and transactions."
         );
         if (confirm) {
-            Profile.getCurrent().getDataSource().useTransactionRepository(repo -> {
-                repo.delete(transaction.id);
-                router.replace("transactions");
-            });
+            Profile.getCurrent().getDataSource().useRepo(TransactionRepository.class, repo -> repo.delete(transaction.id));
+            router.replace("transactions");
         }
     }
 

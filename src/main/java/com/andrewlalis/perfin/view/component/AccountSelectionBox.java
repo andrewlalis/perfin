@@ -1,5 +1,6 @@
 package com.andrewlalis.perfin.view.component;
 
+import com.andrewlalis.perfin.data.AccountRepository;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.MoneyValue;
@@ -109,13 +110,13 @@ public class AccountSelectionBox extends ComboBox<Account> {
 
             nameLabel.setText(item.getName() + " (" + item.getAccountNumberSuffix() + ")");
             if (showBalanceProp.get()) {
-                Thread.ofVirtual().start(() -> Profile.getCurrent().getDataSource().useAccountRepository(repo -> {
+                Profile.getCurrent().getDataSource().useRepoAsync(AccountRepository.class, repo -> {
                     BigDecimal balance = repo.deriveCurrentBalance(item.id);
                     Platform.runLater(() -> {
                         balanceLabel.setText(CurrencyUtil.formatMoney(new MoneyValue(balance, item.getCurrency())));
                         balanceLabel.setVisible(true);
                     });
-                }));
+                });
             }
         }
     }
