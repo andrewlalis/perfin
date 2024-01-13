@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.andrewlalis.perfin.view.component.FileSelectionArea?>
 <?import com.andrewlalis.perfin.view.component.PropertiesPane?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
@@ -50,6 +51,7 @@
 
 
                 <Label text="Attachments" styleClass="bold-text"/>
+                <FileSelectionArea fx:id="attachmentSelectionArea" allowMultiple="true"/>
             </PropertiesPane>
 
             <Separator/>

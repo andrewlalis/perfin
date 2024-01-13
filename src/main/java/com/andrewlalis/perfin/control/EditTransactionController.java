@@ -6,10 +6,7 @@ import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.data.pagination.Sort;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DateUtil;
-import com.andrewlalis.perfin.data.util.FileUtil;
-import com.andrewlalis.perfin.model.CreditAndDebitAccounts;
-import com.andrewlalis.perfin.model.Profile;
-import com.andrewlalis.perfin.model.Transaction;
+import com.andrewlalis.perfin.model.*;
 import com.andrewlalis.perfin.view.component.AccountSelectionBox;
 import com.andrewlalis.perfin.view.component.FileSelectionArea;
 import com.andrewlalis.perfin.view.component.validation.ValidationApplier;
@@ -20,8 +17,8 @@ import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +27,7 @@ import java.nio.file.Path;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Currency;
 import java.util.List;
@@ -39,6 +37,7 @@ import static com.andrewlalis.perfin.PerfinApp.router;
 public class EditTransactionController implements RouteSelectionListener {
     private static final Logger log = LoggerFactory.getLogger(EditTransactionController.class);
 
+    @FXML public BorderPane container;
     @FXML public Label titleLabel;
 
     @FXML public TextField timestampField;
@@ -50,8 +49,7 @@ public class EditTransactionController implements RouteSelectionListener {
     @FXML public AccountSelectionBox debitAccountSelector;
     @FXML public AccountSelectionBox creditAccountSelector;
 
-    @FXML public VBox attachmentsVBox;
-    private FileSelectionArea attachmentsSelectionArea;
+    @FXML public FileSelectionArea attachmentsSelectionArea;
 
     @FXML public Button saveButton;
 
@@ -85,45 +83,62 @@ public class EditTransactionController implements RouteSelectionListener {
                 )
                 .addPredicate(
                         accounts -> (
-                                (!accounts.hasCredit() || accounts.creditAccount().getCurrency().equals(currencyChoiceBox.getValue())) ||
+                                (!accounts.hasCredit() || accounts.creditAccount().getCurrency().equals(currencyChoiceBox.getValue())) &&
                                 (!accounts.hasDebit() || accounts.debitAccount().getCurrency().equals(currencyChoiceBox.getValue()))
                         ),
                         "Linked accounts must use the same currency."
+                )
+                .addPredicate(
+                        accounts -> (
+                                (!accounts.hasCredit() || !accounts.creditAccount().isArchived()) &&
+                                (!accounts.hasDebit() || !accounts.debitAccount().isArchived())
+                        ),
+                        "Linked accounts must not be archived."
                 )
         ).validatedInitially().attach(linkedAccountsContainer, linkedAccountsProperty);
 
         var formValid = timestampValid.and(amountValid).and(descriptionValid).and(linkedAccountsValid);
         saveButton.disableProperty().bind(formValid.not());
-
-        // Initialize the file selection area.
-        attachmentsSelectionArea = new FileSelectionArea(
-                FileUtil::newAttachmentsFileChooser,
-                () -> attachmentsVBox.getScene().getWindow()
-        );
-        attachmentsSelectionArea.allowMultiple.set(true);
-        attachmentsVBox.getChildren().add(attachmentsSelectionArea);
     }
 
     @FXML public void save() {
+        LocalDateTime utcTimestamp = DateUtil.localToUTC(parseTimestamp());
+        BigDecimal amount = new BigDecimal(amountField.getText());
+        Currency currency = currencyChoiceBox.getValue();
+        String description = getSanitizedDescription();
+        CreditAndDebitAccounts linkedAccounts = getSelectedAccounts();
+        List<Path> newAttachmentPaths = attachmentsSelectionArea.getSelectedPaths();
+        List<Attachment> existingAttachments = attachmentsSelectionArea.getSelectedAttachments();
         final long idToNavigate;
         if (transaction == null) {
-            LocalDateTime utcTimestamp = DateUtil.localToUTC(parseTimestamp());
-            BigDecimal amount = new BigDecimal(amountField.getText());
-            Currency currency = currencyChoiceBox.getValue();
-            String description = getSanitizedDescription();
-            CreditAndDebitAccounts linkedAccounts = getSelectedAccounts();
-            List<Path> attachments = attachmentsSelectionArea.getSelectedFiles();
-            Profile.getCurrent().getDataSource().useRepo(TransactionRepository.class, repo -> {
-                repo.insert(
+            idToNavigate = Profile.getCurrent().getDataSource().mapRepo(
+                TransactionRepository.class,
+                repo -> repo.insert(
+                    utcTimestamp,
+                    amount,
+                    currency,
+                    description,
+                    linkedAccounts,
+                    newAttachmentPaths
+                )
+            );
+        } else {
+            Profile.getCurrent().getDataSource().useRepo(
+                TransactionRepository.class,
+                repo -> repo.update(
+                        transaction.id,
                         utcTimestamp,
                         amount,
                         currency,
                         description,
                         linkedAccounts,
-                        attachments
-                );
-            });
+                        existingAttachments,
+                        newAttachmentPaths
+                )
+            );
+            idToNavigate = transaction.id;
         }
+        router.replace("transactions", new TransactionsViewController.RouteContext(idToNavigate));
     }
 
     @FXML public void cancel() {
@@ -133,57 +148,58 @@ public class EditTransactionController implements RouteSelectionListener {
     @Override
     public void onRouteSelected(Object context) {
         transaction = (Transaction) context;
-        boolean creatingNew = transaction == null;
 
-        if (creatingNew) {
+        if (transaction == null) {
             titleLabel.setText("Create New Transaction");
             timestampField.setText(LocalDateTime.now().format(DateUtil.DEFAULT_DATETIME_FORMAT));
             amountField.setText(null);
             descriptionField.setText(null);
-            attachmentsSelectionArea.clear();
         } else {
             titleLabel.setText("Edit Transaction #" + transaction.id);
             timestampField.setText(DateUtil.formatUTCAsLocal(transaction.getTimestamp()));
             amountField.setText(CurrencyUtil.formatMoneyAsBasicNumber(transaction.getMoneyAmount()));
             descriptionField.setText(transaction.getDescription());
-
-            // TODO: Add an editable list of attachments from which some can be added and removed.
-
         }
 
         // Fetch some account-specific data.
-        currencyChoiceBox.setDisable(true);
-        creditAccountSelector.setDisable(true);
-        debitAccountSelector.setDisable(true);
+        container.setDisable(true);
         Thread.ofVirtual().start(() -> {
             try (
                     var accountRepo = Profile.getCurrent().getDataSource().getAccountRepository();
                     var transactionRepo = Profile.getCurrent().getDataSource().getTransactionRepository()
             ) {
-                var currencies = accountRepo.findAllUsedCurrencies().stream()
+                // First fetch all the data.
+                List<Currency> currencies = accountRepo.findAllUsedCurrencies().stream()
                         .sorted(Comparator.comparing(Currency::getCurrencyCode))
                         .toList();
-                var accounts = accountRepo.findAll(PageRequest.unpaged(Sort.asc("name"))).items();
-                CreditAndDebitAccounts linkedAccounts = transaction == null ? null : transactionRepo.findLinkedAccounts(transaction.id);
+                List<Account> accounts = accountRepo.findAll(PageRequest.unpaged(Sort.asc("name"))).items();
+                final List<Attachment> attachments;
+                final CreditAndDebitAccounts linkedAccounts;
+                if (transaction == null) {
+                    attachments = Collections.emptyList();
+                    linkedAccounts = new CreditAndDebitAccounts(null, null);
+                } else {
+                    attachments = transactionRepo.findAttachments(transaction.id);
+                    linkedAccounts = transactionRepo.findLinkedAccounts(transaction.id);
+                }
+                // Then make updates to the view.
                 Platform.runLater(() -> {
                     creditAccountSelector.setAccounts(accounts);
                     debitAccountSelector.setAccounts(accounts);
                     currencyChoiceBox.getItems().setAll(currencies);
-                    if (creatingNew) {
+                    attachmentsSelectionArea.clear();
+                    attachmentsSelectionArea.addAttachments(attachments);
+                    if (transaction == null) {
                         // TODO: Allow user to select a default currency.
                         currencyChoiceBox.getSelectionModel().selectFirst();
                         creditAccountSelector.select(null);
                         debitAccountSelector.select(null);
                     } else {
                         currencyChoiceBox.getSelectionModel().select(transaction.getCurrency());
-                        if (linkedAccounts != null) {
-                            creditAccountSelector.select(linkedAccounts.creditAccount());
-                            debitAccountSelector.select(linkedAccounts.debitAccount());
-                        }
+                        creditAccountSelector.select(linkedAccounts.creditAccount());
+                        debitAccountSelector.select(linkedAccounts.debitAccount());
                     }
-                    currencyChoiceBox.setDisable(false);
-                    creditAccountSelector.setDisable(false);
-                    debitAccountSelector.setDisable(false);
+                    container.setDisable(false);
                 });
             } catch (Exception e) {
                 log.error("Failed to get repositories.", e);

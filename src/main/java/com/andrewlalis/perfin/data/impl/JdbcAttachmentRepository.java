@@ -60,8 +60,8 @@ public record JdbcAttachmentRepository(Connection conn, Path contentDir) impleme
     public void deleteById(long attachmentId) {
         var optionalAttachment = findById(attachmentId);
         if (optionalAttachment.isPresent()) {
-            deleteFileOnDisk(optionalAttachment.get());
             DbUtil.updateOne(conn, "DELETE FROM attachment WHERE id = ?", List.of(attachmentId));
+            deleteFileOnDisk(optionalAttachment.get());
         }
     }
 

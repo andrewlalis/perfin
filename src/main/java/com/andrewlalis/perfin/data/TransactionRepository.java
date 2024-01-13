@@ -32,4 +32,14 @@ public interface TransactionRepository extends Repository, AutoCloseable {
     CreditAndDebitAccounts findLinkedAccounts(long transactionId);
     List<Attachment> findAttachments(long transactionId);
     void delete(long transactionId);
+    void update(
+            long id,
+            LocalDateTime utcTimestamp,
+            BigDecimal amount,
+            Currency currency,
+            String description,
+            CreditAndDebitAccounts linkedAccounts,
+            List<Attachment> existingAttachments,
+            List<Path> newAttachmentPaths
+    );
 }

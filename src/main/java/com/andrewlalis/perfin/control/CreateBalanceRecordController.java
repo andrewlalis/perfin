@@ -5,7 +5,6 @@ import com.andrewlalis.perfin.data.AccountRepository;
 import com.andrewlalis.perfin.data.BalanceRecordRepository;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DateUtil;
-import com.andrewlalis.perfin.data.util.FileUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.MoneyValue;
 import com.andrewlalis.perfin.model.Profile;
@@ -32,7 +31,7 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
     @FXML public TextField timestampField;
     @FXML public TextField balanceField;
     @FXML public Label balanceWarningLabel;
-    private FileSelectionArea attachmentSelectionArea;
+    @FXML public FileSelectionArea attachmentSelectionArea;
     @FXML public PropertiesPane propertiesPane;
 
     @FXML public Button saveButton;
@@ -71,14 +70,6 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
 
         var formValid = timestampValid.and(balanceValid);
         saveButton.disableProperty().bind(formValid.not());
-
-        // Manually append the attachment selection area to the end of the properties pane.
-        attachmentSelectionArea = new FileSelectionArea(
-                FileUtil::newAttachmentsFileChooser,
-                () -> timestampField.getScene().getWindow()
-        );
-        attachmentSelectionArea.allowMultiple.set(true);
-        propertiesPane.getChildren().addLast(attachmentSelectionArea);
     }
 
     @Override
@@ -110,7 +101,7 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
                         account.id,
                         reportedBalance,
                         account.getCurrency(),
-                        attachmentSelectionArea.getSelectedFiles()
+                        attachmentSelectionArea.getSelectedPaths()
                 );
             });
             router.navigateBackAndClear();

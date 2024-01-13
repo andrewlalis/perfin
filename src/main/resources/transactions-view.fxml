@@ -23,7 +23,7 @@
                     <HBox styleClass="std-padding,std-spacing">
                         <PropertiesPane hgap="5" vgap="5">
                             <Label text="Filter by Account"/>
-                            <AccountSelectionBox fx:id="filterByAccountComboBox"/>
+                            <AccountSelectionBox fx:id="filterByAccountComboBox" allowNone="true" showBalance="false"/>
                         </PropertiesPane>
                     </HBox>
                 </top>

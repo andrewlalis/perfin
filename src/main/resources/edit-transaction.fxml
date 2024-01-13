@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import com.andrewlalis.perfin.view.component.AccountSelectionBox?>
+<?import com.andrewlalis.perfin.view.component.FileSelectionArea?>
 <?import com.andrewlalis.perfin.view.component.PropertiesPane?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.andrewlalis.perfin.control.EditTransactionController"
+            fx:id="container"
 >
     <top>
         <Label fx:id="titleLabel" styleClass="large-font,bold-text,std-padding"/>
@@ -51,10 +53,10 @@
                     </VBox>
                 </HBox>
                 <!-- Container for attachments -->
-                <VBox fx:id="attachmentsVBox" styleClass="std-padding">
+                <VBox styleClass="std-padding">
                     <Label text="Attachments" styleClass="bold-text"/>
                     <Label text="Attach receipts, invoices, or other content to this transaction." styleClass="small-font" wrapText="true"/>
-                    <!-- FileSelectionArea inserted here! -->
+                    <FileSelectionArea fx:id="attachmentsSelectionArea" allowMultiple="true"/>
                 </VBox>
 
                 <!-- Buttons -->

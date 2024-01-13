@@ -50,6 +50,7 @@ public class AttachmentsViewPane extends VBox {
     }
 
     public void setAttachments(List<Attachment> attachments) {
+        this.attachments.clear();
         this.attachments.setAll(attachments);
     }
 

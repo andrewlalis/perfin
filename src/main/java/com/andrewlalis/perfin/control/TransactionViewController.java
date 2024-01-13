@@ -49,14 +49,18 @@ public class TransactionViewController {
             CreditAndDebitAccounts accounts = repo.findLinkedAccounts(transaction.id);
             List<Attachment> attachments = repo.findAttachments(transaction.id);
             Platform.runLater(() -> {
-                accounts.ifDebit(acc -> {
-                    debitAccountLink.setText(acc.getShortName());
-                    debitAccountLink.setOnAction(event -> router.navigate("account", acc));
-                });
-                accounts.ifCredit(acc -> {
-                    creditAccountLink.setText(acc.getShortName());
-                    creditAccountLink.setOnAction(event -> router.navigate("account", acc));
-                });
+                if (accounts.hasDebit()) {
+                    debitAccountLink.setText(accounts.debitAccount().getShortName());
+                    debitAccountLink.setOnAction(event -> router.navigate("account", accounts.debitAccount()));
+                } else {
+                    debitAccountLink.setText(null);
+                }
+                if (accounts.hasCredit()) {
+                    creditAccountLink.setText(accounts.creditAccount().getShortName());
+                    creditAccountLink.setOnAction(event -> router.navigate("account", accounts.creditAccount()));
+                } else {
+                    creditAccountLink.setText(null);
+                }
                 attachmentsViewPane.setAttachments(attachments);
             });
         });

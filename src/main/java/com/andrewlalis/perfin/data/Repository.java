@@ -1,4 +1,6 @@
 package com.andrewlalis.perfin.data;
 
-public interface Repository {
-}
+/**
+ * Marker interface used to identify any data repository.
+ */
+public interface Repository {}

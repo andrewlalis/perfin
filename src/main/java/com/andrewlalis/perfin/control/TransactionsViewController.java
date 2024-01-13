@@ -126,12 +126,9 @@ public class TransactionsViewController implements RouteSelectionListener {
         // Refresh account filter options.
         Profile.getCurrent().getDataSource().useRepoAsync(AccountRepository.class, repo -> {
             List<Account> accounts = repo.findAll(PageRequest.unpaged(Sort.asc("name"))).items();
-            accounts.add(null);
             Platform.runLater(() -> {
-                filterByAccountComboBox.getItems().clear();
-                filterByAccountComboBox.getItems().addAll(accounts);
-                filterByAccountComboBox.getSelectionModel().selectLast();
-                filterByAccountComboBox.getButtonCell().updateIndex(accounts.size() - 1);
+                filterByAccountComboBox.setAccounts(accounts);
+                filterByAccountComboBox.select(null);
             });
         });
 

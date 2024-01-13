@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -84,5 +85,22 @@ public class FileUtil {
                 )
         );
         return fileChooser;
+    }
+
+    public static byte[] getHash(Path path) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] buffer = new byte[4096];
+            try (var in = Files.newInputStream(path)) {
+                int count = in.read(buffer);
+                while (count != -1) {
+                    md.update(buffer, 0, count);
+                    count = in.read(buffer);
+                }
+            }
+            return md.digest();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
