@@ -45,7 +45,7 @@ public class TransactionViewController {
         amountLabel.setText(CurrencyUtil.formatMoney(transaction.getMoneyAmount()));
         timestampLabel.setText(DateUtil.formatUTCAsLocalWithZone(transaction.getTimestamp()));
         descriptionLabel.setText(transaction.getDescription());
-        Profile.getCurrent().getDataSource().useRepoAsync(TransactionRepository.class, repo -> {
+        Profile.getCurrent().dataSource().useRepoAsync(TransactionRepository.class, repo -> {
             CreditAndDebitAccounts accounts = repo.findLinkedAccounts(transaction.id);
             List<Attachment> attachments = repo.findAttachments(transaction.id);
             Platform.runLater(() -> {
@@ -81,7 +81,7 @@ public class TransactionViewController {
             "it's derived from the most recent balance-record, and transactions."
         );
         if (confirm) {
-            Profile.getCurrent().getDataSource().useRepo(TransactionRepository.class, repo -> repo.delete(transaction.id));
+            Profile.getCurrent().dataSource().useRepo(TransactionRepository.class, repo -> repo.delete(transaction.id));
             router.replace("transactions");
         }
     }

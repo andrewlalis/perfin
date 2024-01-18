@@ -3,7 +3,9 @@ package com.andrewlalis.perfin;
 import com.andrewlalis.javafx_scene_router.AnchorPaneRouterView;
 import com.andrewlalis.javafx_scene_router.SceneRouter;
 import com.andrewlalis.perfin.data.ProfileLoadException;
+import com.andrewlalis.perfin.data.impl.JdbcDataSourceFactory;
 import com.andrewlalis.perfin.model.Profile;
+import com.andrewlalis.perfin.model.ProfileLoader;
 import com.andrewlalis.perfin.view.ImageCache;
 import com.andrewlalis.perfin.view.SceneUtil;
 import com.andrewlalis.perfin.view.StartupSplashScreen;
@@ -29,6 +31,7 @@ public class PerfinApp extends Application {
     private static final Logger log = LoggerFactory.getLogger(PerfinApp.class);
     public static final Path APP_DIR = Path.of(System.getProperty("user.home", "."), ".perfin");
     public static PerfinApp instance;
+    public static ProfileLoader profileLoader;
 
     /**
      * The router that's used for navigating between different "pages" in the application.
@@ -48,6 +51,7 @@ public class PerfinApp extends Application {
     @Override
     public void start(Stage stage) {
         instance = this;
+        profileLoader = new ProfileLoader(stage, new JdbcDataSourceFactory());
         loadFonts();
         var splashScreen = new StartupSplashScreen(List.of(
                 PerfinApp::defineRoutes,
@@ -112,9 +116,10 @@ public class PerfinApp extends Application {
     }
 
     private static void loadLastUsedProfile(Consumer<String> msgConsumer) throws Exception {
-        msgConsumer.accept("Loading the most recent profile.");
+        String lastProfile = ProfileLoader.getLastProfile();
+        msgConsumer.accept("Loading the most recent profile: \"" + lastProfile + "\".");
         try {
-            Profile.loadLast();
+            Profile.setCurrent(profileLoader.load(lastProfile));
         } catch (ProfileLoadException e) {
             msgConsumer.accept("Failed to load the profile: " + e.getMessage());
             throw e;

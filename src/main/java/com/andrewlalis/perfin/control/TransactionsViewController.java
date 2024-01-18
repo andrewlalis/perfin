@@ -66,7 +66,7 @@ public class TransactionsViewController implements RouteSelectionListener {
                     @Override
                     public Page<? extends Node> fetchPage(PageRequest pagination) throws Exception {
                         Account accountFilter = filterByAccountComboBox.getValue();
-                        try (var repo = Profile.getCurrent().getDataSource().getTransactionRepository()) {
+                        try (var repo = Profile.getCurrent().dataSource().getTransactionRepository()) {
                             Page<Transaction> result;
                             if (accountFilter == null) {
                                 result = repo.findAll(pagination);
@@ -80,7 +80,7 @@ public class TransactionsViewController implements RouteSelectionListener {
                     @Override
                     public int getTotalCount() throws Exception {
                         Account accountFilter = filterByAccountComboBox.getValue();
-                        try (var repo = Profile.getCurrent().getDataSource().getTransactionRepository()) {
+                        try (var repo = Profile.getCurrent().dataSource().getTransactionRepository()) {
                             if (accountFilter == null) {
                                 return (int) repo.countAll();
                             } else {
@@ -124,7 +124,7 @@ public class TransactionsViewController implements RouteSelectionListener {
         transactionsVBox.getChildren().clear(); // Clear the transactions before reload initially.
 
         // Refresh account filter options.
-        Profile.getCurrent().getDataSource().useRepoAsync(AccountRepository.class, repo -> {
+        Profile.getCurrent().dataSource().useRepoAsync(AccountRepository.class, repo -> {
             List<Account> accounts = repo.findAll(PageRequest.unpaged(Sort.asc("name"))).items();
             Platform.runLater(() -> {
                 filterByAccountComboBox.setAccounts(accounts);
@@ -135,7 +135,7 @@ public class TransactionsViewController implements RouteSelectionListener {
 
         // If a transaction id is given in the route context, navigate to the page it's on and select it.
         if (context instanceof RouteContext ctx && ctx.selectedTransactionId != null) {
-            Profile.getCurrent().getDataSource().useRepoAsync(TransactionRepository.class, repo -> {
+            Profile.getCurrent().dataSource().useRepoAsync(TransactionRepository.class, repo -> {
                 repo.findById(ctx.selectedTransactionId).ifPresent(tx -> {
                     long offset = repo.countAllAfter(tx.id);
                     int pageNumber = (int) (offset / paginationControls.getItemsPerPage()) + 1;
@@ -161,7 +161,7 @@ public class TransactionsViewController implements RouteSelectionListener {
         File file = fileChooser.showSaveDialog(detailPanel.getScene().getWindow());
         if (file != null) {
             try (
-                    var repo = Profile.getCurrent().getDataSource().getTransactionRepository();
+                    var repo = Profile.getCurrent().dataSource().getTransactionRepository();
                     var out = new PrintWriter(file, StandardCharsets.UTF_8)
             ) {
                 out.println("id,utc-timestamp,amount,currency,description");

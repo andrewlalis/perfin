@@ -106,8 +106,8 @@ public class EditAccountController implements RouteSelectionListener {
     @FXML
     public void save() {
         try (
-                var accountRepo = Profile.getCurrent().getDataSource().getAccountRepository();
-                var balanceRepo = Profile.getCurrent().getDataSource().getBalanceRecordRepository()
+                var accountRepo = Profile.getCurrent().dataSource().getAccountRepository();
+                var balanceRepo = Profile.getCurrent().dataSource().getBalanceRecordRepository()
         ) {
             if (creatingNewAccount.get()) {
                 String name = accountNameField.getText().strip();

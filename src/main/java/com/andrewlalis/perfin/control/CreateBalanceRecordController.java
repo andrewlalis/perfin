@@ -60,7 +60,7 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
                 return;
             }
             BigDecimal reportedBalance = new BigDecimal(newValue);
-            Profile.getCurrent().getDataSource().useRepoAsync(AccountRepository.class, repo -> {
+            Profile.getCurrent().dataSource().useRepoAsync(AccountRepository.class, repo -> {
                 BigDecimal derivedBalance = repo.deriveCurrentBalance(account.id);
                 Platform.runLater(() -> balanceWarningLabel.visibleProperty().set(
                         !reportedBalance.setScale(derivedBalance.scale(), RoundingMode.HALF_UP).equals(derivedBalance)
@@ -76,7 +76,7 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
     public void onRouteSelected(Object context) {
         this.account = (Account) context;
         timestampField.setText(LocalDateTime.now().format(DateUtil.DEFAULT_DATETIME_FORMAT));
-        Profile.getCurrent().getDataSource().useRepoAsync(AccountRepository.class, repo -> {
+        Profile.getCurrent().dataSource().useRepoAsync(AccountRepository.class, repo -> {
             BigDecimal value = repo.deriveCurrentBalance(account.id);
             Platform.runLater(() -> balanceField.setText(
                     CurrencyUtil.formatMoneyAsBasicNumber(new MoneyValue(value, account.getCurrency()))
@@ -95,7 +95,7 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
                 localTimestamp.atZone(ZoneId.systemDefault()).format(DateUtil.DEFAULT_DATETIME_FORMAT_WITH_ZONE)
         ));
         if (confirm && confirmIfInconsistentBalance(reportedBalance)) {
-            Profile.getCurrent().getDataSource().useRepo(BalanceRecordRepository.class, repo -> {
+            Profile.getCurrent().dataSource().useRepo(BalanceRecordRepository.class, repo -> {
                 repo.insert(
                         DateUtil.localToUTC(localTimestamp),
                         account.id,
@@ -113,7 +113,7 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
     }
 
     private boolean confirmIfInconsistentBalance(BigDecimal reportedBalance) {
-        BigDecimal currentDerivedBalance = Profile.getCurrent().getDataSource().mapRepo(
+        BigDecimal currentDerivedBalance = Profile.getCurrent().dataSource().mapRepo(
                 AccountRepository.class,
                 repo -> repo.deriveCurrentBalance(account.id)
         );

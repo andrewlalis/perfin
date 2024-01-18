@@ -1,6 +1,7 @@
 package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.DataSource;
+import com.andrewlalis.perfin.data.DataSourceFactory;
 import com.andrewlalis.perfin.data.ProfileLoadException;
 import com.andrewlalis.perfin.data.impl.migration.Migration;
 import com.andrewlalis.perfin.data.impl.migration.Migrations;
@@ -23,7 +24,7 @@ import java.util.List;
 /**
  * Component that's responsible for obtaining a JDBC data source for a profile.
  */
-public class JdbcDataSourceFactory {
+public class JdbcDataSourceFactory implements DataSourceFactory {
     private static final Logger log = LoggerFactory.getLogger(JdbcDataSourceFactory.class);
 
     /**
@@ -57,6 +58,13 @@ public class JdbcDataSourceFactory {
             }
         }
         return new JdbcDataSource(getJdbcUrl(profileName), Profile.getContentDir(profileName));
+    }
+
+    public SchemaStatus getSchemaStatus(String profileName) throws IOException {
+        int existingSchemaVersion = getSchemaVersion(profileName);
+        if (existingSchemaVersion == SCHEMA_VERSION) return SchemaStatus.UP_TO_DATE;
+        if (existingSchemaVersion < SCHEMA_VERSION) return SchemaStatus.NEEDS_MIGRATION;
+        return SchemaStatus.INCOMPATIBLE;
     }
 
     private void createNewDatabase(String profileName) throws ProfileLoadException {

@@ -81,7 +81,7 @@ public class AccountTile extends BorderPane {
         Label balanceLabel = new Label("Computing balance...");
         balanceLabel.getStyleClass().addAll("mono-font");
         balanceLabel.setDisable(true);
-        Profile.getCurrent().getDataSource().useRepoAsync(AccountRepository.class, repo -> {
+        Profile.getCurrent().dataSource().useRepoAsync(AccountRepository.class, repo -> {
             BigDecimal balance = repo.deriveCurrentBalance(account.id);
             String text = CurrencyUtil.formatMoney(new MoneyValue(balance, account.getCurrency()));
             Platform.runLater(() -> {

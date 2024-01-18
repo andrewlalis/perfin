@@ -64,7 +64,7 @@ public class AccountViewController implements RouteSelectionListener {
         accountNumberLabel.setText(account.getAccountNumber());
         accountCurrencyLabel.setText(account.getCurrency().getDisplayName());
         accountCreatedAtLabel.setText(DateUtil.formatUTCAsLocalWithZone(account.getCreatedAt()));
-        Profile.getCurrent().getDataSource().getAccountBalanceText(account)
+        Profile.getCurrent().dataSource().getAccountBalanceText(account)
                 .thenAccept(accountBalanceLabel::setText);
 
         reloadHistory();
@@ -96,7 +96,7 @@ public class AccountViewController implements RouteSelectionListener {
                         "later if you need to."
         );
         if (confirmResult) {
-            Profile.getCurrent().getDataSource().useRepo(AccountRepository.class, repo -> repo.archive(account.id));
+            Profile.getCurrent().dataSource().useRepo(AccountRepository.class, repo -> repo.archive(account.id));
             router.replace("accounts");
         }
     }
@@ -107,7 +107,7 @@ public class AccountViewController implements RouteSelectionListener {
                         "status?"
         );
         if (confirm) {
-            Profile.getCurrent().getDataSource().useRepo(AccountRepository.class, repo -> repo.unarchive(account.id));
+            Profile.getCurrent().dataSource().useRepo(AccountRepository.class, repo -> repo.unarchive(account.id));
             router.replace("accounts");
         }
     }
@@ -122,13 +122,13 @@ public class AccountViewController implements RouteSelectionListener {
                         "want to hide it."
         );
         if (confirm) {
-            Profile.getCurrent().getDataSource().useRepo(AccountRepository.class, repo -> repo.delete(account));
+            Profile.getCurrent().dataSource().useRepo(AccountRepository.class, repo -> repo.delete(account));
             router.replace("accounts");
         }
     }
 
     @FXML public void loadMoreHistory() {
-        Profile.getCurrent().getDataSource().useRepoAsync(AccountHistoryItemRepository.class, repo -> {
+        Profile.getCurrent().dataSource().useRepoAsync(AccountHistoryItemRepository.class, repo -> {
             List<AccountHistoryItem> historyItems = repo.findMostRecentForAccount(
                     account.id,
                     loadHistoryFrom,

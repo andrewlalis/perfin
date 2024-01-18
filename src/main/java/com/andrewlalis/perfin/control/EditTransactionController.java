@@ -111,7 +111,7 @@ public class EditTransactionController implements RouteSelectionListener {
         List<Attachment> existingAttachments = attachmentsSelectionArea.getSelectedAttachments();
         final long idToNavigate;
         if (transaction == null) {
-            idToNavigate = Profile.getCurrent().getDataSource().mapRepo(
+            idToNavigate = Profile.getCurrent().dataSource().mapRepo(
                 TransactionRepository.class,
                 repo -> repo.insert(
                     utcTimestamp,
@@ -123,7 +123,7 @@ public class EditTransactionController implements RouteSelectionListener {
                 )
             );
         } else {
-            Profile.getCurrent().getDataSource().useRepo(
+            Profile.getCurrent().dataSource().useRepo(
                 TransactionRepository.class,
                 repo -> repo.update(
                         transaction.id,
@@ -165,8 +165,8 @@ public class EditTransactionController implements RouteSelectionListener {
         container.setDisable(true);
         Thread.ofVirtual().start(() -> {
             try (
-                    var accountRepo = Profile.getCurrent().getDataSource().getAccountRepository();
-                    var transactionRepo = Profile.getCurrent().getDataSource().getTransactionRepository()
+                    var accountRepo = Profile.getCurrent().dataSource().getAccountRepository();
+                    var transactionRepo = Profile.getCurrent().dataSource().getTransactionRepository()
             ) {
                 // First fetch all the data.
                 List<Currency> currencies = accountRepo.findAllUsedCurrencies().stream()

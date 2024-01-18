@@ -110,7 +110,7 @@ public class AccountSelectionBox extends ComboBox<Account> {
 
             nameLabel.setText(item.getName() + " (" + item.getAccountNumberSuffix() + ")");
             if (showBalanceProp.get()) {
-                Profile.getCurrent().getDataSource().useRepoAsync(AccountRepository.class, repo -> {
+                Profile.getCurrent().dataSource().useRepoAsync(AccountRepository.class, repo -> {
                     BigDecimal balance = repo.deriveCurrentBalance(item.id);
                     Platform.runLater(() -> {
                         balanceLabel.setText(CurrencyUtil.formatMoney(new MoneyValue(balance, item.getCurrency())));
