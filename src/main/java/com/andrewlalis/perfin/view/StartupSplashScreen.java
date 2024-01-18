@@ -9,6 +9,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 /**
@@ -60,6 +61,10 @@ public class StartupSplashScreen extends Stage implements Consumer<String> {
         return scene;
     }
 
+    /**
+     * Runs all tasks sequentially, invoking each one on the JavaFX main thread,
+     * and quitting if there's any exception thrown.
+     */
     private void runTasks() {
         Thread.ofVirtual().start(() -> {
             try {
@@ -69,7 +74,16 @@ public class StartupSplashScreen extends Stage implements Consumer<String> {
             }
             for (var task : tasks) {
                 try {
-                    task.accept(this);
+                    CompletableFuture<Void> future = new CompletableFuture<>();
+                    Platform.runLater(() -> {
+                        try {
+                            task.accept(this);
+                            future.complete(null);
+                        } catch (Exception e) {
+                            future.completeExceptionally(e);
+                        }
+                    });
+                    future.join();
                     Thread.sleep(500);
                 } catch (Exception e) {
                     accept("Startup failed: " + e.getMessage());

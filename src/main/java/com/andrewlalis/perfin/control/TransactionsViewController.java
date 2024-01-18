@@ -177,7 +177,7 @@ public class TransactionsViewController implements RouteSelectionListener {
                     ));
                 }
             } catch (Exception e) {
-                Popups.error("An error occurred: " + e.getMessage());
+                Popups.error(transactionsListBorderPane, e);
             }
         }
     }

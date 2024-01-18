@@ -28,6 +28,10 @@ import java.util.function.Consumer;
  *     class maintains a static <em>current</em> profile that can be loaded and
  *     unloaded.
  * </p>
+ *
+ * @param name The name of the profile.
+ * @param settings The profile's settings.
+ * @param dataSource The profile's data source.
  */
 public record Profile(String name, Properties settings, DataSource dataSource) {
     private static final Logger log = LoggerFactory.getLogger(Profile.class);
@@ -65,6 +69,7 @@ public record Profile(String name, Properties settings, DataSource dataSource) {
             }
         }
         currentProfileListeners.removeIf(ref -> ref.get() == null);
+        log.debug("Current profile set to {}.", current.name());
     }
 
     public static void whenLoaded(Consumer<Profile> consumer) {

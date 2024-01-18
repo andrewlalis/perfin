@@ -72,6 +72,7 @@ public class TransactionViewController {
 
     @FXML public void deleteTransaction() {
         boolean confirm = Popups.confirm(
+            titleLabel,
             "Are you sure you want to delete this transaction? This will " +
             "permanently remove the transaction and its effects on any linked " +
             "accounts, as well as remove any attachments from storage within " +

@@ -1,6 +1,7 @@
 package com.andrewlalis.perfin.model;
 
 import com.andrewlalis.perfin.PerfinApp;
+import com.andrewlalis.perfin.control.Popups;
 import com.andrewlalis.perfin.data.DataSourceFactory;
 import com.andrewlalis.perfin.data.ProfileLoadException;
 import com.andrewlalis.perfin.data.util.FileUtil;
@@ -43,6 +44,21 @@ public class ProfileLoader {
         } catch (IOException e) {
             throw new ProfileLoadException("Failed to load profile settings.", e);
         }
+        try {
+            DataSourceFactory.SchemaStatus status = dataSourceFactory.getSchemaStatus(name);
+            if (status == DataSourceFactory.SchemaStatus.NEEDS_MIGRATION) {
+                boolean confirm = Popups.confirm(window, "The profile \"" + name + "\" has an outdated data schema and needs to be migrated to the latest version. Is this okay?");
+                if (!confirm) {
+                    throw new ProfileLoadException("User rejected migration.");
+                }
+            } else if (status == DataSourceFactory.SchemaStatus.INCOMPATIBLE) {
+                Popups.error(window, "The profile \"" + name + "\" has a data schema that's incompatible with this app.");
+                throw new ProfileLoadException("Incompatible schema version.");
+            }
+        } catch (IOException e) {
+            throw new ProfileLoadException("Failed to get profile's schema status.", e);
+        }
+        Popups.message(window, "Test!");
         return new Profile(name, settings, dataSourceFactory.getDataSource(name));
     }
 

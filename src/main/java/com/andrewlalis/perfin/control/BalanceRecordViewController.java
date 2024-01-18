@@ -48,7 +48,10 @@ public class BalanceRecordViewController implements RouteSelectionListener {
     }
 
     @FXML public void delete() {
-        boolean confirm = Popups.confirm("Are you sure you want to delete this balance record? This may have an effect on the derived balance of your account, as shown in Perfin.");
+        boolean confirm = Popups.confirm(
+                titleLabel,
+                "Are you sure you want to delete this balance record? This may have an effect on the derived balance of your account, as shown in Perfin."
+        );
         if (confirm) {
             Profile.getCurrent().dataSource().useRepo(BalanceRecordRepository.class, repo -> repo.deleteById(balanceRecord.id));
             router.navigateBackAndClear();

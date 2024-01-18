@@ -46,10 +46,10 @@ public class ProfilesViewController {
         String name = newProfileNameField.getText();
         boolean valid = Profile.validateName(name);
         if (valid && !ProfileLoader.getAvailableProfiles().contains(name)) {
-            boolean confirm = Popups.confirm("Are you sure you want to add a new profile named \"" + name + "\"?");
+            boolean confirm = Popups.confirm(profilesVBox, "Are you sure you want to add a new profile named \"" + name + "\"?");
             if (confirm) {
                 if (openProfile(name, false)) {
-                    Popups.message("Created new profile \"" + name + "\" and loaded it.");
+                    Popups.message(profilesVBox, "Created new profile \"" + name + "\" and loaded it.");
                 }
                 newProfileNameField.clear();
             }
@@ -108,18 +108,18 @@ public class ProfilesViewController {
             PerfinApp.profileLoader.load(name);
             ProfilesStage.closeView();
             router.replace("accounts");
-            if (showPopup) Popups.message("The profile \"" + name + "\" has been loaded.");
+            if (showPopup) Popups.message(profilesVBox, "The profile \"" + name + "\" has been loaded.");
             return true;
         } catch (ProfileLoadException e) {
-            Popups.error("Failed to load the profile: " + e.getMessage());
+            Popups.error(profilesVBox, "Failed to load the profile: " + e.getMessage());
             return false;
         }
     }
 
     private void deleteProfile(String name) {
-        boolean confirmA = Popups.confirm("Are you sure you want to delete the profile \"" + name + "\"? This will permanently delete ALL accounts, transactions, files, and other data for this profile, and it cannot be recovered.");
+        boolean confirmA = Popups.confirm(profilesVBox, "Are you sure you want to delete the profile \"" + name + "\"? This will permanently delete ALL accounts, transactions, files, and other data for this profile, and it cannot be recovered.");
         if (confirmA) {
-            boolean confirmB = Popups.confirm("Press \"OK\" to confirm that you really want to delete the profile \"" + name + "\". There's no going back.");
+            boolean confirmB = Popups.confirm(profilesVBox, "Press \"OK\" to confirm that you really want to delete the profile \"" + name + "\". There's no going back.");
             if (confirmB) {
                 try {
                     FileUtil.deleteDirRecursive(Profile.getDir(name));

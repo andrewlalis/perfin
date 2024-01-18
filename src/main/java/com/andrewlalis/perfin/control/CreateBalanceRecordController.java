@@ -89,7 +89,7 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
         LocalDateTime localTimestamp = LocalDateTime.parse(timestampField.getText(), DateUtil.DEFAULT_DATETIME_FORMAT);
         BigDecimal reportedBalance = new BigDecimal(balanceField.getText());
 
-        boolean confirm = Popups.confirm("Are you sure that you want to record the balance of account\n%s\nas %s,\nas of %s?".formatted(
+        boolean confirm = Popups.confirm(timestampField, "Are you sure that you want to record the balance of account\n%s\nas %s,\nas of %s?".formatted(
                 account.getShortName(),
                 CurrencyUtil.formatMoneyWithCurrencyPrefix(new MoneyValue(reportedBalance, account.getCurrency())),
                 localTimestamp.atZone(ZoneId.systemDefault()).format(DateUtil.DEFAULT_DATETIME_FORMAT_WITH_ZONE)
@@ -122,7 +122,7 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
                     CurrencyUtil.formatMoney(new MoneyValue(reportedBalance, account.getCurrency())),
                     CurrencyUtil.formatMoney(new MoneyValue(currentDerivedBalance, account.getCurrency()))
             );
-            return Popups.confirm(msg);
+            return Popups.confirm(timestampField, msg);
         }
         return true;
     }

@@ -203,7 +203,7 @@ public class EditTransactionController implements RouteSelectionListener {
                 });
             } catch (Exception e) {
                 log.error("Failed to get repositories.", e);
-                Popups.error("Failed to fetch account-specific data: " + e.getMessage());
+                Popups.error(container, "Failed to fetch account-specific data: " + e.getMessage());
             }
         });
     }

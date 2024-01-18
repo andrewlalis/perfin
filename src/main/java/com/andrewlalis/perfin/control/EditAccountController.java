@@ -117,7 +117,7 @@ public class EditAccountController implements RouteSelectionListener {
                 BigDecimal initialBalance = new BigDecimal(initialBalanceField.getText().strip());
                 List<Path> attachments = Collections.emptyList();
 
-                boolean success = Popups.confirm("Are you sure you want to create this account?");
+                boolean success = Popups.confirm(accountNameField, "Are you sure you want to create this account?");
                 if (success) {
                     long id = accountRepo.insert(type, number, name, currency);
                     balanceRepo.insert(LocalDateTime.now(ZoneOffset.UTC), id, initialBalance, currency, attachments);
@@ -138,7 +138,7 @@ public class EditAccountController implements RouteSelectionListener {
             }
         } catch (Exception e) {
             log.error("Failed to save (or update) account " + account.id, e);
-            Popups.error("Failed to save the account: " + e.getMessage());
+            Popups.error(accountNameField, "Failed to save the account: " + e.getMessage());
         }
     }
 

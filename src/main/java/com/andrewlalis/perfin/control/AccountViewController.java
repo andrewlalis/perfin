@@ -89,6 +89,7 @@ public class AccountViewController implements RouteSelectionListener {
     @FXML
     public void archiveAccount() {
         boolean confirmResult = Popups.confirm(
+                titleLabel,
                 "Are you sure you want to archive this account? It will no " +
                         "longer show up in the app normally, and you won't be " +
                         "able to add new transactions to it. You'll still be " +
@@ -103,6 +104,7 @@ public class AccountViewController implements RouteSelectionListener {
 
     @FXML public void unarchiveAccount() {
         boolean confirm = Popups.confirm(
+                titleLabel,
                 "Are you sure you want to restore this account from its archived " +
                         "status?"
         );
@@ -115,6 +117,7 @@ public class AccountViewController implements RouteSelectionListener {
     @FXML
     public void deleteAccount() {
         boolean confirm = Popups.confirm(
+                titleLabel,
                 "Are you sure you want to permanently delete this account and " +
                         "all data directly associated with it? This cannot be " +
                         "undone; deleted accounts are not recoverable at all. " +
