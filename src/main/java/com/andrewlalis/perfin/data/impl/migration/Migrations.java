@@ -34,4 +34,14 @@ public class Migrations {
         }
         return selectedMigration;
     }
+
+    public static Map<Integer, String> getSchemaVersionCompatibility() {
+        final Map<Integer, String> compatibilities = new HashMap<>();
+        compatibilities.put(1, "1.4.0");
+        return compatibilities;
+    }
+
+    public static String getLatestCompatibleVersion(int schemaVersion) {
+        return getSchemaVersionCompatibility().get(schemaVersion);
+    }
 }

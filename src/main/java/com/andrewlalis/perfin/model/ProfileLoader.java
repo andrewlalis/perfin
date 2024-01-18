@@ -4,6 +4,7 @@ import com.andrewlalis.perfin.PerfinApp;
 import com.andrewlalis.perfin.control.Popups;
 import com.andrewlalis.perfin.data.DataSourceFactory;
 import com.andrewlalis.perfin.data.ProfileLoadException;
+import com.andrewlalis.perfin.data.impl.migration.Migrations;
 import com.andrewlalis.perfin.data.util.FileUtil;
 import javafx.stage.Window;
 import org.slf4j.Logger;
@@ -18,6 +19,10 @@ import java.util.Properties;
 
 import static com.andrewlalis.perfin.data.util.FileUtil.copyResourceFile;
 
+/**
+ * Component responsible for loading a profile from storage, as well as some
+ * other basic tasks concerning the set of stored profiles.
+ */
 public class ProfileLoader {
     private static final Logger log = LoggerFactory.getLogger(ProfileLoader.class);
 
@@ -49,16 +54,21 @@ public class ProfileLoader {
             if (status == DataSourceFactory.SchemaStatus.NEEDS_MIGRATION) {
                 boolean confirm = Popups.confirm(window, "The profile \"" + name + "\" has an outdated data schema and needs to be migrated to the latest version. Is this okay?");
                 if (!confirm) {
-                    throw new ProfileLoadException("User rejected migration.");
+                    int existingSchemaVersion = dataSourceFactory.getSchemaVersion(name);
+                    String compatibleVersion = Migrations.getLatestCompatibleVersion(existingSchemaVersion);
+                    Popups.message(
+                            window,
+                            "The profile \"" + name + "\" is using schema version " + existingSchemaVersion + ", which is compatible with Perfin version " + compatibleVersion + ". Consider downgrading Perfin to access this profile safely."
+                    );
+                    throw new ProfileLoadException("User rejected the migration.");
                 }
             } else if (status == DataSourceFactory.SchemaStatus.INCOMPATIBLE) {
-                Popups.error(window, "The profile \"" + name + "\" has a data schema that's incompatible with this app.");
+                Popups.error(window, "The profile \"" + name + "\" has a data schema that's incompatible with this app. Update Perfin to access this profile safely.");
                 throw new ProfileLoadException("Incompatible schema version.");
             }
         } catch (IOException e) {
             throw new ProfileLoadException("Failed to get profile's schema status.", e);
         }
-        Popups.message(window, "Test!");
         return new Profile(name, settings, dataSourceFactory.getDataSource(name));
     }
 

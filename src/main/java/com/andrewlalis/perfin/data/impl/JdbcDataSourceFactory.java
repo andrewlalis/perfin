@@ -176,7 +176,7 @@ public class JdbcDataSourceFactory implements DataSourceFactory {
         return Profile.getDir(profileName).resolve(".jdbc-schema-version.txt");
     }
 
-    private static int getSchemaVersion(String profileName) throws IOException {
+    public int getSchemaVersion(String profileName) throws IOException {
         if (Files.exists(getSchemaVersionFile(profileName))) {
             try {
                 return Integer.parseInt(Files.readString(getSchemaVersionFile(profileName)).strip());

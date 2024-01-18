@@ -16,4 +16,6 @@ public interface DataSourceFactory {
         INCOMPATIBLE
     }
     SchemaStatus getSchemaStatus(String profileName) throws IOException;
+
+    int getSchemaVersion(String profileName) throws IOException;
 }
