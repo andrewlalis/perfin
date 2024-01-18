@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.function.Consumer;
 
+import static com.andrewlalis.perfin.data.util.FileUtil.copyResourceFile;
+
 /**
  * A profile is essentially a complete set of data that the application can
  * operate on, sort of like a save file or user account. The profile contains
@@ -151,16 +153,6 @@ public class Profile {
         copyResourceFile("/text/defaultProfileSettings.properties", getSettingsFile(name));
         Files.createDirectory(getContentDir(name));
         copyResourceFile("/text/contentDirReadme.txt", getContentDir(name).resolve("README.txt"));
-    }
-
-    private static void copyResourceFile(String resource, Path dest) throws IOException {
-        try (
-                var in = Profile.class.getResourceAsStream(resource);
-                var out = Files.newOutputStream(dest)
-        ) {
-            if (in == null) throw new IOException("Could not load resource " + resource);
-            in.transferTo(out);
-        }
     }
 
     public static boolean validateName(String name) {

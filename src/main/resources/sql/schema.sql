@@ -8,20 +8,51 @@ CREATE TABLE account (
     currency VARCHAR(3) NOT NULL
 );
 
-CREATE TABLE transaction (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    timestamp TIMESTAMP NOT NULL,
-    amount NUMERIC(12, 4) NOT NULL,
-    currency VARCHAR(3) NOT NULL,
-    description VARCHAR(255) NULL
-);
-
 CREATE TABLE attachment (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     uploaded_at TIMESTAMP NOT NULL,
     identifier VARCHAR(63) NOT NULL UNIQUE,
     filename VARCHAR(255) NOT NULL,
     content_type VARCHAR(255) NOT NULL
+);
+
+/* TRANSACTION ENTITIES */
+
+CREATE TABLE transaction_vendor (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    description VARCHAR(255)
+);
+
+CREATE TABLE transaction_category (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    parent_id BIGINT DEFAULT NULL,
+    name VARCHAR(63) NOT NULL UNIQUE,
+    color VARCHAR(6) NOT NULL DEFAULT 'FFFFFF',
+    CONSTRAINT fk_transaction_category_parent
+        FOREIGN KEY (parent_id) REFERENCES transaction_category(id)
+            ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE transaction_tag (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(63) NOT NULL UNIQUE
+);
+
+CREATE TABLE transaction (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    timestamp TIMESTAMP NOT NULL,
+    amount NUMERIC(12, 4) NOT NULL,
+    currency VARCHAR(3) NOT NULL,
+    description VARCHAR(255) NULL,
+    vendor_id BIGINT DEFAULT NULL,
+    category_id BIGINT DEFAULT NULL,
+    CONSTRAINT fk_transaction_vendor
+        FOREIGN KEY (vendor_id) REFERENCES transaction_vendor(id)
+            ON UPDATE CASCADE ON DELETE SET NULL,
+    CONSTRAINT fk_transaction_category
+        FOREIGN KEY (category_id) REFERENCES transaction_category(id)
+            ON UPDATE CASCADE ON DELETE SET NULL
 );
 
 CREATE TABLE account_entry (
@@ -51,6 +82,34 @@ CREATE TABLE transaction_attachment (
         FOREIGN KEY (attachment_id) REFERENCES attachment(id)
             ON UPDATE CASCADE ON DELETE CASCADE
 );
+
+CREATE TABLE transaction_tag_join (
+    transaction_id BIGINT NOT NULL,
+    tag_id BIGINT NOT NULL,
+    PRIMARY KEY (transaction_id, tag_id),
+    CONSTRAINT fk_transaction_tag_join_transaction
+        FOREIGN KEY (transaction_id) REFERENCES transaction(id)
+            ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT fk_transaction_tag_join_tag
+        FOREIGN KEY (tag_id) REFERENCES transaction_tag(id)
+            ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE transaction_line_item (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    transaction_id BIGINT NOT NULL,
+    value_per_item NUMERIC(12, 4) NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    idx INT NOT NULL DEFAULT 0,
+    description VARCHAR(255) NOT NULL,
+    CONSTRAINT fk_transaction_line_item_transaction
+        FOREIGN KEY (transaction_id) REFERENCES transaction(id)
+            ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT ck_transaction_line_item_quantity_positive
+        CHECK quantity > 0
+);
+
+/* BALANCE RECORD ENTITIES */
 
 CREATE TABLE balance_record (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
