@@ -58,6 +58,17 @@ public final class DbUtil {
         return findAll(conn, query, pagination, Collections.emptyList(), mapper);
     }
 
+    public static long count(Connection conn, String query, Object... args) {
+        try (var stmt = conn.prepareStatement(query)) {
+            setArgs(stmt, args);
+            var rs = stmt.executeQuery();
+            if (!rs.next()) throw new UncheckedSqlException("No count result available.");
+            return rs.getLong(1);
+        } catch (SQLException e) {
+            throw new UncheckedSqlException(e);
+        }
+    }
+
     public static <T> Optional<T> findOne(Connection conn, String query, List<Object> args, ResultSetMapper<T> mapper) {
         try (var stmt = conn.prepareStatement(query)) {
             setArgs(stmt, args);
@@ -82,6 +93,10 @@ public final class DbUtil {
         }
     }
 
+    public static int update(Connection conn, String query, Object... args) {
+        return update(conn, query, List.of(args));
+    }
+
     public static void updateOne(Connection conn, String query, List<Object> args) {
         try (var stmt = conn.prepareStatement(query)) {
             setArgs(stmt, args);
@@ -92,17 +107,25 @@ public final class DbUtil {
         }
     }
 
+    public static void updateOne(Connection conn, String query, Object... args) {
+        updateOne(conn, query, List.of(args));
+    }
+
     public static long insertOne(Connection conn, String query, List<Object> args) {
         try (var stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             setArgs(stmt, args);
             int result = stmt.executeUpdate();
             if (result != 1) throw new UncheckedSqlException("Insert query did not update 1 row.");
             var rs = stmt.getGeneratedKeys();
-            rs.next();
+            if (!rs.next()) throw new UncheckedSqlException("Insert query did not generate any keys.");
             return rs.getLong(1);
         } catch (SQLException e) {
             throw new UncheckedSqlException(e);
         }
+    }
+
+    public static long insertOne(Connection conn, String query, Object... args) {
+        return insertOne(conn, query, List.of(args));
     }
 
     public static Timestamp timestampFromUtcLDT(LocalDateTime utc) {

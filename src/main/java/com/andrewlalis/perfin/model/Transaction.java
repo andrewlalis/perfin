@@ -17,13 +17,17 @@ public class Transaction extends IdEntity {
     private final BigDecimal amount;
     private final Currency currency;
     private final String description;
+    private final Long vendorId;
+    private final Long categoryId;
 
-    public Transaction(long id, LocalDateTime timestamp, BigDecimal amount, Currency currency, String description) {
+    public Transaction(long id, LocalDateTime timestamp, BigDecimal amount, Currency currency, String description, Long vendorId, Long categoryId) {
         super(id);
         this.timestamp = timestamp;
         this.amount = amount;
         this.currency = currency;
         this.description = description;
+        this.vendorId = vendorId;
+        this.categoryId = categoryId;
     }
 
     public LocalDateTime getTimestamp() {
@@ -40,6 +44,14 @@ public class Transaction extends IdEntity {
 
     public String getDescription() {
         return description;
+    }
+
+    public Long getVendorId() {
+        return vendorId;
+    }
+
+    public Long getCategoryId() {
+        return categoryId;
     }
 
     public MoneyValue getMoneyAmount() {

@@ -58,7 +58,7 @@ public class PerfinApp extends Application {
                 PerfinApp::initAppDir,
                 c -> initMainScreen(stage, c),
                 PerfinApp::loadLastUsedProfile
-        ));
+        ), false);
         splashScreen.showAndWait();
         if (splashScreen.isStartupSuccessful()) {
             stage.show();

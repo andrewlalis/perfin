@@ -106,6 +106,7 @@ public class ProfilesViewController {
         log.info("Opening profile \"{}\".", name);
         try {
             Profile.setCurrent(PerfinApp.profileLoader.load(name));
+            ProfileLoader.saveLastProfile(name);
             ProfilesStage.closeView();
             router.replace("accounts");
             if (showPopup) Popups.message(profilesVBox, "The profile \"" + name + "\" has been loaded.");

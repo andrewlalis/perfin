@@ -8,14 +8,14 @@ import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.data.util.DbUtil;
+import com.andrewlalis.perfin.data.util.UncheckedSqlException;
 import com.andrewlalis.perfin.model.*;
+import javafx.scene.paint.Color;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Path;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,27 +28,102 @@ public record JdbcTransactionRepository(Connection conn, Path contentDir) implem
             Currency currency,
             String description,
             CreditAndDebitAccounts linkedAccounts,
+            String vendor,
+            String category,
+            Set<String> tags,
             List<Path> attachments
     ) {
         return DbUtil.doTransaction(conn, () -> {
-            // 1. Insert the transaction.
-            long txId = DbUtil.insertOne(
-                    conn,
-                    "INSERT INTO transaction (timestamp, amount, currency, description) VALUES (?, ?, ?, ?)",
-                    List.of(DbUtil.timestampFromUtcLDT(utcTimestamp), amount, currency.getCurrencyCode(), description)
-            );
-            // 2. Insert linked account entries.
+            Long vendorId = null;
+            if (vendor != null && !vendor.isBlank()) {
+                vendorId = getOrCreateVendorId(vendor.strip());
+            }
+            Long categoryId = null;
+            if (category != null && !category.isBlank()) {
+                categoryId = getOrCreateCategoryId(category.strip());
+            }
+            // Insert the transaction, using a custom JDBC statement to deal with nullables.
+            long txId;
+            try (var stmt = conn.prepareStatement(
+                    "INSERT INTO transaction (timestamp, amount, currency, description, vendor_id, category_id) VALUES (?, ?, ?, ?, ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS
+            )) {
+                stmt.setTimestamp(1, DbUtil.timestampFromUtcLDT(utcTimestamp));
+                stmt.setBigDecimal(2, amount);
+                stmt.setString(3, currency.getCurrencyCode());
+                if (description != null && !description.isBlank()) {
+                    stmt.setString(4, description.strip());
+                } else {
+                    stmt.setNull(4, Types.VARCHAR);
+                }
+                if (vendorId != null) {
+                    stmt.setLong(5, vendorId);
+                } else {
+                    stmt.setNull(5, Types.BIGINT);
+                }
+                if (categoryId != null) {
+                    stmt.setLong(6, categoryId);
+                } else {
+                    stmt.setNull(6, Types.BIGINT);
+                }
+                int result = stmt.executeUpdate();
+                if (result != 1) throw new UncheckedSqlException("Transaction insert returned " + result);
+                var rs = stmt.getGeneratedKeys();
+                if (!rs.next()) throw new UncheckedSqlException("Transaction insert didn't generate any keys.");
+                txId = rs.getLong(1);
+            }
+            // Insert linked account entries.
             AccountEntryRepository accountEntryRepository = new JdbcAccountEntryRepository(conn);
             linkedAccounts.ifDebit(acc -> accountEntryRepository.insert(utcTimestamp, acc.id, txId, amount, AccountEntry.Type.DEBIT, currency));
             linkedAccounts.ifCredit(acc -> accountEntryRepository.insert(utcTimestamp, acc.id, txId, amount, AccountEntry.Type.CREDIT, currency));
-            // 3. Add attachments.
+            // Add attachments.
             AttachmentRepository attachmentRepo = new JdbcAttachmentRepository(conn, contentDir);
             for (Path attachmentPath : attachments) {
                 Attachment attachment = attachmentRepo.insert(attachmentPath);
                 insertAttachmentLink(txId, attachment.id);
             }
+            // Add tags.
+            for (String tag : tags) {
+                try (var stmt = conn.prepareStatement("INSERT INTO transaction_tag_join (transaction_id, tag_id) VALUES (?, ?)")) {
+                    long tagId = getOrCreateTagId(tag.toLowerCase().strip());
+                    stmt.setLong(1, txId);
+                    stmt.setLong(2, tagId);
+                    stmt.executeUpdate();
+                }
+
+            }
             return txId;
         });
+    }
+
+    private long getOrCreateVendorId(String name) {
+        var repo = new JdbcTransactionVendorRepository(conn);
+        TransactionVendor vendor = repo.findByName(name).orElse(null);
+        if (vendor != null) {
+            return vendor.id;
+        }
+        return repo.insert(name);
+    }
+
+    private long getOrCreateCategoryId(String name) {
+        var repo = new JdbcTransactionCategoryRepository(conn);
+        TransactionCategory category = repo.findByName(name).orElse(null);
+        if (category != null) {
+            return category.id;
+        }
+        return repo.insert(name, Color.WHITE);
+    }
+
+    private long getOrCreateTagId(String name) {
+        Optional<Long> optionalId = DbUtil.findOne(
+                conn,
+                "SELECT id FROM transaction_tag WHERE name = ?",
+                List.of(name),
+                rs -> rs.getLong(1)
+        );
+        return optionalId.orElseGet(() ->
+                DbUtil.insertOne(conn, "INSERT INTO transaction_tag (name) VALUES (?)", List.of(name))
+        );
     }
 
     @Override
@@ -148,6 +223,30 @@ public record JdbcTransactionRepository(Connection conn, Path contentDir) implem
     }
 
     @Override
+    public List<String> findTags(long transactionId) {
+        return DbUtil.findAll(
+                conn,
+                """
+                        SELECT tt.name
+                        FROM transaction_tag tt
+                        LEFT JOIN transaction_tag_join ttj ON ttj.tag_id = tt.id
+                        WHERE ttj.transaction_id = ?
+                        ORDER BY tt.name ASC""",
+                List.of(transactionId),
+                rs -> rs.getString(1)
+        );
+    }
+
+    @Override
+    public List<String> findAllTags() {
+        return DbUtil.findAll(
+                conn,
+                "SELECT name FROM transaction_tag ORDER BY name ASC",
+                rs -> rs.getString(1)
+        );
+    }
+
+    @Override
     public void delete(long transactionId) {
         DbUtil.doTransaction(conn, () -> {
             DbUtil.updateOne(conn, "DELETE FROM transaction WHERE id = ?", List.of(transactionId));
@@ -164,43 +263,92 @@ public record JdbcTransactionRepository(Connection conn, Path contentDir) implem
             Currency currency,
             String description,
             CreditAndDebitAccounts linkedAccounts,
+            String vendor,
+            String category,
+            Set<String> tags,
             List<Attachment> existingAttachments,
             List<Path> newAttachmentPaths
     ) {
         DbUtil.doTransaction(conn, () -> {
-            Transaction tx = findById(id).orElseThrow();
-            CreditAndDebitAccounts currentLinkedAccounts = findLinkedAccounts(id);
-            List<Attachment> currentAttachments = findAttachments(id);
             var entryRepo = new JdbcAccountEntryRepository(conn);
             var attachmentRepo = new JdbcAttachmentRepository(conn, contentDir);
+            var vendorRepo = new JdbcTransactionVendorRepository(conn);
+            var categoryRepo = new JdbcTransactionCategoryRepository(conn);
+
+            Transaction tx = findById(id).orElseThrow();
+            CreditAndDebitAccounts currentLinkedAccounts = findLinkedAccounts(id);
+            TransactionVendor currentVendor = tx.getVendorId() == null ? null : vendorRepo.findById(tx.getVendorId()).orElseThrow();
+            String currentVendorName = currentVendor == null ? null : currentVendor.getName();
+            TransactionCategory currentCategory = tx.getCategoryId() == null ? null : categoryRepo.findById(tx.getCategoryId()).orElseThrow();
+            String currentCategoryName = currentCategory == null ? null : currentCategory.getName();
+            Set<String> currentTags = new HashSet<>(findTags(id));
+            List<Attachment> currentAttachments = findAttachments(id);
+
             List<String> updateMessages = new ArrayList<>();
             if (!tx.getTimestamp().equals(utcTimestamp)) {
-                DbUtil.updateOne(conn, "UPDATE transaction SET timestamp = ? WHERE id = ?", List.of(DbUtil.timestampFromUtcLDT(utcTimestamp), id));
+                DbUtil.updateOne(conn, "UPDATE transaction SET timestamp = ? WHERE id = ?", DbUtil.timestampFromUtcLDT(utcTimestamp), id);
                 updateMessages.add("Updated timestamp to UTC " + DateUtil.DEFAULT_DATETIME_FORMAT.format(utcTimestamp) + ".");
             }
             BigDecimal scaledAmount = amount.setScale(4, RoundingMode.HALF_UP);
             if (!tx.getAmount().equals(scaledAmount)) {
-                DbUtil.updateOne(conn, "UPDATE transaction SET amount = ? WHERE id = ?", List.of(scaledAmount, id));
+                DbUtil.updateOne(conn, "UPDATE transaction SET amount = ? WHERE id = ?", scaledAmount, id);
                 updateMessages.add("Updated amount to " + CurrencyUtil.formatMoney(new MoneyValue(scaledAmount, currency)) + ".");
             }
             if (!tx.getCurrency().equals(currency)) {
-                DbUtil.updateOne(conn, "UPDATE transaction SET currency = ? WHERE id = ?", List.of(currency.getCurrencyCode(), id));
+                DbUtil.updateOne(conn, "UPDATE transaction SET currency = ? WHERE id = ?", currency.getCurrencyCode(), id);
                 updateMessages.add("Updated currency to " + currency.getCurrencyCode() + ".");
             }
             if (!Objects.equals(tx.getDescription(), description)) {
-                DbUtil.updateOne(conn, "UPDATE transaction SET description = ? WHERE id = ?", List.of(description, id));
+                DbUtil.updateOne(conn, "UPDATE transaction SET description = ? WHERE id = ?", description, id);
                 updateMessages.add("Updated description.");
             }
-            boolean updateAccountEntries = !tx.getAmount().equals(scaledAmount) ||
+            boolean shouldUpdateAccountEntries = !tx.getAmount().equals(scaledAmount) ||
                     !tx.getCurrency().equals(currency) ||
                     !tx.getTimestamp().equals(utcTimestamp) ||
                     !currentLinkedAccounts.equals(linkedAccounts);
-            if (updateAccountEntries) {
-                // Delete all entries and re-write them correctly?
-                DbUtil.update(conn, "DELETE FROM account_entry WHERE transaction_id = ?", List.of(id));
+            if (shouldUpdateAccountEntries) {
+                // Delete all entries and re-write them correctly.
+                DbUtil.update(conn, "DELETE FROM account_entry WHERE transaction_id = ?", id);
                 linkedAccounts.ifCredit(acc -> entryRepo.insert(utcTimestamp, acc.id, id, scaledAmount, AccountEntry.Type.CREDIT, currency));
                 linkedAccounts.ifDebit(acc -> entryRepo.insert(utcTimestamp, acc.id, id, scaledAmount, AccountEntry.Type.DEBIT, currency));
                 updateMessages.add("Updated linked accounts.");
+            }
+            // Manage vendor change.
+            if (!Objects.equals(vendor, currentVendorName)) {
+                if (vendor == null || vendor.isBlank()) {
+                    DbUtil.updateOne(conn, "UPDATE transaction SET vendor_id = NULL WHERE id = ?", id);
+                } else {
+                    long newVendorId = getOrCreateVendorId(vendor);
+                    DbUtil.updateOne(conn, "UPDATE transaction SET vendor_id = ? WHERE id = ?", newVendorId, id);
+                }
+                updateMessages.add("Updated vendor name to \"" + vendor + "\".");
+            }
+            // Manage category change.
+            if (!Objects.equals(category, currentCategoryName)) {
+                if (category == null || category.isBlank()) {
+                    DbUtil.updateOne(conn, "UPDATE transaction SET category_id = NULL WHERE id = ?", id);
+                } else {
+                    long newCategoryId = getOrCreateCategoryId(category);
+                    DbUtil.updateOne(conn, "UPDATE transaction SET category_id = ? WHERE id = ?", newCategoryId, id);
+                }
+                updateMessages.add("Updated category name to \"" + category + "\".");
+            }
+            // Manage tags changes.
+            if (!currentTags.equals(tags)) {
+                Set<String> tagsAdded = new HashSet<>(tags);
+                tagsAdded.removeAll(currentTags);
+                Set<String> tagsRemoved = new HashSet<>(currentTags);
+                tagsRemoved.removeAll(tags);
+
+                for (var t : tagsRemoved) removeTag(id, t);
+                for (var t : tagsAdded) addTag(id, t);
+
+                if (!tagsAdded.isEmpty()) {
+                    updateMessages.add("Added tag(s): " + String.join(", ", tagsAdded));
+                }
+                if (!tagsRemoved.isEmpty()) {
+                    updateMessages.add("Removed tag(s): " + String.join(", ", tagsRemoved));
+                }
             }
             // Manage attachments changes.
             List<Attachment> removedAttachments = new ArrayList<>(currentAttachments);
@@ -214,6 +362,8 @@ public record JdbcTransactionRepository(Connection conn, Path contentDir) implem
                 insertAttachmentLink(tx.id, attachment.id);
                 updateMessages.add("Added attachment \"" + attachment.getFilename() + "\".");
             }
+
+            // Add a text history item to any linked accounts detailing the changes.
             String updateMessageStr = "Transaction #" + tx.id + " was updated:\n" + String.join("\n", updateMessages);
             var historyRepo = new JdbcAccountHistoryItemRepository(conn);
             linkedAccounts.ifCredit(acc -> historyRepo.recordText(DateUtil.nowAsUTC(), acc.id, updateMessageStr));
@@ -226,21 +376,57 @@ public record JdbcTransactionRepository(Connection conn, Path contentDir) implem
         conn.close();
     }
 
+    private void insertAttachmentLink(long transactionId, long attachmentId) {
+        DbUtil.insertOne(
+                conn,
+                "INSERT INTO transaction_attachment (transaction_id, attachment_id) VALUES (?, ?)",
+                List.of(transactionId, attachmentId)
+        );
+    }
+
+    private long getTagId(String name) {
+        return DbUtil.findOne(
+                conn,
+                "SELECT id FROM transaction_tag WHERE name = ?",
+                List.of(name),
+                rs -> rs.getLong(1)
+        ).orElse(-1L);
+    }
+
+    private void removeTag(long transactionId, String tag) {
+        long id = getTagId(tag);
+        if (id != -1) {
+            DbUtil.update(conn, "DELETE FROM transaction_tag_join WHERE transaction_id = ? AND tag_id = ?", transactionId, id);
+        }
+    }
+
+    private void addTag(long transactionId, String tag) {
+        long id = getOrCreateTagId(tag);
+        boolean exists = DbUtil.count(
+                conn,
+                "SELECT COUNT(tag_id) FROM transaction_tag_join WHERE transaction_id = ? AND tag_id = ?",
+                transactionId,
+                id
+        ) > 0;
+        if (!exists) {
+            DbUtil.insertOne(
+                    conn,
+                    "INSERT INTO transaction_tag_join (transaction_id, tag_id) VALUES (?, ?)",
+                    transactionId,
+                    id
+            );
+        }
+    }
+
     public static Transaction parseTransaction(ResultSet rs) throws SQLException {
         return new Transaction(
                 rs.getLong("id"),
                 DbUtil.utcLDTFromTimestamp(rs.getTimestamp("timestamp")),
                 rs.getBigDecimal("amount"),
                 Currency.getInstance(rs.getString("currency")),
-                rs.getString("description")
-        );
-    }
-
-    private void insertAttachmentLink(long transactionId, long attachmentId) {
-        DbUtil.insertOne(
-                conn,
-                "INSERT INTO transaction_attachment (transaction_id, attachment_id) VALUES (?, ?)",
-                List.of(transactionId, attachmentId)
+                rs.getString("description"),
+                rs.getObject("vendor_id", Long.class),
+                rs.getObject("category_id", Long.class)
         );
     }
 }
