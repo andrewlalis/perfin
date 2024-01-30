@@ -60,13 +60,22 @@
                         <ColumnConstraints hgrow="ALWAYS" halignment="RIGHT"/>
                     </columnConstraints>
 
-                    <Label text="Vendor" labelFor="${vendorComboBox}" styleClass="bold-text"/>
+                    <VBox>
+                        <Label text="Vendor" labelFor="${vendorComboBox}" styleClass="bold-text"/>
+                        <Hyperlink text="Manage vendors" styleClass="small-font"/>
+                    </VBox>
                     <ComboBox fx:id="vendorComboBox" editable="true" maxWidth="Infinity"/>
 
-                    <Label text="Category" labelFor="${categoryComboBox}" styleClass="bold-text"/>
+                    <VBox>
+                        <Label text="Category" labelFor="${categoryComboBox}" styleClass="bold-text"/>
+                        <Hyperlink text="Manage categories" styleClass="small-font"/>
+                    </VBox>
                     <ComboBox fx:id="categoryComboBox" editable="true" maxWidth="Infinity"/>
 
-                    <Label text="Tags" labelFor="${tagsComboBox}" styleClass="bold-text"/>
+                    <VBox>
+                        <Label text="Tags" labelFor="${tagsComboBox}" styleClass="bold-text"/>
+                        <Hyperlink text="Manage tags" styleClass="small-font"/>
+                    </VBox>
                     <VBox maxWidth="Infinity">
                         <HBox styleClass="std-spacing">
                             <ComboBox fx:id="tagsComboBox" editable="true" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>

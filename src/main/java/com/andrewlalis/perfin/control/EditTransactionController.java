@@ -15,13 +15,14 @@ import com.andrewlalis.perfin.view.component.validation.ValidationApplier;
 import com.andrewlalis.perfin.view.component.validation.validators.CurrencyAmountValidator;
 import com.andrewlalis.perfin.view.component.validation.validators.PredicateValidator;
 import javafx.application.Platform;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
@@ -39,6 +40,10 @@ import java.util.*;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
+/**
+ * Controller for the "edit-transaction" view, which is where the user can
+ * create or edit transactions.
+ */
 public class EditTransactionController implements RouteSelectionListener {
     private static final Logger log = LoggerFactory.getLogger(EditTransactionController.class);
 
@@ -82,45 +87,8 @@ public class EditTransactionController implements RouteSelectionListener {
         var descriptionValid = new ValidationApplier<>(new PredicateValidator<String>()
                 .addTerminalPredicate(s -> s == null || s.length() <= 255, "Description is too long.")
         ).validatedInitially().attach(descriptionField, descriptionField.textProperty());
-
-        // Linked accounts will use a property derived from both the debit and credit selections.
-        Property<CreditAndDebitAccounts> linkedAccountsProperty = new SimpleObjectProperty<>(getSelectedAccounts());
-        debitAccountSelector.valueProperty().addListener((observable, oldValue, newValue) -> linkedAccountsProperty.setValue(getSelectedAccounts()));
-        creditAccountSelector.valueProperty().addListener((observable, oldValue, newValue) -> linkedAccountsProperty.setValue(getSelectedAccounts()));
-        var linkedAccountsValid = new ValidationApplier<>(getLinkedAccountsValidator())
-                .validatedInitially()
-                .attach(linkedAccountsContainer, linkedAccountsProperty);
-
-        // Set up the list of added tags.
-        addTagButton.disableProperty().bind(tagsComboBox.valueProperty().map(s -> s == null || s.isBlank()));
-        addTagButton.setOnAction(event -> {
-            if (tagsComboBox.getValue() == null) return;
-            String tag = tagsComboBox.getValue().strip();
-            if (!selectedTags.contains(tag)) {
-                selectedTags.add(tag);
-                selectedTags.sort(String::compareToIgnoreCase);
-            }
-            tagsComboBox.setValue(null);
-        });
-        tagsComboBox.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER) {
-                addTagButton.fire();
-            }
-        });
-        BindingUtil.mapContent(tagsVBox.getChildren(), selectedTags, tag -> {
-            Label label = new Label(tag);
-            label.setMaxWidth(Double.POSITIVE_INFINITY);
-            label.getStyleClass().addAll("bold-text");
-            Button removeButton = new Button("Remove");
-            removeButton.setOnAction(event -> {
-                selectedTags.remove(tag);
-            });
-            BorderPane tile = new BorderPane(label);
-            tile.setRight(removeButton);
-            tile.getStyleClass().addAll("std-spacing");
-            BorderPane.setAlignment(label, Pos.CENTER_LEFT);
-            return tile;
-        });
+        var linkedAccountsValid = initializeLinkedAccountsValidationUi();
+        initializeTagSelectionUi();
 
         var formValid = timestampValid.and(amountValid).and(descriptionValid).and(linkedAccountsValid);
         saveButton.disableProperty().bind(formValid.not());
@@ -277,6 +245,47 @@ public class EditTransactionController implements RouteSelectionListener {
                 router.navigateBackAndClear();
             }
         });
+    }
+
+    private BooleanExpression initializeLinkedAccountsValidationUi() {
+        Property<CreditAndDebitAccounts> linkedAccountsProperty = new SimpleObjectProperty<>(getSelectedAccounts());
+        debitAccountSelector.valueProperty().addListener((observable, oldValue, newValue) -> linkedAccountsProperty.setValue(getSelectedAccounts()));
+        creditAccountSelector.valueProperty().addListener((observable, oldValue, newValue) -> linkedAccountsProperty.setValue(getSelectedAccounts()));
+        return new ValidationApplier<>(getLinkedAccountsValidator())
+                .validatedInitially()
+                .attach(linkedAccountsContainer, linkedAccountsProperty);
+    }
+
+    private void initializeTagSelectionUi() {
+        addTagButton.disableProperty().bind(tagsComboBox.valueProperty().map(s -> s == null || s.isBlank()));
+        addTagButton.setOnAction(event -> {
+            if (tagsComboBox.getValue() == null) return;
+            String tag = tagsComboBox.getValue().strip();
+            if (!selectedTags.contains(tag)) {
+                selectedTags.add(tag);
+                selectedTags.sort(String::compareToIgnoreCase);
+            }
+            tagsComboBox.setValue(null);
+        });
+        tagsComboBox.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                addTagButton.fire();
+            }
+        });
+        BindingUtil.mapContent(tagsVBox.getChildren(), selectedTags, this::createTagListTile);
+    }
+
+    private Node createTagListTile(String tag) {
+        Label label = new Label(tag);
+        label.setMaxWidth(Double.POSITIVE_INFINITY);
+        label.getStyleClass().addAll("bold-text");
+        Button removeButton = new Button("Remove");
+        removeButton.setOnAction(event -> selectedTags.remove(tag));
+        BorderPane tile = new BorderPane(label);
+        tile.setRight(removeButton);
+        tile.getStyleClass().addAll("std-spacing");
+        BorderPane.setAlignment(label, Pos.CENTER_LEFT);
+        return tile;
     }
 
     private CreditAndDebitAccounts getSelectedAccounts() {
