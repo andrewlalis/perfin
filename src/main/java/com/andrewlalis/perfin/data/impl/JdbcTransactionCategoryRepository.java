@@ -9,6 +9,7 @@ import javafx.scene.paint.Color;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -70,8 +71,59 @@ public record JdbcTransactionCategoryRepository(Connection conn) implements Tran
     }
 
     @Override
+    public void update(long id, String name, Color color) {
+        DbUtil.doTransaction(conn, () -> {
+            TransactionCategory category = findById(id).orElseThrow();
+            if (!category.getName().equals(name)) {
+                DbUtil.updateOne(
+                        conn,
+                        "UPDATE transaction_category SET name = ? WHERE id = ?",
+                        name,
+                        id
+                );
+            }
+            if (!category.getColor().equals(color)) {
+                DbUtil.updateOne(
+                        conn,
+                        "UPDATE transaction_category SET color = ? WHERE id = ?",
+                        ColorUtil.toHex(color),
+                        id
+                );
+            }
+        });
+    }
+
+    @Override
     public void deleteById(long id) {
         DbUtil.updateOne(conn, "DELETE FROM transaction_category WHERE id = ?", id);
+    }
+
+    @Override
+    public List<CategoryTreeNode> findTree() {
+        List<TransactionCategory> rootCategories = DbUtil.findAll(
+                conn,
+                "SELECT * FROM transaction_category WHERE parent_id IS NULL ORDER BY name ASC",
+                JdbcTransactionCategoryRepository::parseCategory
+        );
+        List<CategoryTreeNode> rootNodes = new ArrayList<>(rootCategories.size());
+        for (var category : rootCategories) {
+            rootNodes.add(findTreeRecursive(category));
+        }
+        return rootNodes;
+    }
+
+    private CategoryTreeNode findTreeRecursive(TransactionCategory root) {
+        CategoryTreeNode node = new CategoryTreeNode(root, new ArrayList<>());
+        List<TransactionCategory> childCategories = DbUtil.findAll(
+                conn,
+                "SELECT * FROM transaction_category WHERE parent_id = ? ORDER BY name ASC",
+                List.of(root.id),
+                JdbcTransactionCategoryRepository::parseCategory
+        );
+        for (var childCategory : childCategories) {
+            node.children().add(findTreeRecursive(childCategory));
+        }
+        return node;
     }
 
     @Override

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ScrollPane?>
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.andrewlalis.perfin.control.CategoriesViewController"
+>
+    <top>
+        <Label text="Transaction Categories" styleClass="large-font,bold-text,std-padding"/>
+    </top>
+    <center>
+        <VBox>
+            <HBox styleClass="std-padding, std-spacing" VBox.vgrow="NEVER">
+                <Button text="Add Category"/>
+            </HBox>
+            <ScrollPane styleClass="tile-container-scroll" VBox.vgrow="ALWAYS">
+                <VBox fx:id="categoriesVBox" styleClass="tile-container"/>
+            </ScrollPane>
+        </VBox>
+    </center>
+</BorderPane>

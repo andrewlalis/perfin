@@ -13,5 +13,9 @@ public interface TransactionCategoryRepository extends Repository, AutoCloseable
     List<TransactionCategory> findAll();
     long insert(long parentId, String name, Color color);
     long insert(String name, Color color);
+    void update(long id, String name, Color color);
     void deleteById(long id);
+
+    record CategoryTreeNode(TransactionCategory category, List<CategoryTreeNode> children){}
+    List<CategoryTreeNode> findTree();
 }

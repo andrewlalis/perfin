@@ -68,13 +68,13 @@
 
                     <VBox>
                         <Label text="Category" labelFor="${categoryComboBox}" styleClass="bold-text"/>
-                        <Hyperlink text="Manage categories" styleClass="small-font"/>
+                        <Hyperlink fx:id="categoriesHyperlink" text="Manage categories" styleClass="small-font"/>
                     </VBox>
                     <ComboBox fx:id="categoryComboBox" editable="true" maxWidth="Infinity"/>
 
                     <VBox>
                         <Label text="Tags" labelFor="${tagsComboBox}" styleClass="bold-text"/>
-                        <Hyperlink text="Manage tags" styleClass="small-font"/>
+                        <Hyperlink fx:id="tagsHyperlink" text="Manage tags" styleClass="small-font"/>
                     </VBox>
                     <VBox maxWidth="Infinity">
                         <HBox styleClass="std-spacing">
