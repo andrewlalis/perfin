@@ -92,10 +92,10 @@ public class EditTransactionController implements RouteSelectionListener {
         ).validatedInitially().attach(descriptionField, descriptionField.textProperty());
         var linkedAccountsValid = initializeLinkedAccountsValidationUi();
         initializeTagSelectionUi();
-        // Setup hyperlinks.
+
         vendorsHyperlink.setOnAction(event -> router.navigate("vendors"));
         categoriesHyperlink.setOnAction(event -> router.navigate("categories"));
-//        tagsHyperlink.setOnAction(event -> router.navigate("tags"));
+        tagsHyperlink.setOnAction(event -> router.navigate("tags"));
 
         var formValid = timestampValid.and(amountValid).and(descriptionValid).and(linkedAccountsValid);
         saveButton.disableProperty().bind(formValid.not());

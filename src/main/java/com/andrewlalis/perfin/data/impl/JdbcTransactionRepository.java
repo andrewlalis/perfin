@@ -247,6 +247,27 @@ public record JdbcTransactionRepository(Connection conn, Path contentDir) implem
     }
 
     @Override
+    public void deleteTag(String name) {
+        DbUtil.update(
+                conn,
+                "DELETE FROM transaction_tag WHERE name = ?",
+                name
+        );
+    }
+
+    @Override
+    public long countTagUsages(String name) {
+        return DbUtil.count(
+                conn,
+                """
+                    SELECT COUNT(transaction_id)
+                    FROM transaction_tag_join
+                    WHERE tag_id = (SELECT id FROM transaction_tag WHERE name = ?)""",
+                name
+        );
+    }
+
+    @Override
     public void delete(long transactionId) {
         DbUtil.doTransaction(conn, () -> {
             DbUtil.updateOne(conn, "DELETE FROM transaction WHERE id = ?", List.of(transactionId));

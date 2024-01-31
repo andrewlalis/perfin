@@ -95,6 +95,7 @@ public class PerfinApp extends Application {
             router.map("edit-vendor", PerfinApp.class.getResource("/edit-vendor.fxml"));
             router.map("categories", PerfinApp.class.getResource("/categories-view.fxml"));
             router.map("edit-category", PerfinApp.class.getResource("/edit-category.fxml"));
+            router.map("tags", PerfinApp.class.getResource("/tags-view.fxml"));
 
             // Help pages.
             helpRouter.map("home", PerfinApp.class.getResource("/help-pages/home.fxml"));

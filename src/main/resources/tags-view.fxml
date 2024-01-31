@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.andrewlalis.perfin.view.component.StyledText?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.andrewlalis.perfin.control.TagsViewController"
+>
+    <top>
+        <Label text="Transaction Tags" styleClass="large-font,bold-text,std-padding"/>
+    </top>
+    <center>
+        <VBox>
+            <StyledText maxWidth="500" styleClass="std-padding">
+                Transaction tags are just bits of text that can be applied to a
+                transaction to give it additional meaning or make searching for
+                certain transactions easier.
+                --
+                Tags are automatically created if you add a new one to a
+                transaction, and they'll show up here. When you remove a tag,
+                it will be permanently removed from **all** transactions that it
+                was previously associated with.
+            </StyledText>
+            <ScrollPane styleClass="tile-container-scroll" VBox.vgrow="ALWAYS">
+                <VBox fx:id="tagsVBox" styleClass="tile-container"/>
+            </ScrollPane>
+        </VBox>
+    </center>
+</BorderPane>

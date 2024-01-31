@@ -11,6 +11,8 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.layout.VBox;
 
+import static com.andrewlalis.perfin.PerfinApp.router;
+
 public class CategoriesViewController implements RouteSelectionListener {
     @FXML public VBox categoriesVBox;
     private final ObservableList<TransactionCategoryRepository.CategoryTreeNode> categoryTreeNodes = FXCollections.observableArrayList();
@@ -22,6 +24,10 @@ public class CategoriesViewController implements RouteSelectionListener {
     @Override
     public void onRouteSelected(Object context) {
         refreshCategories();
+    }
+
+    @FXML public void addCategory() {
+        router.navigate("edit-category");
     }
 
     private void refreshCategories() {

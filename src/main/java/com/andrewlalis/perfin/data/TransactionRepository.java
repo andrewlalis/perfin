@@ -36,6 +36,8 @@ public interface TransactionRepository extends Repository, AutoCloseable {
     List<Attachment> findAttachments(long transactionId);
     List<String> findTags(long transactionId);
     List<String> findAllTags();
+    void deleteTag(String name);
+    long countTagUsages(String name);
     void delete(long transactionId);
     void update(
             long id,

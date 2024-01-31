@@ -18,7 +18,7 @@ public class CategoryTile extends VBox {
             TransactionCategoryRepository.CategoryTreeNode treeNode,
             Runnable categoriesRefresh
     ) {
-        this.getStyleClass().addAll("tile", "hand-cursor");
+        this.getStyleClass().addAll("tile", "spacing-extra", "hand-cursor");
         this.setStyle("-fx-border-width: 1px; -fx-border-color: grey;");
         this.setOnMouseClicked(event -> {
             event.consume();

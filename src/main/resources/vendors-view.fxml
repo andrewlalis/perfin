@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.*?>
+<?import com.andrewlalis.perfin.view.component.StyledText?>
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.andrewlalis.perfin.control.VendorsViewController"
@@ -13,6 +14,13 @@
     </top>
     <center>
         <VBox>
+            <StyledText maxWidth="500" styleClass="std-padding">
+                Vendors are businesses or other financial entities with which
+                you do transactions. By tagging a vendor on your transactions,
+                it becomes easier to find out just how much money you're
+                spending at certain shops, and how often. It can also make it a
+                lot easier to look up past transactions.
+            </StyledText>
             <HBox styleClass="std-padding,std-spacing" VBox.vgrow="NEVER">
                 <Button text="Add Vendor" onAction="#addVendor"/>
             </HBox>

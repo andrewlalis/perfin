@@ -6,6 +6,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ScrollPane?>
+<?import com.andrewlalis.perfin.view.component.StyledText?>
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.andrewlalis.perfin.control.CategoriesViewController"
@@ -15,8 +16,14 @@
     </top>
     <center>
         <VBox>
+            <StyledText maxWidth="500" styleClass="std-padding">
+                Categories are used to group your transactions based on their
+                purpose. It's helpful to categorize transactions in order to get
+                a better view of your spending habits, and it makes it easier to
+                lookup transactions later.
+            </StyledText>
             <HBox styleClass="std-padding, std-spacing" VBox.vgrow="NEVER">
-                <Button text="Add Category"/>
+                <Button text="Add Category" onAction="#addCategory"/>
             </HBox>
             <ScrollPane styleClass="tile-container-scroll" VBox.vgrow="ALWAYS">
                 <VBox fx:id="categoriesVBox" styleClass="tile-container"/>
