@@ -62,7 +62,7 @@
 
                     <VBox>
                         <Label text="Vendor" labelFor="${vendorComboBox}" styleClass="bold-text"/>
-                        <Hyperlink text="Manage vendors" styleClass="small-font"/>
+                        <Hyperlink fx:id="vendorsHyperlink" text="Manage vendors" styleClass="small-font"/>
                     </VBox>
                     <ComboBox fx:id="vendorComboBox" editable="true" maxWidth="Infinity"/>
 

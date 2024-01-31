@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public record JdbcTransactionVendorRepository(Connection conn) implements TransactionVendorRepository {
@@ -56,6 +57,29 @@ public record JdbcTransactionVendorRepository(Connection conn) implements Transa
                 "INSERT INTO transaction_vendor (name) VALUES (?)",
                 List.of(name)
         );
+    }
+
+    @Override
+    public void update(long id, String name, String description) {
+        DbUtil.doTransaction(conn, () -> {
+            TransactionVendor vendor = findById(id).orElseThrow();
+            if (!vendor.getName().equals(name)) {
+                DbUtil.updateOne(
+                        conn,
+                        "UPDATE transaction_vendor SET name = ? WHERE id = ?",
+                        name,
+                        id
+                );
+            }
+            if (!Objects.equals(vendor.getDescription(), description)) {
+                DbUtil.updateOne(
+                        conn,
+                        "UPDATE transaction_vendor SET description = ? WHERE id = ?",
+                        description,
+                        id
+                );
+            }
+        });
     }
 
     @Override

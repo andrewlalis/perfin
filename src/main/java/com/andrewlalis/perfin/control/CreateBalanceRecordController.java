@@ -11,6 +11,7 @@ import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.view.component.FileSelectionArea;
 import com.andrewlalis.perfin.view.component.PropertiesPane;
 import com.andrewlalis.perfin.view.component.validation.ValidationApplier;
+import com.andrewlalis.perfin.view.component.validation.ValidationFunction;
 import com.andrewlalis.perfin.view.component.validation.ValidationResult;
 import com.andrewlalis.perfin.view.component.validation.validators.CurrencyAmountValidator;
 import javafx.application.Platform;
@@ -39,7 +40,7 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
     private Account account;
 
     @FXML public void initialize() {
-        var timestampValid = new ValidationApplier<String>(input -> {
+        var timestampValid = new ValidationApplier<>((ValidationFunction<String>)  input -> {
             try {
                 DateUtil.DEFAULT_DATETIME_FORMAT.parse(input);
                 return ValidationResult.valid();

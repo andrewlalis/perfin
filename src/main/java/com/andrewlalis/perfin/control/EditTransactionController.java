@@ -60,6 +60,7 @@ public class EditTransactionController implements RouteSelectionListener {
     @FXML public AccountSelectionBox creditAccountSelector;
 
     @FXML public ComboBox<String> vendorComboBox;
+    @FXML public Hyperlink vendorsHyperlink;
     @FXML public ComboBox<String> categoryComboBox;
     @FXML public ComboBox<String> tagsComboBox;
     @FXML public Button addTagButton;
@@ -89,6 +90,8 @@ public class EditTransactionController implements RouteSelectionListener {
         ).validatedInitially().attach(descriptionField, descriptionField.textProperty());
         var linkedAccountsValid = initializeLinkedAccountsValidationUi();
         initializeTagSelectionUi();
+        // Setup hyperlinks.
+        vendorsHyperlink.setOnAction(event -> router.navigate("vendors"));
 
         var formValid = timestampValid.and(amountValid).and(descriptionValid).and(linkedAccountsValid);
         saveButton.disableProperty().bind(formValid.not());
