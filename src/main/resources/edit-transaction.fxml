@@ -27,10 +27,10 @@
                     <TextField fx:id="timestampField" styleClass="mono-font"/>
 
                     <Label text="Amount" labelFor="${amountField}" styleClass="bold-text"/>
-                    <TextField fx:id="amountField" styleClass="mono-font"/>
-
-                    <Label text="Currency" labelFor="${currencyChoiceBox}" styleClass="bold-text"/>
-                    <ChoiceBox fx:id="currencyChoiceBox"/>
+                    <HBox styleClass="std-spacing">
+                        <TextField fx:id="amountField" styleClass="mono-font" HBox.hgrow="ALWAYS"/>
+                        <ChoiceBox fx:id="currencyChoiceBox"/>
+                    </HBox>
 
                     <Label text="Description" labelFor="${descriptionField}" styleClass="bold-text"/>
                     <TextArea
