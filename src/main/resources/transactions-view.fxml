@@ -6,6 +6,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.control.TextField?>
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.andrewlalis.perfin.control.TransactionsViewController"
@@ -20,7 +21,8 @@
         <HBox>
             <BorderPane fx:id="transactionsListBorderPane" HBox.hgrow="ALWAYS">
                 <top>
-                    <HBox styleClass="std-padding,std-spacing">
+                    <HBox styleClass="padding-extra,std-spacing">
+                        <TextField fx:id="searchField" promptText="Search"/>
                         <PropertiesPane hgap="5" vgap="5">
                             <Label text="Filter by Account"/>
                             <AccountSelectionBox fx:id="filterByAccountComboBox" allowNone="true" showBalance="false"/>
