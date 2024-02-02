@@ -75,7 +75,14 @@ public class JdbcEntitySearcher<T> implements EntitySearcher<T> {
             sqlBuilder.append('\n').append(pagingSql);
         }
         String sql = sqlBuilder.toString();
-        logger.info("Searching with query:\n{}\nWith arguments: {}", sql, baseQueryAndArgs.second().stream().map(Pair::second).map(Object::toString).collect(Collectors.joining(", ")));
+        logger.debug(
+                "Searching with query:\n{}\nWith arguments: {}",
+                sql,
+                baseQueryAndArgs.second().stream()
+                        .map(Pair::second)
+                        .map(Object::toString)
+                        .collect(Collectors.joining(", "))
+        );
         try (var stmt = conn.prepareStatement(sql)) {
             applyArgs(stmt, baseQueryAndArgs.second());
             ResultSet rs = stmt.executeQuery();
