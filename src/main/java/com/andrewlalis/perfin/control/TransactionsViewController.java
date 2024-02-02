@@ -11,6 +11,7 @@ import com.andrewlalis.perfin.data.util.Pair;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.model.Transaction;
+import com.andrewlalis.perfin.view.BindingUtil;
 import com.andrewlalis.perfin.view.SceneUtil;
 import com.andrewlalis.perfin.view.component.AccountSelectionBox;
 import com.andrewlalis.perfin.view.component.DataSourcePaginationControls;
@@ -98,14 +99,11 @@ public class TransactionsViewController implements RouteSelectionListener {
         detailPanel.minWidthProperty().bind(halfWidthProp);
         detailPanel.maxWidthProperty().bind(halfWidthProp);
         detailPanel.prefWidthProperty().bind(halfWidthProp);
-        detailPanel.managedProperty().bind(detailPanel.visibleProperty());
-        detailPanel.visibleProperty().bind(selectedTransaction.isNotNull());
+        BindingUtil.bindManagedAndVisible(detailPanel, selectedTransaction.isNotNull());
 
         Pair<BorderPane, TransactionViewController> detailComponents = SceneUtil.loadNodeAndController("/transaction-view.fxml");
         TransactionViewController transactionViewController = detailComponents.second();
         BorderPane transactionDetailView = detailComponents.first();
-        transactionDetailView.managedProperty().bind(transactionDetailView.visibleProperty());
-        transactionDetailView.visibleProperty().bind(selectedTransaction.isNotNull());
         detailPanel.getChildren().add(transactionDetailView);
         selectedTransaction.addListener((observable, oldValue, newValue) -> {
             transactionViewController.setTransaction(newValue);
@@ -121,7 +119,7 @@ public class TransactionsViewController implements RouteSelectionListener {
     @Override
     public void onRouteSelected(Object context) {
         paginationControls.sorts.setAll(DEFAULT_SORTS);
-        transactionsVBox.getChildren().clear(); // Clear the transactions before reload initially.
+        selectedTransaction.set(null); // Initially set the selected transaction as null.
 
         // Refresh account filter options.
         Profile.getCurrent().dataSource().useRepoAsync(AccountRepository.class, repo -> {
@@ -140,13 +138,13 @@ public class TransactionsViewController implements RouteSelectionListener {
                     long offset = repo.countAllAfter(tx.id);
                     int pageNumber = (int) (offset / paginationControls.getItemsPerPage()) + 1;
                     Platform.runLater(() -> {
-                        paginationControls.setPage(pageNumber).thenRun(() -> selectedTransaction.set(tx));
+                        paginationControls.setPage(pageNumber);
+                        selectedTransaction.set(tx);
                     });
                 });
             });
         } else {
             paginationControls.setPage(1);
-            selectedTransaction.set(null);
         }
     }
 

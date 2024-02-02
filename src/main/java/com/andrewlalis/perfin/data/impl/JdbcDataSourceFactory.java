@@ -5,8 +5,12 @@ import com.andrewlalis.perfin.data.DataSourceFactory;
 import com.andrewlalis.perfin.data.ProfileLoadException;
 import com.andrewlalis.perfin.data.impl.migration.Migration;
 import com.andrewlalis.perfin.data.impl.migration.Migrations;
+import com.andrewlalis.perfin.data.util.DbUtil;
 import com.andrewlalis.perfin.data.util.FileUtil;
 import com.andrewlalis.perfin.model.Profile;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,9 +19,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Arrays;
 import java.util.List;
 
@@ -77,6 +79,7 @@ public class JdbcDataSourceFactory implements DataSourceFactory {
             if (in == null) throw new IOException("Could not load database schema SQL file.");
             String schemaStr = new String(in.readAllBytes(), StandardCharsets.UTF_8);
             executeSqlScript(schemaStr, conn);
+            insertDefaultData(conn);
             try {
                 writeCurrentSchemaVersion(profileName);
             } catch (IOException e) {
@@ -94,6 +97,42 @@ public class JdbcDataSourceFactory implements DataSourceFactory {
         if (!testConnection(dataSource)) {
             FileUtil.deleteIfPossible(getDatabaseFile(profileName));
             throw new ProfileLoadException("Testing the database connection failed.");
+        }
+    }
+
+    private void insertDefaultData(Connection conn) throws IOException, SQLException {
+        try (
+                var categoriesIn = JdbcDataSourceFactory.class.getResourceAsStream("/sql/data/default-categories.json");
+                var stmt = conn.prepareStatement(
+                        "INSERT INTO transaction_category (parent_id, name, color) VALUES (?, ?, ?)",
+                        Statement.RETURN_GENERATED_KEYS
+                )
+        ) {
+            if (categoriesIn == null) throw new IOException("Couldn't load default categories file.");
+            ObjectMapper mapper = new ObjectMapper();
+            ArrayNode categoriesArray = mapper.readValue(categoriesIn, ArrayNode.class);
+            insertCategoriesRecursive(stmt, categoriesArray, null, "#FFFFFF");
+        }
+    }
+
+    private void insertCategoriesRecursive(PreparedStatement stmt, ArrayNode categoriesArray, Long parentId, String parentColorHex) throws SQLException {
+        for (JsonNode obj : categoriesArray) {
+            String name = obj.get("name").asText();
+            String colorHex = parentColorHex;
+            if (obj.hasNonNull("color")) colorHex = obj.get("color").asText(parentColorHex);
+            if (parentId == null) {
+                stmt.setNull(1, Types.BIGINT);
+            } else {
+                stmt.setLong(1, parentId);
+            }
+            stmt.setString(2, name);
+            stmt.setString(3, colorHex.substring(1));
+            int result = stmt.executeUpdate();
+            if (result != 1) throw new SQLException("Failed to insert category.");
+            long id = DbUtil.getGeneratedId(stmt);
+            if (obj.hasNonNull("children") && obj.get("children").isArray()) {
+                insertCategoriesRecursive(stmt, obj.withArray("children"), id, colorHex);
+            }
         }
     }
 

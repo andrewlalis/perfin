@@ -5,6 +5,8 @@
 <?import com.andrewlalis.perfin.view.component.PropertiesPane?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import com.andrewlalis.perfin.view.component.CategorySelectionBox?>
+<?import com.andrewlalis.perfin.view.component.StyledText?>
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.andrewlalis.perfin.control.EditTransactionController"
@@ -70,7 +72,7 @@
                         <Label text="Category" labelFor="${categoryComboBox}" styleClass="bold-text"/>
                         <Hyperlink fx:id="categoriesHyperlink" text="Manage categories" styleClass="small-font"/>
                     </VBox>
-                    <ComboBox fx:id="categoryComboBox" editable="true" maxWidth="Infinity"/>
+                    <CategorySelectionBox fx:id="categoryComboBox" maxWidth="Infinity"/>
 
                     <VBox>
                         <Label text="Tags" labelFor="${tagsComboBox}" styleClass="bold-text"/>
@@ -82,6 +84,36 @@
                             <Button fx:id="addTagButton" text="Add" HBox.hgrow="NEVER"/>
                         </HBox>
                         <VBox fx:id="tagsVBox" styleClass="std-spacing,std-padding"/>
+                    </VBox>
+
+                    <Label text="Line Items" styleClass="bold-text"/>
+                    <VBox maxWidth="Infinity">
+                        <Button text="Add Line Item" fx:id="addLineItemButton" disable="true"/>
+                        <StyledText styleClass="small-font">
+                            Line items aren't yet supported. I'm working on it!
+                        </StyledText>
+                        <VBox styleClass="std-spacing" fx:id="addLineItemForm">
+                            <HBox styleClass="std-spacing">
+                                <VBox>
+                                    <Label text="Quantity" styleClass="bold-text,small-font"/>
+                                    <Spinner fx:id="lineItemQuantitySpinner" minWidth="60" maxWidth="60"/>
+                                </VBox>
+                                <VBox HBox.hgrow="ALWAYS">
+                                    <Label text="Value per Item" styleClass="bold-text,small-font"/>
+                                    <TextField fx:id="lineItemValueField"/>
+                                </VBox>
+                            </HBox>
+                            <VBox>
+                                <Label text="Description" styleClass="bold-text,small-font"/>
+                                <TextField fx:id="lineItemDescriptionField"/>
+                            </VBox>
+                            <HBox styleClass="std-spacing" alignment="CENTER_RIGHT">
+                                <Button text="Add" fx:id="addLineItemAddButton"/>
+                                <Button text="Cancel" fx:id="addLineItemCancelButton"/>
+                            </HBox>
+                        </VBox>
+
+                        <VBox fx:id="lineItemsVBox"/>
                     </VBox>
                 </PropertiesPane>
 

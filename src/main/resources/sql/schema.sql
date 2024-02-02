@@ -173,11 +173,3 @@ CREATE TABLE account_history_item_balance_record (
         FOREIGN KEY (record_id) REFERENCES balance_record(id)
             ON UPDATE CASCADE ON DELETE CASCADE
 );
-
-/* DEFAULT ENTITIES */
-INSERT INTO transaction_category (name, color) VALUES
-    ('Food', '0dba0d'),
-    ('Travel', '3ec0f0'),
-    ('Utilities', '4137bf'),
-    ('Housing', 'e6cf3c'),
-    ('Entertainment', 'e01e1b');

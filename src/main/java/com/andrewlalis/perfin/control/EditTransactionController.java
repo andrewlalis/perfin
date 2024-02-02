@@ -10,13 +10,16 @@ import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.model.*;
 import com.andrewlalis.perfin.view.BindingUtil;
 import com.andrewlalis.perfin.view.component.AccountSelectionBox;
+import com.andrewlalis.perfin.view.component.CategorySelectionBox;
 import com.andrewlalis.perfin.view.component.FileSelectionArea;
 import com.andrewlalis.perfin.view.component.validation.ValidationApplier;
 import com.andrewlalis.perfin.view.component.validation.validators.CurrencyAmountValidator;
 import com.andrewlalis.perfin.view.component.validation.validators.PredicateValidator;
 import javafx.application.Platform;
 import javafx.beans.binding.BooleanExpression;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -61,13 +64,22 @@ public class EditTransactionController implements RouteSelectionListener {
 
     @FXML public ComboBox<String> vendorComboBox;
     @FXML public Hyperlink vendorsHyperlink;
-    @FXML public ComboBox<String> categoryComboBox;
+    @FXML public CategorySelectionBox categoryComboBox;
     @FXML public Hyperlink categoriesHyperlink;
     @FXML public ComboBox<String> tagsComboBox;
     @FXML public Hyperlink tagsHyperlink;
     @FXML public Button addTagButton;
     @FXML public VBox tagsVBox;
     private final ObservableList<String> selectedTags = FXCollections.observableArrayList();
+
+    @FXML public Spinner<Integer> lineItemQuantitySpinner;
+    @FXML public TextField lineItemValueField;
+    @FXML public TextField lineItemDescriptionField;
+    @FXML public Button addLineItemButton;
+    @FXML public VBox addLineItemForm;
+    @FXML public Button addLineItemAddButton;
+    @FXML public Button addLineItemCancelButton;
+    @FXML public final BooleanProperty addingLineItemProperty = new SimpleBooleanProperty(false);
 
     @FXML public FileSelectionArea attachmentsSelectionArea;
 
@@ -97,6 +109,26 @@ public class EditTransactionController implements RouteSelectionListener {
         categoriesHyperlink.setOnAction(event -> router.navigate("categories"));
         tagsHyperlink.setOnAction(event -> router.navigate("tags"));
 
+        // Initialize line item stuff.
+        addLineItemButton.setOnAction(event -> addingLineItemProperty.set(true));
+        addLineItemCancelButton.setOnAction(event -> {
+            lineItemQuantitySpinner.getValueFactory().setValue(1);
+            lineItemValueField.setText(null);
+            lineItemDescriptionField.setText(null);
+            addingLineItemProperty.set(false);
+        });
+        BindingUtil.bindManagedAndVisible(addLineItemButton, addingLineItemProperty.not());
+        BindingUtil.bindManagedAndVisible(addLineItemForm, addingLineItemProperty);
+        lineItemQuantitySpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE, 1, 1));
+        var lineItemValueValid = new ValidationApplier<>(
+                new CurrencyAmountValidator(() -> currencyChoiceBox.getValue(), false, false)
+        ).attachToTextField(lineItemValueField, currencyChoiceBox.valueProperty());
+        var lineItemDescriptionValid = new ValidationApplier<>(new PredicateValidator<String>()
+                .addTerminalPredicate(s -> s != null && !s.isBlank(), "A description is required.")
+        ).attachToTextField(lineItemDescriptionField);
+        var lineItemFormValid = lineItemValueValid.and(lineItemDescriptionValid);
+        addLineItemAddButton.disableProperty().bind(lineItemFormValid.not());
+
         var formValid = timestampValid.and(amountValid).and(descriptionValid).and(linkedAccountsValid);
         saveButton.disableProperty().bind(formValid.not());
     }
@@ -108,7 +140,7 @@ public class EditTransactionController implements RouteSelectionListener {
         String description = getSanitizedDescription();
         CreditAndDebitAccounts linkedAccounts = getSelectedAccounts();
         String vendor = vendorComboBox.getValue();
-        String category = categoryComboBox.getValue();
+        String category = categoryComboBox.getValue() == null ? null : categoryComboBox.getValue().getName();
         Set<String> tags = new HashSet<>(selectedTags);
         List<Path> newAttachmentPaths = attachmentsSelectionArea.getSelectedPaths();
         List<Attachment> existingAttachments = attachmentsSelectionArea.getSelectedAttachments();
@@ -161,7 +193,7 @@ public class EditTransactionController implements RouteSelectionListener {
         // Clear some initial fields immediately:
         tagsComboBox.setValue(null);
         vendorComboBox.setValue(null);
-        categoryComboBox.setValue(null);
+        categoryComboBox.select(null);
 
         if (transaction == null) {
             titleLabel.setText("Create New Transaction");
@@ -191,17 +223,18 @@ public class EditTransactionController implements RouteSelectionListener {
                         .toList();
                 List<Account> accounts = accountRepo.findAll(PageRequest.unpaged(Sort.asc("name"))).items();
                 final List<Attachment> attachments;
+                final var categoryTreeNodes = categoryRepo.findTree();
                 final List<String> availableTags = transactionRepo.findAllTags();
                 final List<String> tags;
                 final CreditAndDebitAccounts linkedAccounts;
                 final String vendorName;
-                final String categoryName;
+                final TransactionCategory category;
                 if (transaction == null) {
                     attachments = Collections.emptyList();
                     tags = Collections.emptyList();
                     linkedAccounts = new CreditAndDebitAccounts(null, null);
                     vendorName = null;
-                    categoryName = null;
+                    category = null;
                 } else {
                     attachments = transactionRepo.findAttachments(transaction.id);
                     tags = transactionRepo.findTags(transaction.id);
@@ -213,14 +246,12 @@ public class EditTransactionController implements RouteSelectionListener {
                         vendorName = null;
                     }
                     if (transaction.getCategoryId() != null) {
-                        categoryName = categoryRepo.findById(transaction.getCategoryId())
-                                .map(TransactionCategory::getName).orElse(null);
+                        category = categoryRepo.findById(transaction.getCategoryId()).orElse(null);
                     } else {
-                        categoryName = null;
+                        category = null;
                     }
                 }
                 final List<TransactionVendor> availableVendors = vendorRepo.findAll();
-                final List<TransactionCategory> availableCategories = categoryRepo.findAll();
                 // Then make updates to the view.
                 Platform.runLater(() -> {
                     currencyChoiceBox.getItems().setAll(currencies);
@@ -228,12 +259,13 @@ public class EditTransactionController implements RouteSelectionListener {
                     debitAccountSelector.setAccounts(accounts);
                     vendorComboBox.getItems().setAll(availableVendors.stream().map(TransactionVendor::getName).toList());
                     vendorComboBox.setValue(vendorName);
-                    categoryComboBox.getItems().setAll(availableCategories.stream().map(TransactionCategory::getName).toList());
-                    categoryComboBox.setValue(categoryName);
+                    categoryComboBox.loadCategories(categoryTreeNodes);
+                    categoryComboBox.select(category);
                     tagsComboBox.getItems().setAll(availableTags);
                     attachmentsSelectionArea.clear();
                     attachmentsSelectionArea.addAttachments(attachments);
                     selectedTags.clear();
+                    selectedTags.addAll(tags);
                     if (transaction == null) {
                         currencyChoiceBox.getSelectionModel().selectFirst();
                         creditAccountSelector.select(null);
@@ -242,7 +274,6 @@ public class EditTransactionController implements RouteSelectionListener {
                         currencyChoiceBox.getSelectionModel().select(transaction.getCurrency());
                         creditAccountSelector.select(linkedAccounts.creditAccount());
                         debitAccountSelector.select(linkedAccounts.debitAccount());
-                        selectedTags.addAll(tags);
                     }
                     container.setDisable(false);
                 });

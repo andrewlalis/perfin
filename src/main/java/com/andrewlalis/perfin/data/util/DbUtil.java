@@ -31,6 +31,15 @@ public final class DbUtil {
         setArgs(stmt, List.of(args));
     }
 
+    public static long getGeneratedId(PreparedStatement stmt) {
+        try (ResultSet rs = stmt.getGeneratedKeys()) {
+            if (!rs.next()) throw new SQLException("No generated keys available.");
+            return rs.getLong(1);
+        } catch (SQLException e) {
+            throw new UncheckedSqlException(e);
+        }
+    }
+
     public static <T> List<T> findAll(Connection conn, String query, List<Object> args, ResultSetMapper<T> mapper) {
         try (var stmt = conn.prepareStatement(query)) {
             setArgs(stmt, args);
@@ -116,9 +125,7 @@ public final class DbUtil {
             setArgs(stmt, args);
             int result = stmt.executeUpdate();
             if (result != 1) throw new UncheckedSqlException("Insert query did not update 1 row.");
-            var rs = stmt.getGeneratedKeys();
-            if (!rs.next()) throw new UncheckedSqlException("Insert query did not generate any keys.");
-            return rs.getLong(1);
+            return getGeneratedId(stmt);
         } catch (SQLException e) {
             throw new UncheckedSqlException(e);
         }
@@ -155,7 +162,9 @@ public final class DbUtil {
     public static <T> T doTransaction(Connection conn, SQLSupplier<T> supplier) {
         try {
             conn.setAutoCommit(false);
-            return supplier.offer();
+            T result = supplier.offer();
+            conn.commit();
+            return result;
         } catch (Exception e) {
             try {
                 conn.rollback();

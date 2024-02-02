@@ -24,7 +24,8 @@
                 <Label text="Description" labelFor="${descriptionField}"/>
                 <TextArea fx:id="descriptionField" wrapText="true"/>
             </PropertiesPane>
-            <HBox styleClass="std-padding,std-spacing">
+            <Separator/>
+            <HBox styleClass="std-padding,std-spacing" alignment="CENTER_RIGHT">
                 <Button text="Save" fx:id="saveButton" onAction="#save"/>
                 <Button text="Cancel" onAction="#cancel"/>
             </HBox>

@@ -1,5 +1,6 @@
 package com.andrewlalis.perfin.control;
 
+import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -52,6 +53,10 @@ public class Popups {
 
     public static void error(Node node, Exception e) {
         error(getWindowFromNode(node), e);
+    }
+
+    public static void errorLater(Node node, Exception e) {
+        Platform.runLater(() -> error(node, e));
     }
 
     private static Window getWindowFromNode(Node n) {

@@ -3,23 +3,37 @@ package com.andrewlalis.perfin.control;
 import com.andrewlalis.perfin.data.TransactionRepository;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DateUtil;
-import com.andrewlalis.perfin.model.Attachment;
-import com.andrewlalis.perfin.model.CreditAndDebitAccounts;
-import com.andrewlalis.perfin.model.Profile;
-import com.andrewlalis.perfin.model.Transaction;
+import com.andrewlalis.perfin.model.*;
+import com.andrewlalis.perfin.view.BindingUtil;
 import com.andrewlalis.perfin.view.component.AttachmentsViewPane;
+import com.andrewlalis.perfin.view.component.PropertiesPane;
 import javafx.application.Platform;
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.TextFlow;
-
-import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
 public class TransactionViewController {
-    private Transaction transaction;
+    private static final Logger log = LoggerFactory.getLogger(TransactionViewController.class);
+
+    private final ObjectProperty<Transaction> transactionProperty = new SimpleObjectProperty<>(null);
+    private final ObjectProperty<CreditAndDebitAccounts> linkedAccountsProperty = new SimpleObjectProperty<>(null);
+    private final ObjectProperty<TransactionVendor> vendorProperty = new SimpleObjectProperty<>(null);
+    private final ObjectProperty<TransactionCategory> categoryProperty = new SimpleObjectProperty<>(null);
+    private final ObservableList<String> tagsList = FXCollections.observableArrayList();
+    private final ListProperty<String> tagsListProperty = new SimpleListProperty<>(tagsList);
+    private final ObservableList<Attachment> attachmentsList = FXCollections.observableArrayList();
 
     @FXML public Label titleLabel;
 
@@ -27,47 +41,103 @@ public class TransactionViewController {
     @FXML public Label timestampLabel;
     @FXML public Label descriptionLabel;
 
+    @FXML public Label vendorLabel;
+    @FXML public Circle categoryColorIndicator;
+    @FXML public Label categoryLabel;
+    @FXML public Label tagsLabel;
+
     @FXML public Hyperlink debitAccountLink;
     @FXML public Hyperlink creditAccountLink;
 
     @FXML public AttachmentsViewPane attachmentsViewPane;
 
     @FXML public void initialize() {
-        configureAccountLinkBindings(debitAccountLink);
-        configureAccountLinkBindings(creditAccountLink);
+        titleLabel.textProperty().bind(transactionProperty.map(t -> "Transaction #" + t.id));
+        amountLabel.textProperty().bind(transactionProperty.map(t -> CurrencyUtil.formatMoney(t.getMoneyAmount())));
+        timestampLabel.textProperty().bind(transactionProperty.map(t -> DateUtil.formatUTCAsLocalWithZone(t.getTimestamp())));
+        descriptionLabel.textProperty().bind(transactionProperty.map(Transaction::getDescription));
+
+        PropertiesPane vendorPane = (PropertiesPane) vendorLabel.getParent();
+        BindingUtil.bindManagedAndVisible(vendorPane, vendorProperty.isNotNull());
+        vendorLabel.textProperty().bind(vendorProperty.map(TransactionVendor::getName));
+
+        PropertiesPane categoryPane = (PropertiesPane) categoryLabel.getParent().getParent();
+        BindingUtil.bindManagedAndVisible(categoryPane, categoryProperty.isNotNull());
+        categoryLabel.textProperty().bind(categoryProperty.map(TransactionCategory::getName));
+        categoryColorIndicator.fillProperty().bind(categoryProperty.map(TransactionCategory::getColor));
+
+        PropertiesPane tagsPane = (PropertiesPane) tagsLabel.getParent();
+        BindingUtil.bindManagedAndVisible(tagsPane, tagsListProperty.emptyProperty().not());
+        tagsLabel.textProperty().bind(tagsListProperty.map(tags -> String.join(", ", tags)));
+
+        TextFlow debitText = (TextFlow) debitAccountLink.getParent();
+        BindingUtil.bindManagedAndVisible(debitText, linkedAccountsProperty.map(CreditAndDebitAccounts::hasDebit));
+        debitAccountLink.textProperty().bind(linkedAccountsProperty.map(la -> la.hasDebit() ? la.debitAccount().getShortName() : null));
+        debitAccountLink.onActionProperty().bind(linkedAccountsProperty.map(la -> {
+            if (la.hasDebit()) {
+                return event -> router.navigate("account", la.debitAccount());
+            }
+            return event -> {};
+        }));
+        TextFlow creditText = (TextFlow) creditAccountLink.getParent();
+        BindingUtil.bindManagedAndVisible(creditText, linkedAccountsProperty.map(CreditAndDebitAccounts::hasCredit));
+        creditAccountLink.textProperty().bind(linkedAccountsProperty.map(la -> la.hasCredit() ? la.creditAccount().getShortName() : null));
+        creditAccountLink.onActionProperty().bind(linkedAccountsProperty.map(la -> {
+            if (la.hasCredit()) {
+                return event -> router.navigate("account", la.creditAccount());
+            }
+            return event -> {};
+        }));
+
         attachmentsViewPane.hideIfEmpty();
+        attachmentsViewPane.listProperty().bindContent(attachmentsList);
+
+        transactionProperty.addListener((observable, oldValue, newValue) -> {
+            if (newValue == null) {
+                linkedAccountsProperty.set(null);
+                vendorProperty.set(null);
+                categoryProperty.set(null);
+                tagsList.clear();
+                attachmentsList.clear();
+            } else {
+                updateLinkedData(newValue);
+            }
+        });
     }
 
     public void setTransaction(Transaction transaction) {
-        this.transaction = transaction;
-        if (transaction == null) return;
-        titleLabel.setText("Transaction #" + transaction.id);
-        amountLabel.setText(CurrencyUtil.formatMoney(transaction.getMoneyAmount()));
-        timestampLabel.setText(DateUtil.formatUTCAsLocalWithZone(transaction.getTimestamp()));
-        descriptionLabel.setText(transaction.getDescription());
-        Profile.getCurrent().dataSource().useRepoAsync(TransactionRepository.class, repo -> {
-            CreditAndDebitAccounts accounts = repo.findLinkedAccounts(transaction.id);
-            List<Attachment> attachments = repo.findAttachments(transaction.id);
-            Platform.runLater(() -> {
-                if (accounts.hasDebit()) {
-                    debitAccountLink.setText(accounts.debitAccount().getShortName());
-                    debitAccountLink.setOnAction(event -> router.navigate("account", accounts.debitAccount()));
-                } else {
-                    debitAccountLink.setText(null);
-                }
-                if (accounts.hasCredit()) {
-                    creditAccountLink.setText(accounts.creditAccount().getShortName());
-                    creditAccountLink.setOnAction(event -> router.navigate("account", accounts.creditAccount()));
-                } else {
-                    creditAccountLink.setText(null);
-                }
-                attachmentsViewPane.setAttachments(attachments);
-            });
+        this.transactionProperty.set(transaction);
+    }
+
+    private void updateLinkedData(Transaction tx) {
+        var ds = Profile.getCurrent().dataSource();
+        Thread.ofVirtual().start(() -> {
+            try (
+                var transactionRepo = ds.getTransactionRepository();
+                var vendorRepo = ds.getTransactionVendorRepository();
+                var categoryRepo = ds.getTransactionCategoryRepository()
+            ) {
+                final var linkedAccounts = transactionRepo.findLinkedAccounts(tx.id);
+                final var vendor = tx.getVendorId() == null ? null : vendorRepo.findById(tx.getVendorId()).orElse(null);
+                final var category = tx.getCategoryId() == null ? null : categoryRepo.findById(tx.getCategoryId()).orElse(null);
+                final var attachments = transactionRepo.findAttachments(tx.id);
+                final var tags = transactionRepo.findTags(tx.id);
+                Platform.runLater(() -> {
+                    linkedAccountsProperty.set(linkedAccounts);
+                    vendorProperty.set(vendor);
+                    categoryProperty.set(category);
+                    attachmentsList.setAll(attachments);
+                    tagsList.setAll(tags);
+                });
+            } catch (Exception e) {
+                log.error("Failed to fetch additional transaction data.", e);
+                Popups.errorLater(titleLabel, e);
+            }
         });
     }
 
     @FXML public void editTransaction() {
-        router.navigate("edit-transaction", this.transaction);
+        router.navigate("edit-transaction", this.transactionProperty.get());
     }
 
     @FXML public void deleteTransaction() {
@@ -82,15 +152,8 @@ public class TransactionViewController {
             "it's derived from the most recent balance-record, and transactions."
         );
         if (confirm) {
-            Profile.getCurrent().dataSource().useRepo(TransactionRepository.class, repo -> repo.delete(transaction.id));
+            Profile.getCurrent().dataSource().useRepo(TransactionRepository.class, repo -> repo.delete(this.transactionProperty.get().id));
             router.replace("transactions");
         }
-    }
-
-    private void configureAccountLinkBindings(Hyperlink link) {
-        TextFlow parent = (TextFlow) link.getParent();
-        parent.managedProperty().bind(parent.visibleProperty());
-        parent.visibleProperty().bind(link.textProperty().isNotEmpty());
-        link.setText(null);
     }
 }
