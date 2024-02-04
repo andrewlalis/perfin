@@ -49,7 +49,7 @@ public class AccountsViewController implements RouteSelectionListener {
 
     public void refreshAccounts() {
         Profile.whenLoaded(profile -> {
-            profile.getDataSource().useRepoAsync(AccountRepository.class, repo -> {
+            profile.dataSource().useRepoAsync(AccountRepository.class, repo -> {
                 List<Account> accounts = repo.findAllOrderedByRecentHistory();
                 Platform.runLater(() -> accountsPane.getChildren()
                         .setAll(accounts.stream()
@@ -59,7 +59,7 @@ public class AccountsViewController implements RouteSelectionListener {
             });
             // Compute grand totals!
             Thread.ofVirtual().start(() -> {
-                var totals = profile.getDataSource().getCombinedAccountBalances();
+                var totals = profile.dataSource().getCombinedAccountBalances();
                 StringBuilder sb = new StringBuilder("Totals: ");
                 for (var entry : totals.entrySet()) {
                     sb.append(CurrencyUtil.formatMoneyWithCurrencyPrefix(new MoneyValue(entry.getValue(), entry.getKey())));

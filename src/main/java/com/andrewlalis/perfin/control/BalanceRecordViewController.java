@@ -41,16 +41,19 @@ public class BalanceRecordViewController implements RouteSelectionListener {
         timestampLabel.setText(DateUtil.formatUTCAsLocalWithZone(balanceRecord.getTimestamp()));
         balanceLabel.setText(CurrencyUtil.formatMoney(balanceRecord.getMoneyAmount()));
         currencyLabel.setText(balanceRecord.getCurrency().getDisplayName());
-        Profile.getCurrent().getDataSource().useRepoAsync(BalanceRecordRepository.class, repo -> {
+        Profile.getCurrent().dataSource().useRepoAsync(BalanceRecordRepository.class, repo -> {
             List<Attachment> attachments = repo.findAttachments(balanceRecord.id);
             Platform.runLater(() -> attachmentsViewPane.setAttachments(attachments));
         });
     }
 
     @FXML public void delete() {
-        boolean confirm = Popups.confirm("Are you sure you want to delete this balance record? This may have an effect on the derived balance of your account, as shown in Perfin.");
+        boolean confirm = Popups.confirm(
+                titleLabel,
+                "Are you sure you want to delete this balance record? This may have an effect on the derived balance of your account, as shown in Perfin."
+        );
         if (confirm) {
-            Profile.getCurrent().getDataSource().useRepo(BalanceRecordRepository.class, repo -> repo.deleteById(balanceRecord.id));
+            Profile.getCurrent().dataSource().useRepo(BalanceRecordRepository.class, repo -> repo.deleteById(balanceRecord.id));
             router.navigateBackAndClear();
         }
     }

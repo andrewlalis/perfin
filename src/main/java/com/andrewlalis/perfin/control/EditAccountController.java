@@ -106,8 +106,8 @@ public class EditAccountController implements RouteSelectionListener {
     @FXML
     public void save() {
         try (
-                var accountRepo = Profile.getCurrent().getDataSource().getAccountRepository();
-                var balanceRepo = Profile.getCurrent().getDataSource().getBalanceRecordRepository()
+                var accountRepo = Profile.getCurrent().dataSource().getAccountRepository();
+                var balanceRepo = Profile.getCurrent().dataSource().getBalanceRecordRepository()
         ) {
             if (creatingNewAccount.get()) {
                 String name = accountNameField.getText().strip();
@@ -117,7 +117,7 @@ public class EditAccountController implements RouteSelectionListener {
                 BigDecimal initialBalance = new BigDecimal(initialBalanceField.getText().strip());
                 List<Path> attachments = Collections.emptyList();
 
-                boolean success = Popups.confirm("Are you sure you want to create this account?");
+                boolean success = Popups.confirm(accountNameField, "Are you sure you want to create this account?");
                 if (success) {
                     long id = accountRepo.insert(type, number, name, currency);
                     balanceRepo.insert(LocalDateTime.now(ZoneOffset.UTC), id, initialBalance, currency, attachments);
@@ -138,7 +138,7 @@ public class EditAccountController implements RouteSelectionListener {
             }
         } catch (Exception e) {
             log.error("Failed to save (or update) account " + account.id, e);
-            Popups.error("Failed to save the account: " + e.getMessage());
+            Popups.error(accountNameField, "Failed to save the account: " + e.getMessage());
         }
     }
 

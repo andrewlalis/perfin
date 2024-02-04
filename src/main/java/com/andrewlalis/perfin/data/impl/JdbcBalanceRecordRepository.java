@@ -1,11 +1,13 @@
 package com.andrewlalis.perfin.data.impl;
 
-import com.andrewlalis.perfin.data.AccountHistoryItemRepository;
 import com.andrewlalis.perfin.data.AttachmentRepository;
 import com.andrewlalis.perfin.data.BalanceRecordRepository;
+import com.andrewlalis.perfin.data.HistoryRepository;
+import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DbUtil;
 import com.andrewlalis.perfin.model.Attachment;
 import com.andrewlalis.perfin.model.BalanceRecord;
+import com.andrewlalis.perfin.model.MoneyValue;
 
 import java.math.BigDecimal;
 import java.nio.file.Path;
@@ -36,8 +38,9 @@ public record JdbcBalanceRecordRepository(Connection conn, Path contentDir) impl
                 }
             }
             // Add a history item entry.
-            AccountHistoryItemRepository historyRepo = new JdbcAccountHistoryItemRepository(conn);
-            historyRepo.recordBalanceRecord(utcTimestamp, accountId, recordId);
+            HistoryRepository historyRepo = new JdbcHistoryRepository(conn);
+            long historyId = historyRepo.getOrCreateHistoryForAccount(accountId);
+            historyRepo.addTextItem(historyId, utcTimestamp, "Balance Record #" + recordId + " added with a value of " + CurrencyUtil.formatMoneyWithCurrencyPrefix(new MoneyValue(balance, currency)));
             return recordId;
         });
     }

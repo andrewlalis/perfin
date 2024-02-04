@@ -1,24 +1,36 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
+import com.andrewlalis.perfin.data.DataSource;
 import com.andrewlalis.perfin.data.TransactionRepository;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.data.pagination.Sort;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.model.*;
+import com.andrewlalis.perfin.view.BindingUtil;
 import com.andrewlalis.perfin.view.component.AccountSelectionBox;
+import com.andrewlalis.perfin.view.component.CategorySelectionBox;
 import com.andrewlalis.perfin.view.component.FileSelectionArea;
 import com.andrewlalis.perfin.view.component.validation.ValidationApplier;
 import com.andrewlalis.perfin.view.component.validation.validators.CurrencyAmountValidator;
 import com.andrewlalis.perfin.view.component.validation.validators.PredicateValidator;
 import javafx.application.Platform;
+import javafx.beans.binding.BooleanExpression;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,13 +39,14 @@ import java.nio.file.Path;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Currency;
-import java.util.List;
+import java.util.*;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
+/**
+ * Controller for the "edit-transaction" view, which is where the user can
+ * create or edit transactions.
+ */
 public class EditTransactionController implements RouteSelectionListener {
     private static final Logger log = LoggerFactory.getLogger(EditTransactionController.class);
 
@@ -48,6 +61,25 @@ public class EditTransactionController implements RouteSelectionListener {
     @FXML public HBox linkedAccountsContainer;
     @FXML public AccountSelectionBox debitAccountSelector;
     @FXML public AccountSelectionBox creditAccountSelector;
+
+    @FXML public ComboBox<String> vendorComboBox;
+    @FXML public Hyperlink vendorsHyperlink;
+    @FXML public CategorySelectionBox categoryComboBox;
+    @FXML public Hyperlink categoriesHyperlink;
+    @FXML public ComboBox<String> tagsComboBox;
+    @FXML public Hyperlink tagsHyperlink;
+    @FXML public Button addTagButton;
+    @FXML public VBox tagsVBox;
+    private final ObservableList<String> selectedTags = FXCollections.observableArrayList();
+
+    @FXML public Spinner<Integer> lineItemQuantitySpinner;
+    @FXML public TextField lineItemValueField;
+    @FXML public TextField lineItemDescriptionField;
+    @FXML public Button addLineItemButton;
+    @FXML public VBox addLineItemForm;
+    @FXML public Button addLineItemAddButton;
+    @FXML public Button addLineItemCancelButton;
+    @FXML public final BooleanProperty addingLineItemProperty = new SimpleBooleanProperty(false);
 
     @FXML public FileSelectionArea attachmentsSelectionArea;
 
@@ -70,32 +102,32 @@ public class EditTransactionController implements RouteSelectionListener {
         var descriptionValid = new ValidationApplier<>(new PredicateValidator<String>()
                 .addTerminalPredicate(s -> s == null || s.length() <= 255, "Description is too long.")
         ).validatedInitially().attach(descriptionField, descriptionField.textProperty());
+        var linkedAccountsValid = initializeLinkedAccountsValidationUi();
+        initializeTagSelectionUi();
 
-        // Linked accounts will use a property derived from both the debit and credit selections.
-        Property<CreditAndDebitAccounts> linkedAccountsProperty = new SimpleObjectProperty<>(getSelectedAccounts());
-        debitAccountSelector.valueProperty().addListener((observable, oldValue, newValue) -> linkedAccountsProperty.setValue(getSelectedAccounts()));
-        creditAccountSelector.valueProperty().addListener((observable, oldValue, newValue) -> linkedAccountsProperty.setValue(getSelectedAccounts()));
-        var linkedAccountsValid = new ValidationApplier<>(new PredicateValidator<CreditAndDebitAccounts>()
-                .addPredicate(accounts -> accounts.hasCredit() || accounts.hasDebit(), "At least one account must be linked.")
-                .addPredicate(
-                        accounts -> (!accounts.hasCredit() || !accounts.hasDebit()) || !accounts.creditAccount().equals(accounts.debitAccount()),
-                        "The credit and debit accounts cannot be the same."
-                )
-                .addPredicate(
-                        accounts -> (
-                                (!accounts.hasCredit() || accounts.creditAccount().getCurrency().equals(currencyChoiceBox.getValue())) &&
-                                (!accounts.hasDebit() || accounts.debitAccount().getCurrency().equals(currencyChoiceBox.getValue()))
-                        ),
-                        "Linked accounts must use the same currency."
-                )
-                .addPredicate(
-                        accounts -> (
-                                (!accounts.hasCredit() || !accounts.creditAccount().isArchived()) &&
-                                (!accounts.hasDebit() || !accounts.debitAccount().isArchived())
-                        ),
-                        "Linked accounts must not be archived."
-                )
-        ).validatedInitially().attach(linkedAccountsContainer, linkedAccountsProperty);
+        vendorsHyperlink.setOnAction(event -> router.navigate("vendors"));
+        categoriesHyperlink.setOnAction(event -> router.navigate("categories"));
+        tagsHyperlink.setOnAction(event -> router.navigate("tags"));
+
+        // Initialize line item stuff.
+        addLineItemButton.setOnAction(event -> addingLineItemProperty.set(true));
+        addLineItemCancelButton.setOnAction(event -> {
+            lineItemQuantitySpinner.getValueFactory().setValue(1);
+            lineItemValueField.setText(null);
+            lineItemDescriptionField.setText(null);
+            addingLineItemProperty.set(false);
+        });
+        BindingUtil.bindManagedAndVisible(addLineItemButton, addingLineItemProperty.not());
+        BindingUtil.bindManagedAndVisible(addLineItemForm, addingLineItemProperty);
+        lineItemQuantitySpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE, 1, 1));
+        var lineItemValueValid = new ValidationApplier<>(
+                new CurrencyAmountValidator(() -> currencyChoiceBox.getValue(), false, false)
+        ).attachToTextField(lineItemValueField, currencyChoiceBox.valueProperty());
+        var lineItemDescriptionValid = new ValidationApplier<>(new PredicateValidator<String>()
+                .addTerminalPredicate(s -> s != null && !s.isBlank(), "A description is required.")
+        ).attachToTextField(lineItemDescriptionField);
+        var lineItemFormValid = lineItemValueValid.and(lineItemDescriptionValid);
+        addLineItemAddButton.disableProperty().bind(lineItemFormValid.not());
 
         var formValid = timestampValid.and(amountValid).and(descriptionValid).and(linkedAccountsValid);
         saveButton.disableProperty().bind(formValid.not());
@@ -107,11 +139,14 @@ public class EditTransactionController implements RouteSelectionListener {
         Currency currency = currencyChoiceBox.getValue();
         String description = getSanitizedDescription();
         CreditAndDebitAccounts linkedAccounts = getSelectedAccounts();
+        String vendor = vendorComboBox.getValue();
+        String category = categoryComboBox.getValue() == null ? null : categoryComboBox.getValue().getName();
+        Set<String> tags = new HashSet<>(selectedTags);
         List<Path> newAttachmentPaths = attachmentsSelectionArea.getSelectedPaths();
         List<Attachment> existingAttachments = attachmentsSelectionArea.getSelectedAttachments();
         final long idToNavigate;
         if (transaction == null) {
-            idToNavigate = Profile.getCurrent().getDataSource().mapRepo(
+            idToNavigate = Profile.getCurrent().dataSource().mapRepo(
                 TransactionRepository.class,
                 repo -> repo.insert(
                     utcTimestamp,
@@ -119,11 +154,14 @@ public class EditTransactionController implements RouteSelectionListener {
                     currency,
                     description,
                     linkedAccounts,
+                    vendor,
+                    category,
+                    tags,
                     newAttachmentPaths
                 )
             );
         } else {
-            Profile.getCurrent().getDataSource().useRepo(
+            Profile.getCurrent().dataSource().useRepo(
                 TransactionRepository.class,
                 repo -> repo.update(
                         transaction.id,
@@ -132,6 +170,9 @@ public class EditTransactionController implements RouteSelectionListener {
                         currency,
                         description,
                         linkedAccounts,
+                        vendor,
+                        category,
+                        tags,
                         existingAttachments,
                         newAttachmentPaths
                 )
@@ -149,6 +190,11 @@ public class EditTransactionController implements RouteSelectionListener {
     public void onRouteSelected(Object context) {
         transaction = (Transaction) context;
 
+        // Clear some initial fields immediately:
+        tagsComboBox.setValue(null);
+        vendorComboBox.setValue(null);
+        categoryComboBox.select(null);
+
         if (transaction == null) {
             titleLabel.setText("Create New Transaction");
             timestampField.setText(LocalDateTime.now().format(DateUtil.DEFAULT_DATETIME_FORMAT));
@@ -163,10 +209,13 @@ public class EditTransactionController implements RouteSelectionListener {
 
         // Fetch some account-specific data.
         container.setDisable(true);
+        DataSource ds = Profile.getCurrent().dataSource();
         Thread.ofVirtual().start(() -> {
             try (
-                    var accountRepo = Profile.getCurrent().getDataSource().getAccountRepository();
-                    var transactionRepo = Profile.getCurrent().getDataSource().getTransactionRepository()
+                    var accountRepo = ds.getAccountRepository();
+                    var transactionRepo = ds.getTransactionRepository();
+                    var vendorRepo = ds.getTransactionVendorRepository();
+                    var categoryRepo = ds.getTransactionCategoryRepository()
             ) {
                 // First fetch all the data.
                 List<Currency> currencies = accountRepo.findAllUsedCurrencies().stream()
@@ -174,23 +223,50 @@ public class EditTransactionController implements RouteSelectionListener {
                         .toList();
                 List<Account> accounts = accountRepo.findAll(PageRequest.unpaged(Sort.asc("name"))).items();
                 final List<Attachment> attachments;
+                final var categoryTreeNodes = categoryRepo.findTree();
+                final List<String> availableTags = transactionRepo.findAllTags();
+                final List<String> tags;
                 final CreditAndDebitAccounts linkedAccounts;
+                final String vendorName;
+                final TransactionCategory category;
                 if (transaction == null) {
                     attachments = Collections.emptyList();
+                    tags = Collections.emptyList();
                     linkedAccounts = new CreditAndDebitAccounts(null, null);
+                    vendorName = null;
+                    category = null;
                 } else {
                     attachments = transactionRepo.findAttachments(transaction.id);
+                    tags = transactionRepo.findTags(transaction.id);
                     linkedAccounts = transactionRepo.findLinkedAccounts(transaction.id);
+                    if (transaction.getVendorId() != null) {
+                        vendorName = vendorRepo.findById(transaction.getVendorId())
+                                .map(TransactionVendor::getName).orElse(null);
+                    } else {
+                        vendorName = null;
+                    }
+                    if (transaction.getCategoryId() != null) {
+                        category = categoryRepo.findById(transaction.getCategoryId()).orElse(null);
+                    } else {
+                        category = null;
+                    }
                 }
+                final List<TransactionVendor> availableVendors = vendorRepo.findAll();
                 // Then make updates to the view.
                 Platform.runLater(() -> {
+                    currencyChoiceBox.getItems().setAll(currencies);
                     creditAccountSelector.setAccounts(accounts);
                     debitAccountSelector.setAccounts(accounts);
-                    currencyChoiceBox.getItems().setAll(currencies);
+                    vendorComboBox.getItems().setAll(availableVendors.stream().map(TransactionVendor::getName).toList());
+                    vendorComboBox.setValue(vendorName);
+                    categoryComboBox.loadCategories(categoryTreeNodes);
+                    categoryComboBox.select(category);
+                    tagsComboBox.getItems().setAll(availableTags);
                     attachmentsSelectionArea.clear();
                     attachmentsSelectionArea.addAttachments(attachments);
+                    selectedTags.clear();
+                    selectedTags.addAll(tags);
                     if (transaction == null) {
-                        // TODO: Allow user to select a default currency.
                         currencyChoiceBox.getSelectionModel().selectFirst();
                         creditAccountSelector.select(null);
                         debitAccountSelector.select(null);
@@ -203,9 +279,51 @@ public class EditTransactionController implements RouteSelectionListener {
                 });
             } catch (Exception e) {
                 log.error("Failed to get repositories.", e);
-                Popups.error("Failed to fetch account-specific data: " + e.getMessage());
+                Platform.runLater(() -> Popups.error(container, "Failed to fetch account-specific data: " + e.getMessage()));
+                router.navigateBackAndClear();
             }
         });
+    }
+
+    private BooleanExpression initializeLinkedAccountsValidationUi() {
+        Property<CreditAndDebitAccounts> linkedAccountsProperty = new SimpleObjectProperty<>(getSelectedAccounts());
+        debitAccountSelector.valueProperty().addListener((observable, oldValue, newValue) -> linkedAccountsProperty.setValue(getSelectedAccounts()));
+        creditAccountSelector.valueProperty().addListener((observable, oldValue, newValue) -> linkedAccountsProperty.setValue(getSelectedAccounts()));
+        return new ValidationApplier<>(getLinkedAccountsValidator())
+                .validatedInitially()
+                .attach(linkedAccountsContainer, linkedAccountsProperty);
+    }
+
+    private void initializeTagSelectionUi() {
+        addTagButton.disableProperty().bind(tagsComboBox.valueProperty().map(s -> s == null || s.isBlank()));
+        addTagButton.setOnAction(event -> {
+            if (tagsComboBox.getValue() == null) return;
+            String tag = tagsComboBox.getValue().strip();
+            if (!selectedTags.contains(tag)) {
+                selectedTags.add(tag);
+                selectedTags.sort(String::compareToIgnoreCase);
+            }
+            tagsComboBox.setValue(null);
+        });
+        tagsComboBox.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                addTagButton.fire();
+            }
+        });
+        BindingUtil.mapContent(tagsVBox.getChildren(), selectedTags, this::createTagListTile);
+    }
+
+    private Node createTagListTile(String tag) {
+        Label label = new Label(tag);
+        label.setMaxWidth(Double.POSITIVE_INFINITY);
+        label.getStyleClass().addAll("bold-text");
+        Button removeButton = new Button("Remove");
+        removeButton.setOnAction(event -> selectedTags.remove(tag));
+        BorderPane tile = new BorderPane(label);
+        tile.setRight(removeButton);
+        tile.getStyleClass().addAll("std-spacing");
+        BorderPane.setAlignment(label, Pos.CENTER_LEFT);
+        return tile;
     }
 
     private CreditAndDebitAccounts getSelectedAccounts() {
@@ -213,6 +331,29 @@ public class EditTransactionController implements RouteSelectionListener {
                 creditAccountSelector.getValue(),
                 debitAccountSelector.getValue()
         );
+    }
+
+    private PredicateValidator<CreditAndDebitAccounts> getLinkedAccountsValidator() {
+        return new PredicateValidator<CreditAndDebitAccounts>()
+            .addPredicate(accounts -> accounts.hasCredit() || accounts.hasDebit(), "At least one account must be linked.")
+            .addPredicate(
+                accounts -> (!accounts.hasCredit() || !accounts.hasDebit()) || !accounts.creditAccount().equals(accounts.debitAccount()),
+                "The credit and debit accounts cannot be the same."
+            )
+            .addPredicate(
+                accounts -> (
+                    (!accounts.hasCredit() || accounts.creditAccount().getCurrency().equals(currencyChoiceBox.getValue())) &&
+                    (!accounts.hasDebit() || accounts.debitAccount().getCurrency().equals(currencyChoiceBox.getValue()))
+                ),
+                "Linked accounts must use the same currency."
+            )
+            .addPredicate(
+                accounts -> (
+                    (!accounts.hasCredit() || !accounts.creditAccount().isArchived()) &&
+                    (!accounts.hasDebit() || !accounts.debitAccount().isArchived())
+                ),
+                "Linked accounts must not be archived."
+            );
     }
 
     private LocalDateTime parseTimestamp() {

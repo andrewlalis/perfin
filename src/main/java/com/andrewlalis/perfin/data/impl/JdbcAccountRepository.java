@@ -1,12 +1,8 @@
 package com.andrewlalis.perfin.data.impl;
 
-import com.andrewlalis.perfin.data.AccountEntryRepository;
-import com.andrewlalis.perfin.data.AccountRepository;
-import com.andrewlalis.perfin.data.BalanceRecordRepository;
-import com.andrewlalis.perfin.data.EntityNotFoundException;
+import com.andrewlalis.perfin.data.*;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
-import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.data.util.DbUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.AccountEntry;
@@ -43,8 +39,9 @@ public record JdbcAccountRepository(Connection conn, Path contentDir) implements
                     )
             );
             // Insert a history item indicating the creation of the account.
-            var historyRepo = new JdbcAccountHistoryItemRepository(conn);
-            historyRepo.recordText(DateUtil.nowAsUTC(), accountId, "Account added to your Perfin profile.");
+            HistoryRepository historyRepo = new JdbcHistoryRepository(conn);
+            long historyId = historyRepo.getOrCreateHistoryForAccount(accountId);
+            historyRepo.addTextItem(historyId, "Account added to your Perfin profile.");
             return accountId;
         });
     }
@@ -59,11 +56,12 @@ public record JdbcAccountRepository(Connection conn, Path contentDir) implements
         return DbUtil.findAll(
                 conn,
                 """
-                SELECT DISTINCT ON (account.id) account.*, ahi.timestamp AS _
+                SELECT DISTINCT ON (account.id) account.*, hi.timestamp AS _
                 FROM account
-                LEFT OUTER JOIN account_history_item ahi ON ahi.account_id = account.id
+                LEFT OUTER JOIN history_account ha ON ha.account_id = account.id
+                LEFT OUTER JOIN history_item hi ON hi.history_id = ha.history_id
                 WHERE NOT account.archived
-                ORDER BY ahi.timestamp DESC, account.created_at DESC""",
+                ORDER BY hi.timestamp DESC, account.created_at DESC""",
                 JdbcAccountRepository::parseAccount
         );
     }
@@ -160,7 +158,9 @@ public record JdbcAccountRepository(Connection conn, Path contentDir) implements
     public void archive(long accountId) {
         DbUtil.doTransaction(conn, () -> {
             DbUtil.updateOne(conn, "UPDATE account SET archived = TRUE WHERE id = ?", List.of(accountId));
-            new JdbcAccountHistoryItemRepository(conn).recordText(DateUtil.nowAsUTC(), accountId, "Account has been archived.");
+            HistoryRepository historyRepo = new JdbcHistoryRepository(conn);
+            long historyId = historyRepo.getOrCreateHistoryForAccount(accountId);
+            historyRepo.addTextItem(historyId, "Account has been archived.");
         });
     }
 
@@ -168,7 +168,9 @@ public record JdbcAccountRepository(Connection conn, Path contentDir) implements
     public void unarchive(long accountId) {
         DbUtil.doTransaction(conn, () -> {
             DbUtil.updateOne(conn, "UPDATE account SET archived = FALSE WHERE id = ?", List.of(accountId));
-            new JdbcAccountHistoryItemRepository(conn).recordText(DateUtil.nowAsUTC(), accountId, "Account has been unarchived.");
+            HistoryRepository historyRepo = new JdbcHistoryRepository(conn);
+            long historyId = historyRepo.getOrCreateHistoryForAccount(accountId);
+            historyRepo.addTextItem(historyId, "Account has been unarchived.");
         });
     }
 

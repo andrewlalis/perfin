@@ -19,4 +19,5 @@ module com.andrewlalis.perfin {
     opens com.andrewlalis.perfin.view to javafx.fxml;
     opens com.andrewlalis.perfin.view.component to javafx.fxml;
     opens com.andrewlalis.perfin.view.component.validation to javafx.fxml;
+    exports com.andrewlalis.perfin.model.history to javafx.graphics;
 }

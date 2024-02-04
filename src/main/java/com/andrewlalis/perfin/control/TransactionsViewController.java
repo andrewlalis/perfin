@@ -3,14 +3,18 @@ package com.andrewlalis.perfin.control;
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
 import com.andrewlalis.perfin.data.AccountRepository;
 import com.andrewlalis.perfin.data.TransactionRepository;
+import com.andrewlalis.perfin.data.impl.JdbcDataSource;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.data.pagination.Sort;
+import com.andrewlalis.perfin.data.search.JdbcTransactionSearcher;
+import com.andrewlalis.perfin.data.search.SearchFilter;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.data.util.Pair;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.model.Transaction;
+import com.andrewlalis.perfin.view.BindingUtil;
 import com.andrewlalis.perfin.view.SceneUtil;
 import com.andrewlalis.perfin.view.component.AccountSelectionBox;
 import com.andrewlalis.perfin.view.component.DataSourcePaginationControls;
@@ -21,6 +25,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -29,8 +34,9 @@ import javafx.stage.FileChooser;
 import java.io.File;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
@@ -45,6 +51,7 @@ public class TransactionsViewController implements RouteSelectionListener {
     public record RouteContext(Long selectedTransactionId) {}
 
     @FXML public BorderPane transactionsListBorderPane;
+    @FXML public TextField searchField;
     @FXML public AccountSelectionBox filterByAccountComboBox;
     @FXML public VBox transactionsVBox;
     private DataSourcePaginationControls paginationControls;
@@ -59,33 +66,30 @@ public class TransactionsViewController implements RouteSelectionListener {
             paginationControls.setPage(1);
             selectedTransaction.set(null);
         });
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+            paginationControls.setPage(1);
+            selectedTransaction.set(null);
+        });
 
         this.paginationControls = new DataSourcePaginationControls(
                 transactionsVBox.getChildren(),
                 new DataSourcePaginationControls.PageFetcherFunction() {
                     @Override
                     public Page<? extends Node> fetchPage(PageRequest pagination) throws Exception {
-                        Account accountFilter = filterByAccountComboBox.getValue();
-                        try (var repo = Profile.getCurrent().getDataSource().getTransactionRepository()) {
-                            Page<Transaction> result;
-                            if (accountFilter == null) {
-                                result = repo.findAll(pagination);
-                            } else {
-                                result = repo.findAllByAccounts(Set.of(accountFilter.id), pagination);
-                            }
-                            return result.map(TransactionsViewController.this::makeTile);
+                        JdbcDataSource ds = (JdbcDataSource) Profile.getCurrent().dataSource();
+                        try (var conn = ds.getConnection()) {
+                            JdbcTransactionSearcher searcher = new JdbcTransactionSearcher(conn);
+                            return searcher.search(pagination, getCurrentSearchFilters())
+                                    .map(TransactionsViewController.this::makeTile);
                         }
                     }
 
                     @Override
                     public int getTotalCount() throws Exception {
-                        Account accountFilter = filterByAccountComboBox.getValue();
-                        try (var repo = Profile.getCurrent().getDataSource().getTransactionRepository()) {
-                            if (accountFilter == null) {
-                                return (int) repo.countAll();
-                            } else {
-                                return (int) repo.countAllByAccounts(Set.of(accountFilter.id));
-                            }
+                        JdbcDataSource ds = (JdbcDataSource) Profile.getCurrent().dataSource();
+                        try (var conn = ds.getConnection()) {
+                            JdbcTransactionSearcher searcher = new JdbcTransactionSearcher(conn);
+                            return (int) searcher.resultCount(getCurrentSearchFilters());
                         }
                     }
                 }
@@ -98,18 +102,13 @@ public class TransactionsViewController implements RouteSelectionListener {
         detailPanel.minWidthProperty().bind(halfWidthProp);
         detailPanel.maxWidthProperty().bind(halfWidthProp);
         detailPanel.prefWidthProperty().bind(halfWidthProp);
-        detailPanel.managedProperty().bind(detailPanel.visibleProperty());
-        detailPanel.visibleProperty().bind(selectedTransaction.isNotNull());
+        BindingUtil.bindManagedAndVisible(detailPanel, selectedTransaction.isNotNull());
 
         Pair<BorderPane, TransactionViewController> detailComponents = SceneUtil.loadNodeAndController("/transaction-view.fxml");
         TransactionViewController transactionViewController = detailComponents.second();
         BorderPane transactionDetailView = detailComponents.first();
-        transactionDetailView.managedProperty().bind(transactionDetailView.visibleProperty());
-        transactionDetailView.visibleProperty().bind(selectedTransaction.isNotNull());
         detailPanel.getChildren().add(transactionDetailView);
-        selectedTransaction.addListener((observable, oldValue, newValue) -> {
-            transactionViewController.setTransaction(newValue);
-        });
+        selectedTransaction.addListener((observable, oldValue, newValue) -> transactionViewController.setTransaction(newValue));
 
         // Clear the transactions when a new profile is loaded.
         Profile.whenLoaded(profile -> {
@@ -121,10 +120,10 @@ public class TransactionsViewController implements RouteSelectionListener {
     @Override
     public void onRouteSelected(Object context) {
         paginationControls.sorts.setAll(DEFAULT_SORTS);
-        transactionsVBox.getChildren().clear(); // Clear the transactions before reload initially.
+        selectedTransaction.set(null); // Initially set the selected transaction as null.
 
         // Refresh account filter options.
-        Profile.getCurrent().getDataSource().useRepoAsync(AccountRepository.class, repo -> {
+        Profile.getCurrent().dataSource().useRepoAsync(AccountRepository.class, repo -> {
             List<Account> accounts = repo.findAll(PageRequest.unpaged(Sort.asc("name"))).items();
             Platform.runLater(() -> {
                 filterByAccountComboBox.setAccounts(accounts);
@@ -135,18 +134,19 @@ public class TransactionsViewController implements RouteSelectionListener {
 
         // If a transaction id is given in the route context, navigate to the page it's on and select it.
         if (context instanceof RouteContext ctx && ctx.selectedTransactionId != null) {
-            Profile.getCurrent().getDataSource().useRepoAsync(TransactionRepository.class, repo -> {
-                repo.findById(ctx.selectedTransactionId).ifPresent(tx -> {
-                    long offset = repo.countAllAfter(tx.id);
-                    int pageNumber = (int) (offset / paginationControls.getItemsPerPage()) + 1;
-                    Platform.runLater(() -> {
-                        paginationControls.setPage(pageNumber).thenRun(() -> selectedTransaction.set(tx));
-                    });
-                });
-            });
+            Profile.getCurrent().dataSource().useRepoAsync(
+                    TransactionRepository.class,
+                    repo -> repo.findById(ctx.selectedTransactionId).ifPresent(tx -> {
+                        long offset = repo.countAllAfter(tx.id);
+                        int pageNumber = (int) (offset / paginationControls.getItemsPerPage()) + 1;
+                        Platform.runLater(() -> {
+                            paginationControls.setPage(pageNumber);
+                            selectedTransaction.set(tx);
+                        });
+                    })
+            );
         } else {
             paginationControls.setPage(1);
-            selectedTransaction.set(null);
         }
     }
 
@@ -161,7 +161,7 @@ public class TransactionsViewController implements RouteSelectionListener {
         File file = fileChooser.showSaveDialog(detailPanel.getScene().getWindow());
         if (file != null) {
             try (
-                    var repo = Profile.getCurrent().getDataSource().getTransactionRepository();
+                    var repo = Profile.getCurrent().dataSource().getTransactionRepository();
                     var out = new PrintWriter(file, StandardCharsets.UTF_8)
             ) {
                 out.println("id,utc-timestamp,amount,currency,description");
@@ -177,9 +177,40 @@ public class TransactionsViewController implements RouteSelectionListener {
                     ));
                 }
             } catch (Exception e) {
-                Popups.error("An error occurred: " + e.getMessage());
+                Popups.error(transactionsListBorderPane, e);
             }
         }
+    }
+
+    private List<SearchFilter> getCurrentSearchFilters() {
+        List<SearchFilter> filters = new ArrayList<>();
+        if (searchField.getText() != null && !searchField.getText().isBlank()) {
+            var likeTerms = Arrays.stream(searchField.getText().strip().toLowerCase().split("\\s+"))
+                    .map(t -> '%'+t+'%')
+                    .toList();
+            var builder = new SearchFilter.Builder();
+            List<String> orClauses = new ArrayList<>(likeTerms.size());
+            for (var term : likeTerms) {
+                orClauses.add("LOWER(transaction.description) LIKE ? OR LOWER(sfv.name) LIKE ? OR LOWER(sfc.name) LIKE ?");
+                builder.withArg(term);
+                builder.withArg(term);
+                builder.withArg(term);
+            }
+            builder.where(String.join(" OR ", orClauses));
+            builder.withJoin("LEFT JOIN transaction_vendor sfv ON sfv.id = transaction.vendor_id");
+            builder.withJoin("LEFT JOIN transaction_category sfc ON sfc.id = transaction.category_id");
+            filters.add(builder.build());
+        }
+        if (filterByAccountComboBox.getValue() != null) {
+            Account filteredAccount = filterByAccountComboBox.getValue();
+            var filter = new SearchFilter.Builder()
+                    .where("fae.account_id = ?")
+                    .withArg(filteredAccount.id)
+                    .withJoin("LEFT JOIN account_entry fae ON fae.transaction_id = transaction.id")
+                    .build();
+            filters.add(filter);
+        }
+        return filters;
     }
 
     private TransactionTile makeTile(Transaction transaction) {

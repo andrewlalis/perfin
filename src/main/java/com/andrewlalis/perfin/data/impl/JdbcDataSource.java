@@ -50,12 +50,22 @@ public class JdbcDataSource implements DataSource {
     }
 
     @Override
+    public TransactionVendorRepository getTransactionVendorRepository() {
+        return new JdbcTransactionVendorRepository(getConnection());
+    }
+
+    @Override
+    public TransactionCategoryRepository getTransactionCategoryRepository() {
+        return new JdbcTransactionCategoryRepository(getConnection());
+    }
+
+    @Override
     public AttachmentRepository getAttachmentRepository() {
         return new JdbcAttachmentRepository(getConnection(), contentDir);
     }
 
     @Override
-    public AccountHistoryItemRepository getAccountHistoryItemRepository() {
-        return new JdbcAccountHistoryItemRepository(getConnection());
+    public HistoryRepository getHistoryRepository() {
+        return new JdbcHistoryRepository(getConnection());
     }
 }

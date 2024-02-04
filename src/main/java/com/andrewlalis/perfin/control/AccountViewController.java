@@ -1,12 +1,12 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
-import com.andrewlalis.perfin.data.AccountHistoryItemRepository;
 import com.andrewlalis.perfin.data.AccountRepository;
+import com.andrewlalis.perfin.data.HistoryRepository;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.Profile;
-import com.andrewlalis.perfin.model.history.AccountHistoryItem;
+import com.andrewlalis.perfin.model.history.HistoryItem;
 import com.andrewlalis.perfin.view.component.AccountHistoryItemTile;
 import javafx.application.Platform;
 import javafx.beans.binding.BooleanExpression;
@@ -64,7 +64,7 @@ public class AccountViewController implements RouteSelectionListener {
         accountNumberLabel.setText(account.getAccountNumber());
         accountCurrencyLabel.setText(account.getCurrency().getDisplayName());
         accountCreatedAtLabel.setText(DateUtil.formatUTCAsLocalWithZone(account.getCreatedAt()));
-        Profile.getCurrent().getDataSource().getAccountBalanceText(account)
+        Profile.getCurrent().dataSource().getAccountBalanceText(account)
                 .thenAccept(accountBalanceLabel::setText);
 
         reloadHistory();
@@ -89,6 +89,7 @@ public class AccountViewController implements RouteSelectionListener {
     @FXML
     public void archiveAccount() {
         boolean confirmResult = Popups.confirm(
+                titleLabel,
                 "Are you sure you want to archive this account? It will no " +
                         "longer show up in the app normally, and you won't be " +
                         "able to add new transactions to it. You'll still be " +
@@ -96,18 +97,19 @@ public class AccountViewController implements RouteSelectionListener {
                         "later if you need to."
         );
         if (confirmResult) {
-            Profile.getCurrent().getDataSource().useRepo(AccountRepository.class, repo -> repo.archive(account.id));
+            Profile.getCurrent().dataSource().useRepo(AccountRepository.class, repo -> repo.archive(account.id));
             router.replace("accounts");
         }
     }
 
     @FXML public void unarchiveAccount() {
         boolean confirm = Popups.confirm(
+                titleLabel,
                 "Are you sure you want to restore this account from its archived " +
                         "status?"
         );
         if (confirm) {
-            Profile.getCurrent().getDataSource().useRepo(AccountRepository.class, repo -> repo.unarchive(account.id));
+            Profile.getCurrent().dataSource().useRepo(AccountRepository.class, repo -> repo.unarchive(account.id));
             router.replace("accounts");
         }
     }
@@ -115,6 +117,7 @@ public class AccountViewController implements RouteSelectionListener {
     @FXML
     public void deleteAccount() {
         boolean confirm = Popups.confirm(
+                titleLabel,
                 "Are you sure you want to permanently delete this account and " +
                         "all data directly associated with it? This cannot be " +
                         "undone; deleted accounts are not recoverable at all. " +
@@ -122,26 +125,21 @@ public class AccountViewController implements RouteSelectionListener {
                         "want to hide it."
         );
         if (confirm) {
-            Profile.getCurrent().getDataSource().useRepo(AccountRepository.class, repo -> repo.delete(account));
+            Profile.getCurrent().dataSource().useRepo(AccountRepository.class, repo -> repo.delete(account));
             router.replace("accounts");
         }
     }
 
     @FXML public void loadMoreHistory() {
-        Profile.getCurrent().getDataSource().useRepoAsync(AccountHistoryItemRepository.class, repo -> {
-            List<AccountHistoryItem> historyItems = repo.findMostRecentForAccount(
-                    account.id,
-                    loadHistoryFrom,
-                    historyLoadSize
-            );
-            if (historyItems.size() < historyLoadSize) {
+        Profile.getCurrent().dataSource().useRepoAsync(HistoryRepository.class, repo -> {
+            long historyId = repo.getOrCreateHistoryForAccount(account.id);
+            List<HistoryItem> items = repo.getNItemsBefore(historyId, historyLoadSize, loadHistoryFrom);
+            if (items.size() < historyLoadSize) {
                 Platform.runLater(() -> loadMoreHistoryButton.setDisable(true));
             } else {
-                loadHistoryFrom = historyItems.getLast().getTimestamp();
+                loadHistoryFrom = items.getLast().getTimestamp();
             }
-            List<? extends Node> nodes = historyItems.stream()
-                    .map(item -> AccountHistoryItemTile.forItem(item, repo, this))
-                    .toList();
+            List<? extends Node> nodes = items.stream().map(AccountHistoryItemTile::forItem).toList();
             Platform.runLater(() -> historyItemsVBox.getChildren().addAll(nodes));
         });
     }

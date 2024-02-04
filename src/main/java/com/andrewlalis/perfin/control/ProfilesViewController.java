@@ -4,6 +4,7 @@ import com.andrewlalis.perfin.PerfinApp;
 import com.andrewlalis.perfin.data.ProfileLoadException;
 import com.andrewlalis.perfin.data.util.FileUtil;
 import com.andrewlalis.perfin.model.Profile;
+import com.andrewlalis.perfin.model.ProfileLoader;
 import com.andrewlalis.perfin.view.ProfilesStage;
 import com.andrewlalis.perfin.view.component.validation.ValidationApplier;
 import com.andrewlalis.perfin.view.component.validation.validators.PredicateValidator;
@@ -44,11 +45,11 @@ public class ProfilesViewController {
     @FXML public void addProfile() {
         String name = newProfileNameField.getText();
         boolean valid = Profile.validateName(name);
-        if (valid && !Profile.getAvailableProfiles().contains(name)) {
-            boolean confirm = Popups.confirm("Are you sure you want to add a new profile named \"" + name + "\"?");
+        if (valid && !ProfileLoader.getAvailableProfiles().contains(name)) {
+            boolean confirm = Popups.confirm(profilesVBox, "Are you sure you want to add a new profile named \"" + name + "\"?");
             if (confirm) {
                 if (openProfile(name, false)) {
-                    Popups.message("Created new profile \"" + name + "\" and loaded it.");
+                    Popups.message(profilesVBox, "Created new profile \"" + name + "\" and loaded it.");
                 }
                 newProfileNameField.clear();
             }
@@ -56,8 +57,8 @@ public class ProfilesViewController {
     }
 
     private void refreshAvailableProfiles() {
-        List<String> profileNames = Profile.getAvailableProfiles();
-        String currentProfile = Profile.getCurrent() == null ? null : Profile.getCurrent().getName();
+        List<String> profileNames = ProfileLoader.getAvailableProfiles();
+        String currentProfile = Profile.getCurrent() == null ? null : Profile.getCurrent().name();
         List<Node> nodes = new ArrayList<>(profileNames.size());
         for (String profileName : profileNames) {
             boolean isCurrent = profileName.equals(currentProfile);
@@ -104,30 +105,31 @@ public class ProfilesViewController {
     private boolean openProfile(String name, boolean showPopup) {
         log.info("Opening profile \"{}\".", name);
         try {
-            Profile.load(name);
+            Profile.setCurrent(PerfinApp.profileLoader.load(name));
+            ProfileLoader.saveLastProfile(name);
             ProfilesStage.closeView();
             router.replace("accounts");
-            if (showPopup) Popups.message("The profile \"" + name + "\" has been loaded.");
+            if (showPopup) Popups.message(profilesVBox, "The profile \"" + name + "\" has been loaded.");
             return true;
         } catch (ProfileLoadException e) {
-            Popups.error("Failed to load the profile: " + e.getMessage());
+            Popups.error(profilesVBox, "Failed to load the profile: " + e.getMessage());
             return false;
         }
     }
 
     private void deleteProfile(String name) {
-        boolean confirmA = Popups.confirm("Are you sure you want to delete the profile \"" + name + "\"? This will permanently delete ALL accounts, transactions, files, and other data for this profile, and it cannot be recovered.");
+        boolean confirmA = Popups.confirm(profilesVBox, "Are you sure you want to delete the profile \"" + name + "\"? This will permanently delete ALL accounts, transactions, files, and other data for this profile, and it cannot be recovered.");
         if (confirmA) {
-            boolean confirmB = Popups.confirm("Press \"OK\" to confirm that you really want to delete the profile \"" + name + "\". There's no going back.");
+            boolean confirmB = Popups.confirm(profilesVBox, "Press \"OK\" to confirm that you really want to delete the profile \"" + name + "\". There's no going back.");
             if (confirmB) {
                 try {
                     FileUtil.deleteDirRecursive(Profile.getDir(name));
                     // Reset the app's "last profile" to the default if it was the deleted profile.
-                    if (Profile.getLastProfile().equals(name)) {
-                        Profile.saveLastProfile("default");
+                    if (ProfileLoader.getLastProfile().equals(name)) {
+                        ProfileLoader.saveLastProfile("default");
                     }
                     // If the current profile was deleted, switch to the default.
-                    if (Profile.getCurrent() != null && Profile.getCurrent().getName().equals(name)) {
+                    if (Profile.getCurrent() != null && Profile.getCurrent().name().equals(name)) {
                         openProfile("default", true);
                     }
                     refreshAvailableProfiles();

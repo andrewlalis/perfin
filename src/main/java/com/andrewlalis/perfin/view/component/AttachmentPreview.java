@@ -46,7 +46,7 @@ public class AttachmentPreview extends BorderPane {
         boolean showDocIcon = true;
         Set<String> imageTypes = Set.of("image/png", "image/jpeg", "image/gif", "image/bmp");
         if (imageTypes.contains(attachment.getContentType())) {
-            try (var in = Files.newInputStream(attachment.getPath(Profile.getContentDir(Profile.getCurrent().getName())))) {
+            try (var in = Files.newInputStream(attachment.getPath(Profile.getContentDir(Profile.getCurrent().name())))) {
                 Image img = new Image(in, IMAGE_SIZE, IMAGE_SIZE, true, true);
                 contentContainer.setCenter(new ImageView(img));
                 showDocIcon = false;
@@ -69,7 +69,7 @@ public class AttachmentPreview extends BorderPane {
         this.setCenter(stackPane);
         this.setOnMouseClicked(event -> {
             if (this.isHover()) {
-                Path filePath = attachment.getPath(Profile.getContentDir(Profile.getCurrent().getName()));
+                Path filePath = attachment.getPath(Profile.getContentDir(Profile.getCurrent().name()));
                 PerfinApp.instance.getHostServices().showDocument(filePath.toAbsolutePath().toUri().toString());
             }
         });

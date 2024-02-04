@@ -1,11 +1,16 @@
 package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.DataSource;
+import com.andrewlalis.perfin.data.DataSourceFactory;
 import com.andrewlalis.perfin.data.ProfileLoadException;
 import com.andrewlalis.perfin.data.impl.migration.Migration;
 import com.andrewlalis.perfin.data.impl.migration.Migrations;
+import com.andrewlalis.perfin.data.util.DbUtil;
 import com.andrewlalis.perfin.data.util.FileUtil;
 import com.andrewlalis.perfin.model.Profile;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,16 +19,14 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Arrays;
 import java.util.List;
 
 /**
  * Component that's responsible for obtaining a JDBC data source for a profile.
  */
-public class JdbcDataSourceFactory {
+public class JdbcDataSourceFactory implements DataSourceFactory {
     private static final Logger log = LoggerFactory.getLogger(JdbcDataSourceFactory.class);
 
     /**
@@ -32,7 +35,7 @@ public class JdbcDataSourceFactory {
      * the profile has a newer schema version, we'll exit and prompt the user
      * to update their app.
      */
-    public static final int SCHEMA_VERSION = 1;
+    public static final int SCHEMA_VERSION = 3;
 
     public DataSource getDataSource(String profileName) throws ProfileLoadException {
         final boolean dbExists = Files.exists(getDatabaseFile(profileName));
@@ -59,6 +62,13 @@ public class JdbcDataSourceFactory {
         return new JdbcDataSource(getJdbcUrl(profileName), Profile.getContentDir(profileName));
     }
 
+    public SchemaStatus getSchemaStatus(String profileName) throws IOException {
+        int existingSchemaVersion = getSchemaVersion(profileName);
+        if (existingSchemaVersion == SCHEMA_VERSION) return SchemaStatus.UP_TO_DATE;
+        if (existingSchemaVersion < SCHEMA_VERSION) return SchemaStatus.NEEDS_MIGRATION;
+        return SchemaStatus.INCOMPATIBLE;
+    }
+
     private void createNewDatabase(String profileName) throws ProfileLoadException {
         log.info("Creating new database for profile {}.", profileName);
         JdbcDataSource dataSource = new JdbcDataSource(getJdbcUrl(profileName), Profile.getContentDir(profileName));
@@ -69,6 +79,7 @@ public class JdbcDataSourceFactory {
             if (in == null) throw new IOException("Could not load database schema SQL file.");
             String schemaStr = new String(in.readAllBytes(), StandardCharsets.UTF_8);
             executeSqlScript(schemaStr, conn);
+            insertDefaultData(conn);
             try {
                 writeCurrentSchemaVersion(profileName);
             } catch (IOException e) {
@@ -86,6 +97,53 @@ public class JdbcDataSourceFactory {
         if (!testConnection(dataSource)) {
             FileUtil.deleteIfPossible(getDatabaseFile(profileName));
             throw new ProfileLoadException("Testing the database connection failed.");
+        }
+    }
+
+    /**
+     * Inserts all default data into the database, using static content found in
+     * various locations on the classpath.
+     * @param conn The connection to use to insert data.
+     * @throws IOException If resources couldn't be read.
+     * @throws SQLException If SQL fails.
+     */
+    public void insertDefaultData(Connection conn) throws IOException, SQLException {
+        insertDefaultCategories(conn);
+    }
+
+    public void insertDefaultCategories(Connection conn) throws IOException, SQLException {
+        try (
+                var categoriesIn = JdbcDataSourceFactory.class.getResourceAsStream("/sql/data/default-categories.json");
+                var stmt = conn.prepareStatement(
+                        "INSERT INTO transaction_category (parent_id, name, color) VALUES (?, ?, ?)",
+                        Statement.RETURN_GENERATED_KEYS
+                )
+        ) {
+            if (categoriesIn == null) throw new IOException("Couldn't load default categories file.");
+            ObjectMapper mapper = new ObjectMapper();
+            ArrayNode categoriesArray = mapper.readValue(categoriesIn, ArrayNode.class);
+            insertCategoriesRecursive(stmt, categoriesArray, null, "#FFFFFF");
+        }
+    }
+
+    private void insertCategoriesRecursive(PreparedStatement stmt, ArrayNode categoriesArray, Long parentId, String parentColorHex) throws SQLException {
+        for (JsonNode obj : categoriesArray) {
+            String name = obj.get("name").asText();
+            String colorHex = parentColorHex;
+            if (obj.hasNonNull("color")) colorHex = obj.get("color").asText(parentColorHex);
+            if (parentId == null) {
+                stmt.setNull(1, Types.BIGINT);
+            } else {
+                stmt.setLong(1, parentId);
+            }
+            stmt.setString(2, name);
+            stmt.setString(3, colorHex.substring(1));
+            int result = stmt.executeUpdate();
+            if (result != 1) throw new SQLException("Failed to insert category.");
+            long id = DbUtil.getGeneratedId(stmt);
+            if (obj.hasNonNull("children") && obj.get("children").isArray()) {
+                insertCategoriesRecursive(stmt, obj.withArray("children"), id, colorHex);
+            }
         }
     }
 
@@ -168,7 +226,7 @@ public class JdbcDataSourceFactory {
         return Profile.getDir(profileName).resolve(".jdbc-schema-version.txt");
     }
 
-    private static int getSchemaVersion(String profileName) throws IOException {
+    public int getSchemaVersion(String profileName) throws IOException {
         if (Files.exists(getSchemaVersionFile(profileName))) {
             try {
                 return Integer.parseInt(Files.readString(getSchemaVersionFile(profileName)).strip());

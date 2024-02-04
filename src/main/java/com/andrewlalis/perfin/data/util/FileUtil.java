@@ -1,5 +1,6 @@
 package com.andrewlalis.perfin.data.util;
 
+import com.andrewlalis.perfin.model.Profile;
 import javafx.stage.FileChooser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,6 +102,16 @@ public class FileUtil {
             return md.digest();
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static void copyResourceFile(String resource, Path dest) throws IOException {
+        try (
+                var in = Profile.class.getResourceAsStream(resource);
+                var out = Files.newOutputStream(dest)
+        ) {
+            if (in == null) throw new IOException("Could not load resource " + resource);
+            in.transferTo(out);
         }
     }
 }

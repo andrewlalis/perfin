@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.andrewlalis.perfin.view.component.PropertiesPane?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.andrewlalis.perfin.control.EditVendorController"
+>
+    <top>
+        <Label text="Edit Vendor" styleClass="bold-text,large-font,std-padding"/>
+    </top>
+    <center>
+        <VBox>
+            <PropertiesPane hgap="5" vgap="5" styleClass="std-padding" maxWidth="500">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="NEVER" halignment="LEFT" minWidth="150"/>
+                    <ColumnConstraints hgrow="ALWAYS" halignment="RIGHT"/>
+                </columnConstraints>
+
+                <Label text="Name" labelFor="${nameField}"/>
+                <TextField fx:id="nameField"/>
+
+                <Label text="Description" labelFor="${descriptionField}"/>
+                <TextArea fx:id="descriptionField" wrapText="true"/>
+            </PropertiesPane>
+            <Separator/>
+            <HBox styleClass="std-padding,std-spacing" alignment="CENTER_RIGHT">
+                <Button text="Save" fx:id="saveButton" onAction="#save"/>
+                <Button text="Cancel" onAction="#cancel"/>
+            </HBox>
+        </VBox>
+    </center>
+</BorderPane>

@@ -100,7 +100,7 @@ public class TransactionTile extends BorderPane {
     }
 
     private CompletableFuture<CreditAndDebitAccounts> getCreditAndDebitAccounts(Transaction transaction) {
-        return Profile.getCurrent().getDataSource().mapRepoAsync(
+        return Profile.getCurrent().dataSource().mapRepoAsync(
                 TransactionRepository.class,
                 repo -> repo.findLinkedAccounts(transaction.id)
         );

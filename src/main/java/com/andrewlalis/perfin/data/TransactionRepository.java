@@ -21,6 +21,9 @@ public interface TransactionRepository extends Repository, AutoCloseable {
             Currency currency,
             String description,
             CreditAndDebitAccounts linkedAccounts,
+            String vendor,
+            String category,
+            Set<String> tags,
             List<Path> attachments
     );
     Optional<Transaction> findById(long id);
@@ -31,6 +34,10 @@ public interface TransactionRepository extends Repository, AutoCloseable {
     Page<Transaction> findAllByAccounts(Set<Long> accountIds, PageRequest pagination);
     CreditAndDebitAccounts findLinkedAccounts(long transactionId);
     List<Attachment> findAttachments(long transactionId);
+    List<String> findTags(long transactionId);
+    List<String> findAllTags();
+    void deleteTag(String name);
+    long countTagUsages(String name);
     void delete(long transactionId);
     void update(
             long id,
@@ -39,6 +46,9 @@ public interface TransactionRepository extends Repository, AutoCloseable {
             Currency currency,
             String description,
             CreditAndDebitAccounts linkedAccounts,
+            String vendor,
+            String category,
+            Set<String> tags,
             List<Attachment> existingAttachments,
             List<Path> newAttachmentPaths
     );

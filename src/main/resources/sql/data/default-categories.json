@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Food & Drink",
+    "color": "#10C600",
+    "children": [
+      {"name": "Groceries"},
+      {"name": "Restaurants"},
+      {"name": "Alcohol & Bars"}
+    ]
+  },
+  {
+    "name": "Transportation",
+    "color": "#4688FF",
+    "children": [
+      {"name": "Car & Fuel"},
+      {"name": "Public Transport"},
+      {"name": "Air Travel"},
+      {"name": "Taxi & Rideshare"}
+    ]
+  },
+  {
+    "name": "Household",
+    "color": "#E5DF00",
+    "children": [
+      {"name": "Rent & Mortgage"},
+      {"name": "Utilities"},
+      {"name": "Insurance & Fees"},
+      {"name": "Home Improvements & Renovation"},
+      {"name": "Household Supplies"},
+      {"name": "Pets"},
+      {"name": "Garden"}
+    ]
+  },
+  {
+    "name": "Shopping",
+    "color": "#BF2484",
+    "children": [
+      {"name":  "Clothes & Accessories"},
+      {"name": "Electronics"},
+      {"name": "Hobbies & Crafts"},
+      {"name": "Gifts"}
+    ]
+  },
+  {
+    "name": "Leisure",
+    "color": "#C7271C",
+    "children": [
+      {"name": "Culture & Events"},
+      {"name": "Movies & Media"},
+      {"name": "Vacation"}
+    ]
+  },
+  {
+    "name": "Health & Wellness",
+    "color": "#BE11D7",
+    "children": [
+      {"name": "Healthcare"},
+      {"name": "Medication"},
+      {"name": "Vision"},
+      {"name": "Dental"},
+      {"name": "Fitness & Sports"}
+    ]
+  },
+  {
+    "name": "Income",
+    "color": "#83F25C",
+    "children": [
+      {"name": "Cash Deposits"},
+      {"name": "Salary"},
+      {"name": "Pension"},
+      {"name": "Investments"}
+    ]
+  },
+  {
+    "name": "Transfers",
+    "color": "#F7AE39"
+  },
+  {
+    "name": "Charity",
+    "color": "#9AE5FF"
+  }
+]

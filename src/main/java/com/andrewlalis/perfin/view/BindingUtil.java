@@ -1,8 +1,10 @@
 package com.andrewlalis.perfin.view;
 
 import javafx.beans.WeakListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.scene.Node;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -85,5 +87,10 @@ public class BindingUtil {
             }
             return false;
         }
+    }
+
+    public static void bindManagedAndVisible(Node node, ObservableValue<? extends Boolean> value) {
+        node.managedProperty().bind(node.visibleProperty());
+        node.visibleProperty().bind(value);
     }
 }

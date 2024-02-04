@@ -72,19 +72,21 @@ public class AccountSelectionBox extends ComboBox<Account> {
         showBalanceProperty.set(value);
     }
 
-    private static class CellFactory implements Callback<ListView<Account>, ListCell<Account>> {
-        private final BooleanProperty showBalanceProp;
-
-        private CellFactory(BooleanProperty showBalanceProp) {
-            this.showBalanceProp = showBalanceProp;
-        }
-
+    /**
+     * A simple cell factory that just returns instances of {@link AccountListCell}.
+     * @param showBalanceProp Whether to show the account's balance.
+     */
+    private record CellFactory(BooleanProperty showBalanceProp) implements Callback<ListView<Account>, ListCell<Account>> {
         @Override
         public ListCell<Account> call(ListView<Account> param) {
             return new AccountListCell(showBalanceProp);
         }
     }
 
+    /**
+     * A list cell implementation which shows an account's name, and optionally,
+     * its current derived balance underneath.
+     */
     private static class AccountListCell extends ListCell<Account> {
         private final BooleanProperty showBalanceProp;
         private final Label nameLabel = new Label();
@@ -110,7 +112,7 @@ public class AccountSelectionBox extends ComboBox<Account> {
 
             nameLabel.setText(item.getName() + " (" + item.getAccountNumberSuffix() + ")");
             if (showBalanceProp.get()) {
-                Profile.getCurrent().getDataSource().useRepoAsync(AccountRepository.class, repo -> {
+                Profile.getCurrent().dataSource().useRepoAsync(AccountRepository.class, repo -> {
                     BigDecimal balance = repo.deriveCurrentBalance(item.id);
                     Platform.runLater(() -> {
                         balanceLabel.setText(CurrencyUtil.formatMoney(new MoneyValue(balance, item.getCurrency())));

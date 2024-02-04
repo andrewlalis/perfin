@@ -5,6 +5,8 @@
 <?import com.andrewlalis.perfin.view.component.PropertiesPane?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import com.andrewlalis.perfin.view.component.CategorySelectionBox?>
+<?import com.andrewlalis.perfin.view.component.StyledText?>
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.andrewlalis.perfin.control.EditTransactionController"
@@ -27,10 +29,10 @@
                     <TextField fx:id="timestampField" styleClass="mono-font"/>
 
                     <Label text="Amount" labelFor="${amountField}" styleClass="bold-text"/>
-                    <TextField fx:id="amountField" styleClass="mono-font"/>
-
-                    <Label text="Currency" labelFor="${currencyChoiceBox}" styleClass="bold-text"/>
-                    <ChoiceBox fx:id="currencyChoiceBox"/>
+                    <HBox styleClass="std-spacing">
+                        <TextField fx:id="amountField" styleClass="mono-font" HBox.hgrow="ALWAYS"/>
+                        <ChoiceBox fx:id="currencyChoiceBox"/>
+                    </HBox>
 
                     <Label text="Description" labelFor="${descriptionField}" styleClass="bold-text"/>
                     <TextArea
@@ -43,15 +45,78 @@
 
                 <!-- Container for linked accounts -->
                 <HBox styleClass="std-padding,std-spacing" fx:id="linkedAccountsContainer">
-                    <VBox>
+                    <VBox HBox.hgrow="ALWAYS">
                         <Label text="Debited Account" labelFor="${debitAccountSelector}" styleClass="bold-text"/>
                         <AccountSelectionBox fx:id="debitAccountSelector" allowNone="true" showBalance="true"/>
                     </VBox>
-                    <VBox>
+                    <VBox HBox.hgrow="ALWAYS">
                         <Label text="Credited Account" labelFor="${creditAccountSelector}" styleClass="bold-text"/>
                         <AccountSelectionBox fx:id="creditAccountSelector" allowNone="true" showBalance="true"/>
                     </VBox>
                 </HBox>
+
+                <!-- Additional, mostly optional properties -->
+                <PropertiesPane hgap="5" vgap="5" styleClass="std-padding">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="NEVER" halignment="LEFT" minWidth="150"/>
+                        <ColumnConstraints hgrow="ALWAYS" halignment="RIGHT"/>
+                    </columnConstraints>
+
+                    <VBox>
+                        <Label text="Vendor" labelFor="${vendorComboBox}" styleClass="bold-text"/>
+                        <Hyperlink fx:id="vendorsHyperlink" text="Manage vendors" styleClass="small-font"/>
+                    </VBox>
+                    <ComboBox fx:id="vendorComboBox" editable="true" maxWidth="Infinity"/>
+
+                    <VBox>
+                        <Label text="Category" labelFor="${categoryComboBox}" styleClass="bold-text"/>
+                        <Hyperlink fx:id="categoriesHyperlink" text="Manage categories" styleClass="small-font"/>
+                    </VBox>
+                    <CategorySelectionBox fx:id="categoryComboBox" maxWidth="Infinity"/>
+
+                    <VBox>
+                        <Label text="Tags" labelFor="${tagsComboBox}" styleClass="bold-text"/>
+                        <Hyperlink fx:id="tagsHyperlink" text="Manage tags" styleClass="small-font"/>
+                    </VBox>
+                    <VBox maxWidth="Infinity">
+                        <HBox styleClass="std-spacing">
+                            <ComboBox fx:id="tagsComboBox" editable="true" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                            <Button fx:id="addTagButton" text="Add" HBox.hgrow="NEVER"/>
+                        </HBox>
+                        <VBox fx:id="tagsVBox" styleClass="std-spacing,std-padding"/>
+                    </VBox>
+
+                    <Label text="Line Items" styleClass="bold-text"/>
+                    <VBox maxWidth="Infinity">
+                        <Button text="Add Line Item" fx:id="addLineItemButton" disable="true"/>
+                        <StyledText styleClass="small-font">
+                            Line items aren't yet supported. I'm working on it!
+                        </StyledText>
+                        <VBox styleClass="std-spacing" fx:id="addLineItemForm">
+                            <HBox styleClass="std-spacing">
+                                <VBox>
+                                    <Label text="Quantity" styleClass="bold-text,small-font"/>
+                                    <Spinner fx:id="lineItemQuantitySpinner" minWidth="60" maxWidth="60"/>
+                                </VBox>
+                                <VBox HBox.hgrow="ALWAYS">
+                                    <Label text="Value per Item" styleClass="bold-text,small-font"/>
+                                    <TextField fx:id="lineItemValueField"/>
+                                </VBox>
+                            </HBox>
+                            <VBox>
+                                <Label text="Description" styleClass="bold-text,small-font"/>
+                                <TextField fx:id="lineItemDescriptionField"/>
+                            </VBox>
+                            <HBox styleClass="std-spacing" alignment="CENTER_RIGHT">
+                                <Button text="Add" fx:id="addLineItemAddButton"/>
+                                <Button text="Cancel" fx:id="addLineItemCancelButton"/>
+                            </HBox>
+                        </VBox>
+
+                        <VBox fx:id="lineItemsVBox"/>
+                    </VBox>
+                </PropertiesPane>
+
                 <!-- Container for attachments -->
                 <VBox styleClass="std-padding">
                     <Label text="Attachments" styleClass="bold-text"/>

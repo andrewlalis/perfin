@@ -4,6 +4,7 @@ import com.andrewlalis.perfin.view.component.validation.ValidationDecorator;
 import com.andrewlalis.perfin.view.component.validation.ValidationResult;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import org.slf4j.Logger;
@@ -55,6 +56,9 @@ public class FieldSubtextDecorator implements ValidationDecorator {
         errorLabel.getStyleClass().addAll("small-font", "negative-color-text-fill");
         errorLabel.setWrapText(true);
         VBox validationContainer = new VBox(node, errorLabel);
+        if (trueParent instanceof HBox) {
+            HBox.setHgrow(validationContainer, HBox.getHgrow(node));
+        }
         validationContainer.setUserData(WRAP_KEY);
         trueParent.getChildren().add(idx, validationContainer);
         return errorLabel;

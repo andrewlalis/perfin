@@ -11,6 +11,7 @@ import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.view.component.FileSelectionArea;
 import com.andrewlalis.perfin.view.component.PropertiesPane;
 import com.andrewlalis.perfin.view.component.validation.ValidationApplier;
+import com.andrewlalis.perfin.view.component.validation.ValidationFunction;
 import com.andrewlalis.perfin.view.component.validation.ValidationResult;
 import com.andrewlalis.perfin.view.component.validation.validators.CurrencyAmountValidator;
 import javafx.application.Platform;
@@ -39,7 +40,7 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
     private Account account;
 
     @FXML public void initialize() {
-        var timestampValid = new ValidationApplier<String>(input -> {
+        var timestampValid = new ValidationApplier<>((ValidationFunction<String>)  input -> {
             try {
                 DateUtil.DEFAULT_DATETIME_FORMAT.parse(input);
                 return ValidationResult.valid();
@@ -60,7 +61,7 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
                 return;
             }
             BigDecimal reportedBalance = new BigDecimal(newValue);
-            Profile.getCurrent().getDataSource().useRepoAsync(AccountRepository.class, repo -> {
+            Profile.getCurrent().dataSource().useRepoAsync(AccountRepository.class, repo -> {
                 BigDecimal derivedBalance = repo.deriveCurrentBalance(account.id);
                 Platform.runLater(() -> balanceWarningLabel.visibleProperty().set(
                         !reportedBalance.setScale(derivedBalance.scale(), RoundingMode.HALF_UP).equals(derivedBalance)
@@ -76,7 +77,7 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
     public void onRouteSelected(Object context) {
         this.account = (Account) context;
         timestampField.setText(LocalDateTime.now().format(DateUtil.DEFAULT_DATETIME_FORMAT));
-        Profile.getCurrent().getDataSource().useRepoAsync(AccountRepository.class, repo -> {
+        Profile.getCurrent().dataSource().useRepoAsync(AccountRepository.class, repo -> {
             BigDecimal value = repo.deriveCurrentBalance(account.id);
             Platform.runLater(() -> balanceField.setText(
                     CurrencyUtil.formatMoneyAsBasicNumber(new MoneyValue(value, account.getCurrency()))
@@ -89,13 +90,13 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
         LocalDateTime localTimestamp = LocalDateTime.parse(timestampField.getText(), DateUtil.DEFAULT_DATETIME_FORMAT);
         BigDecimal reportedBalance = new BigDecimal(balanceField.getText());
 
-        boolean confirm = Popups.confirm("Are you sure that you want to record the balance of account\n%s\nas %s,\nas of %s?".formatted(
+        boolean confirm = Popups.confirm(timestampField, "Are you sure that you want to record the balance of account\n%s\nas %s,\nas of %s?".formatted(
                 account.getShortName(),
                 CurrencyUtil.formatMoneyWithCurrencyPrefix(new MoneyValue(reportedBalance, account.getCurrency())),
                 localTimestamp.atZone(ZoneId.systemDefault()).format(DateUtil.DEFAULT_DATETIME_FORMAT_WITH_ZONE)
         ));
         if (confirm && confirmIfInconsistentBalance(reportedBalance)) {
-            Profile.getCurrent().getDataSource().useRepo(BalanceRecordRepository.class, repo -> {
+            Profile.getCurrent().dataSource().useRepo(BalanceRecordRepository.class, repo -> {
                 repo.insert(
                         DateUtil.localToUTC(localTimestamp),
                         account.id,
@@ -113,7 +114,7 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
     }
 
     private boolean confirmIfInconsistentBalance(BigDecimal reportedBalance) {
-        BigDecimal currentDerivedBalance = Profile.getCurrent().getDataSource().mapRepo(
+        BigDecimal currentDerivedBalance = Profile.getCurrent().dataSource().mapRepo(
                 AccountRepository.class,
                 repo -> repo.deriveCurrentBalance(account.id)
         );
@@ -122,7 +123,7 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
                     CurrencyUtil.formatMoney(new MoneyValue(reportedBalance, account.getCurrency())),
                     CurrencyUtil.formatMoney(new MoneyValue(currentDerivedBalance, account.getCurrency()))
             );
-            return Popups.confirm(msg);
+            return Popups.confirm(timestampField, msg);
         }
         return true;
     }

@@ -9,6 +9,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 /**
@@ -17,12 +18,14 @@ import java.util.function.Consumer;
  */
 public class StartupSplashScreen extends Stage implements Consumer<String> {
     private final List<ThrowableConsumer<Consumer<String>>> tasks;
+    private final boolean delayTasks;
     private boolean startupSuccessful = false;
 
     private final TextArea textArea = new TextArea();
 
-    public StartupSplashScreen(List<ThrowableConsumer<Consumer<String>>> tasks) {
+    public StartupSplashScreen(List<ThrowableConsumer<Consumer<String>>> tasks, boolean delayTasks) {
         this.tasks = tasks;
+        this.delayTasks = delayTasks;
         setTitle("Starting Perfin...");
         setResizable(false);
         initStyle(StageStyle.UNDECORATED);
@@ -60,37 +63,50 @@ public class StartupSplashScreen extends Stage implements Consumer<String> {
         return scene;
     }
 
+    /**
+     * Runs all tasks sequentially, invoking each one on the JavaFX main thread,
+     * and quitting if there's any exception thrown.
+     */
     private void runTasks() {
         Thread.ofVirtual().start(() -> {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            if (delayTasks) sleepOrThrowRE(1000);
             for (var task : tasks) {
                 try {
-                    task.accept(this);
-                    Thread.sleep(500);
+                    CompletableFuture<Void> future = new CompletableFuture<>();
+                    Platform.runLater(() -> {
+                        try {
+                            task.accept(this);
+                            future.complete(null);
+                        } catch (Exception e) {
+                            future.completeExceptionally(e);
+                        }
+                    });
+                    future.join();
+                    if (delayTasks) sleepOrThrowRE(500);
                 } catch (Exception e) {
                     accept("Startup failed: " + e.getMessage());
                     e.printStackTrace(System.err);
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException ex) {
-                        throw new RuntimeException(ex);
-                    }
+                    sleepOrThrowRE(5000);
                     Platform.runLater(this::close);
                     return;
                 }
             }
             accept("Startup successful!");
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            if (delayTasks) sleepOrThrowRE(1000);
             startupSuccessful = true;
             Platform.runLater(this::close);
         });
+    }
+
+    /**
+     * Helper method to sleep the current thread or throw a runtime exception.
+     * @param ms The number of milliseconds to sleep for.
+     */
+    private static void sleepOrThrowRE(long ms) {
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

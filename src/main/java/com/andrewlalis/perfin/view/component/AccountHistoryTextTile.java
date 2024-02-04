@@ -1,14 +1,12 @@
 package com.andrewlalis.perfin.view.component;
 
-import com.andrewlalis.perfin.data.AccountHistoryItemRepository;
-import com.andrewlalis.perfin.model.history.AccountHistoryItem;
+import com.andrewlalis.perfin.model.history.HistoryTextItem;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
 public class AccountHistoryTextTile extends AccountHistoryItemTile {
-    public AccountHistoryTextTile(AccountHistoryItem item, AccountHistoryItemRepository repo) {
+    public AccountHistoryTextTile(HistoryTextItem item) {
         super(item);
-        String text = repo.getTextItem(item.id);
-        setCenter(new TextFlow(new Text(text)));
+        setCenter(new TextFlow(new Text(item.getDescription())));
     }
 }

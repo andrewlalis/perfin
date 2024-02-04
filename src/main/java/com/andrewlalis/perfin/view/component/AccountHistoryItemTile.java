@@ -1,9 +1,8 @@
 package com.andrewlalis.perfin.view.component;
 
-import com.andrewlalis.perfin.control.AccountViewController;
-import com.andrewlalis.perfin.data.AccountHistoryItemRepository;
 import com.andrewlalis.perfin.data.util.DateUtil;
-import com.andrewlalis.perfin.model.history.AccountHistoryItem;
+import com.andrewlalis.perfin.model.history.HistoryItem;
+import com.andrewlalis.perfin.model.history.HistoryTextItem;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 
@@ -11,7 +10,7 @@ import javafx.scene.layout.BorderPane;
  * A tile that shows a brief bit of information about an account history item.
  */
 public abstract class AccountHistoryItemTile extends BorderPane {
-    public AccountHistoryItemTile(AccountHistoryItem item) {
+    public AccountHistoryItemTile(HistoryItem item) {
         getStyleClass().add("tile");
 
         Label timestampLabel = new Label(DateUtil.formatUTCAsLocalWithZone(item.getTimestamp()));
@@ -20,14 +19,11 @@ public abstract class AccountHistoryItemTile extends BorderPane {
     }
 
     public static AccountHistoryItemTile forItem(
-            AccountHistoryItem item,
-            AccountHistoryItemRepository repo,
-            AccountViewController controller
+            HistoryItem item
     ) {
-        return switch (item.getType()) {
-            case TEXT -> new AccountHistoryTextTile(item, repo);
-            case ACCOUNT_ENTRY -> new AccountHistoryAccountEntryTile(item, repo);
-            case BALANCE_RECORD -> new AccountHistoryBalanceRecordTile(item, repo, controller);
-        };
+        if (item instanceof HistoryTextItem t) {
+            return new AccountHistoryTextTile(t);
+        }
+        throw new RuntimeException("Unsupported history item type: " + item.getType());
     }
 }
