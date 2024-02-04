@@ -56,6 +56,23 @@
         the *sending* account should be linked under **credit**, and the
         *receiving* account under **debit**.
 
+        # Additional Attributes #
+        The *vendor*, *category*, *tags*, and *line items* fields are all
+        optional fields that can be set to add extra context to your
+        transaction. The **vendor** tells you from which business you bought
+        something, for example. The **category** helps you group similar
+        transactions so that you can get an accurate breakdown of your spending
+        and earnings. With **tags**, you can add custom text tags to your
+        transaction, sort of like social media's "hashtag" phenomenon.
+        --
+        **Line items** can be used to specify in more detail what was bought or sold
+        in a transaction. For example, you bought a new computer and some
+        accessories at an electronics store. You can record the exact purchase
+        price of the computer as a line-item in the transaction, alongside the
+        added costs of accessories and taxes.
+        --
+        **Note: Line items are not yet available for usage.**
+
         # Attachments #
         Often, you'll have a receipt, invoice, bank statement, or some other
         document which acts as proof of a transaction. You can attach files to
