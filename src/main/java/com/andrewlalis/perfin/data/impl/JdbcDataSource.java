@@ -65,7 +65,7 @@ public class JdbcDataSource implements DataSource {
     }
 
     @Override
-    public AccountHistoryItemRepository getAccountHistoryItemRepository() {
-        return new JdbcAccountHistoryItemRepository(getConnection());
+    public HistoryRepository getHistoryRepository() {
+        return new JdbcHistoryRepository(getConnection());
     }
 }

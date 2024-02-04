@@ -33,7 +33,7 @@ public interface DataSource {
     TransactionVendorRepository getTransactionVendorRepository();
     TransactionCategoryRepository getTransactionCategoryRepository();
     AttachmentRepository getAttachmentRepository();
-    AccountHistoryItemRepository getAccountHistoryItemRepository();
+    HistoryRepository getHistoryRepository();
 
     // Repository helper methods:
 
@@ -86,7 +86,7 @@ public interface DataSource {
                 TransactionVendorRepository.class, this::getTransactionVendorRepository,
                 TransactionCategoryRepository.class, this::getTransactionCategoryRepository,
                 AttachmentRepository.class, this::getAttachmentRepository,
-                AccountHistoryItemRepository.class, this::getAccountHistoryItemRepository
+                HistoryRepository.class, this::getHistoryRepository
         );
         return (Supplier<R>) repoSuppliers.get(type);
     }

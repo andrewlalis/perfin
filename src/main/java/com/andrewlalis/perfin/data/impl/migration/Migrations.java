@@ -17,6 +17,7 @@ public class Migrations {
     public static Map<Integer, Migration> getMigrations() {
         final Map<Integer, Migration> migrations = new HashMap<>();
         migrations.put(1, new PlainSQLMigration("/sql/migration/M001_AddTransactionProperties.sql"));
+        migrations.put(2, new PlainSQLMigration("/sql/migration/M002_RefactorHistories.sql"));
         return migrations;
     }
 

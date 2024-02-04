@@ -1,12 +1,12 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
-import com.andrewlalis.perfin.data.AccountHistoryItemRepository;
 import com.andrewlalis.perfin.data.AccountRepository;
+import com.andrewlalis.perfin.data.HistoryRepository;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.Profile;
-import com.andrewlalis.perfin.model.history.AccountHistoryItem;
+import com.andrewlalis.perfin.model.history.HistoryItem;
 import com.andrewlalis.perfin.view.component.AccountHistoryItemTile;
 import javafx.application.Platform;
 import javafx.beans.binding.BooleanExpression;
@@ -131,20 +131,15 @@ public class AccountViewController implements RouteSelectionListener {
     }
 
     @FXML public void loadMoreHistory() {
-        Profile.getCurrent().dataSource().useRepoAsync(AccountHistoryItemRepository.class, repo -> {
-            List<AccountHistoryItem> historyItems = repo.findMostRecentForAccount(
-                    account.id,
-                    loadHistoryFrom,
-                    historyLoadSize
-            );
-            if (historyItems.size() < historyLoadSize) {
+        Profile.getCurrent().dataSource().useRepoAsync(HistoryRepository.class, repo -> {
+            long historyId = repo.getOrCreateHistoryForAccount(account.id);
+            List<HistoryItem> items = repo.getNItemsBefore(historyId, historyLoadSize, loadHistoryFrom);
+            if (items.size() < historyLoadSize) {
                 Platform.runLater(() -> loadMoreHistoryButton.setDisable(true));
             } else {
-                loadHistoryFrom = historyItems.getLast().getTimestamp();
+                loadHistoryFrom = items.getLast().getTimestamp();
             }
-            List<? extends Node> nodes = historyItems.stream()
-                    .map(item -> AccountHistoryItemTile.forItem(item, repo, this))
-                    .toList();
+            List<? extends Node> nodes = items.stream().map(AccountHistoryItemTile::forItem).toList();
             Platform.runLater(() -> historyItemsVBox.getChildren().addAll(nodes));
         });
     }

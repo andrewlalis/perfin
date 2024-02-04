@@ -134,42 +134,49 @@ CREATE TABLE balance_record_attachment (
             ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-CREATE TABLE account_history_item (
+/* HISTORY */
+CREATE TABLE history (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT
+);
+
+CREATE TABLE history_item (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    history_id BIGINT NOT NULL,
     timestamp TIMESTAMP NOT NULL,
-    account_id BIGINT NOT NULL,
     type VARCHAR(63) NOT NULL,
-    CONSTRAINT fk_account_history_item_account
-        FOREIGN KEY (account_id) REFERENCES account(id)
+    CONSTRAINT fk_history_item_history
+        FOREIGN KEY (history_id) REFERENCES history(id)
             ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-CREATE TABLE account_history_item_text (
-    item_id BIGINT NOT NULL PRIMARY KEY,
+CREATE TABLE history_item_text (
+    id BIGINT PRIMARY KEY,
     description VARCHAR(255) NOT NULL,
-    CONSTRAINT fk_account_history_item_text_pk
-        FOREIGN KEY (item_id) REFERENCES account_history_item(id)
+    CONSTRAINT fk_history_item_text_pk
+        FOREIGN KEY (id) REFERENCES history_item(id)
             ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-CREATE TABLE account_history_item_account_entry (
-    item_id BIGINT NOT NULL PRIMARY KEY,
-    entry_id BIGINT NOT NULL,
-    CONSTRAINT fk_account_history_item_account_entry_pk
-        FOREIGN KEY (item_id) REFERENCES account_history_item(id)
+CREATE TABLE history_account (
+    account_id BIGINT NOT NULL,
+    history_id BIGINT NOT NULL,
+    PRIMARY KEY (account_id, history_id),
+    CONSTRAINT fk_history_account_account
+        FOREIGN KEY (account_id) REFERENCES account(id)
             ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT fk_account_history_item_account_entry
-        FOREIGN KEY (entry_id) REFERENCES account_entry(id)
+    CONSTRAINT fk_history_account_history
+        FOREIGN KEY (history_id) REFERENCES history(id)
             ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-CREATE TABLE account_history_item_balance_record (
-    item_id BIGINT NOT NULL PRIMARY KEY,
-    record_id BIGINT NOT NULL,
-    CONSTRAINT fk_account_history_item_balance_record_pk
-        FOREIGN KEY (item_id) REFERENCES account_history_item(id)
+CREATE TABLE history_transaction (
+    transaction_id BIGINT NOT NULL,
+    history_id BIGINT NOT NULL,
+    PRIMARY KEY (transaction_id, history_id),
+    CONSTRAINT fk_history_transaction_transaction
+        FOREIGN KEY (transaction_id) REFERENCES transaction(id)
             ON UPDATE CASCADE ON DELETE CASCADE,
-    CONSTRAINT fk_account_history_item_balance_record
-        FOREIGN KEY (record_id) REFERENCES balance_record(id)
+    CONSTRAINT fk_history_transaction_history
+        FOREIGN KEY (history_id) REFERENCES history(id)
             ON UPDATE CASCADE ON DELETE CASCADE
 );

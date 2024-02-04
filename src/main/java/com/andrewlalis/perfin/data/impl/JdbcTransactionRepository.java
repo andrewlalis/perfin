@@ -2,6 +2,7 @@ package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.AccountEntryRepository;
 import com.andrewlalis.perfin.data.AttachmentRepository;
+import com.andrewlalis.perfin.data.HistoryRepository;
 import com.andrewlalis.perfin.data.TransactionRepository;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
@@ -386,9 +387,9 @@ public record JdbcTransactionRepository(Connection conn, Path contentDir) implem
 
             // Add a text history item to any linked accounts detailing the changes.
             String updateMessageStr = "Transaction #" + tx.id + " was updated:\n" + String.join("\n", updateMessages);
-            var historyRepo = new JdbcAccountHistoryItemRepository(conn);
-            linkedAccounts.ifCredit(acc -> historyRepo.recordText(DateUtil.nowAsUTC(), acc.id, updateMessageStr));
-            linkedAccounts.ifDebit(acc -> historyRepo.recordText(DateUtil.nowAsUTC(), acc.id, updateMessageStr));
+            HistoryRepository historyRepo = new JdbcHistoryRepository(conn);
+            long historyId = historyRepo.getOrCreateHistoryForTransaction(id);
+            historyRepo.addTextItem(historyId, updateMessageStr);
         });
     }
 

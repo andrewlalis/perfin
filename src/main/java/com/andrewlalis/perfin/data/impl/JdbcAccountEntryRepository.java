@@ -1,7 +1,7 @@
 package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.AccountEntryRepository;
-import com.andrewlalis.perfin.data.AccountHistoryItemRepository;
+import com.andrewlalis.perfin.data.HistoryRepository;
 import com.andrewlalis.perfin.data.util.DbUtil;
 import com.andrewlalis.perfin.model.AccountEntry;
 
@@ -31,8 +31,9 @@ public record JdbcAccountEntryRepository(Connection conn) implements AccountEntr
                 )
         );
         // Insert an entry into the account's history.
-        AccountHistoryItemRepository historyRepo = new JdbcAccountHistoryItemRepository(conn);
-        historyRepo.recordAccountEntry(timestamp, accountId, entryId);
+        HistoryRepository historyRepo = new JdbcHistoryRepository(conn);
+        long historyId = historyRepo.getOrCreateHistoryForAccount(accountId);
+        historyRepo.addTextItem(historyId, timestamp, "Entry #" + entryId + " added as a " + type.name() + " from Transaction #" + transactionId + ".");
         return entryId;
     }
 
