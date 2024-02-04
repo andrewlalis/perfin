@@ -24,6 +24,7 @@
             </StyledText>
             <HBox styleClass="std-padding, std-spacing" VBox.vgrow="NEVER">
                 <Button text="Add Category" onAction="#addCategory"/>
+                <Button text="Add Default Categories" onAction="#addDefaultCategories"/>
             </HBox>
             <ScrollPane styleClass="tile-container-scroll" VBox.vgrow="ALWAYS">
                 <VBox fx:id="categoriesVBox" styleClass="tile-container"/>

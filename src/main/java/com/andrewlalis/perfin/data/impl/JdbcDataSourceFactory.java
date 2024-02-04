@@ -100,7 +100,18 @@ public class JdbcDataSourceFactory implements DataSourceFactory {
         }
     }
 
-    private void insertDefaultData(Connection conn) throws IOException, SQLException {
+    /**
+     * Inserts all default data into the database, using static content found in
+     * various locations on the classpath.
+     * @param conn The connection to use to insert data.
+     * @throws IOException If resources couldn't be read.
+     * @throws SQLException If SQL fails.
+     */
+    public void insertDefaultData(Connection conn) throws IOException, SQLException {
+        insertDefaultCategories(conn);
+    }
+
+    public void insertDefaultCategories(Connection conn) throws IOException, SQLException {
         try (
                 var categoriesIn = JdbcDataSourceFactory.class.getResourceAsStream("/sql/data/default-categories.json");
                 var stmt = conn.prepareStatement(
