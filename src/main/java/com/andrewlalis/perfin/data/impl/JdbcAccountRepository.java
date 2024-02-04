@@ -3,6 +3,7 @@ package com.andrewlalis.perfin.data.impl;
 import com.andrewlalis.perfin.data.*;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
+import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.data.util.DbUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.AccountEntry;
@@ -62,6 +63,40 @@ public record JdbcAccountRepository(Connection conn, Path contentDir) implements
                 LEFT OUTER JOIN history_item hi ON hi.history_id = ha.history_id
                 WHERE NOT account.archived
                 ORDER BY hi.timestamp DESC, account.created_at DESC""",
+                JdbcAccountRepository::parseAccount
+        );
+    }
+
+    @Override
+    public List<Account> findTopNOrderedByRecentHistory(int n) {
+        return DbUtil.findAll(
+                conn,
+                """
+                SELECT DISTINCT ON (account.id) account.*, hi.timestamp AS _
+                FROM account
+                LEFT OUTER JOIN history_account ha ON ha.account_id = account.id
+                LEFT OUTER JOIN history_item hi ON hi.history_id = ha.history_id
+                WHERE NOT account.archived
+                ORDER BY hi.timestamp DESC, account.created_at DESC
+                LIMIT\s""" + n,
+                JdbcAccountRepository::parseAccount
+        );
+    }
+
+    @Override
+    public List<Account> findTopNRecentlyActive(int n, int daysSinceLastActive) {
+        LocalDateTime cutoff = DateUtil.nowAsUTC().minusDays(daysSinceLastActive);
+        return DbUtil.findAll(
+                conn,
+                """
+                SELECT DISTINCT ON (account.id) account.*, hi.timestamp AS _
+                FROM account
+                LEFT OUTER JOIN history_account ha ON ha.account_id = account.id
+                LEFT OUTER JOIN history_item hi ON hi.history_id = ha.history_id
+                WHERE NOT account.archived AND hi.timestamp >= ?
+                ORDER BY hi.timestamp DESC, account.created_at DESC
+                LIMIT\s""" + n,
+                List.of(DbUtil.timestampFromUtcLDT(cutoff)),
                 JdbcAccountRepository::parseAccount
         );
     }

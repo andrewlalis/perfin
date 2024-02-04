@@ -143,6 +143,15 @@ public record JdbcTransactionRepository(Connection conn, Path contentDir) implem
     }
 
     @Override
+    public List<Transaction> findRecentN(int n) {
+        return DbUtil.findAll(
+                conn,
+                "SELECT * FROM transaction ORDER BY timestamp DESC LIMIT " + n,
+                JdbcTransactionRepository::parseTransaction
+        );
+    }
+
+    @Override
     public long countAll() {
         return DbUtil.findOne(conn, "SELECT COUNT(id) FROM transaction", Collections.emptyList(), rs -> rs.getLong(1)).orElse(0L);
     }

@@ -15,8 +15,7 @@
                     <HBox styleClass="std-padding,std-spacing">
                         <Button text="Back" onAction="#goBack"/>
                         <Button text="Forward" onAction="#goForward"/>
-                        <Button text="Accounts" onAction="#goToAccounts"/>
-                        <Button text="Transactions" onAction="#goToTransactions"/>
+                        <Button text="Dashboard" onAction="#goToDashboard"/>
                         <Button text="Profiles" onAction="#viewProfiles"/>
 
                         <Button text="View Help" fx:id="showManualButton" onAction="#showManual"/>

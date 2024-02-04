@@ -40,7 +40,7 @@ public class MainViewController {
                 }
         );
 
-        router.navigate("accounts");
+        router.navigate("dashboard");
 
         // Initialize the help manual components.
         helpPane.managedProperty().bind(helpPane.visibleProperty());
@@ -75,14 +75,6 @@ public class MainViewController {
         router.navigateForward();
     }
 
-    @FXML public void goToAccounts() {
-        router.replace("accounts");
-    }
-
-    @FXML public void goToTransactions() {
-        router.replace("transactions");
-    }
-
     @FXML public void viewProfiles() {
         ProfilesStage.open(mainContainer.getScene().getWindow());
     }
@@ -105,5 +97,9 @@ public class MainViewController {
 
     @FXML public void helpViewTransactions() {
         helpRouter.replace("transactions");
+    }
+
+    @FXML public void goToDashboard() {
+        router.replace("dashboard");
     }
 }

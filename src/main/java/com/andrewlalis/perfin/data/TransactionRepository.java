@@ -28,6 +28,7 @@ public interface TransactionRepository extends Repository, AutoCloseable {
     );
     Optional<Transaction> findById(long id);
     Page<Transaction> findAll(PageRequest pagination);
+    List<Transaction> findRecentN(int n);
     long countAll();
     long countAllAfter(long transactionId);
     long countAllByAccounts(Set<Long> accountIds);

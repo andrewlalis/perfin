@@ -17,6 +17,8 @@ public interface AccountRepository extends Repository, AutoCloseable {
     long insert(AccountType type, String accountNumber, String name, Currency currency);
     Page<Account> findAll(PageRequest pagination);
     List<Account> findAllOrderedByRecentHistory();
+    List<Account> findTopNOrderedByRecentHistory(int n);
+    List<Account> findTopNRecentlyActive(int n, int daysSinceLastActive);
     List<Account> findAllByCurrency(Currency currency);
     Optional<Account> findById(long id);
     void updateName(long id, String name);

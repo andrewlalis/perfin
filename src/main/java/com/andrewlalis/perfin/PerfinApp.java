@@ -84,6 +84,7 @@ public class PerfinApp extends Application {
         msgConsumer.accept("Initializing application views.");
         Platform.runLater(() -> {
             // App pages.
+            router.map("dashboard", PerfinApp.class.getResource("/dashboard.fxml"));
             router.map("accounts", PerfinApp.class.getResource("/accounts-view.fxml"));
             router.map("account", PerfinApp.class.getResource("/account-view.fxml"));
             router.map("edit-account", PerfinApp.class.getResource("/edit-account.fxml"));

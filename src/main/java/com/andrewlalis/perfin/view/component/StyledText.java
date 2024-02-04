@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.andrewlalis.perfin.PerfinApp.helpRouter;
+import static com.andrewlalis.perfin.PerfinApp.router;
 
 /**
  * A component that renders markdown-ish text as a series of TextFlow elements,
@@ -26,9 +27,15 @@ public class StyledText extends VBox {
     private StringProperty text;
     private boolean initialized = false;
 
+    public StyledText() {
+        getStyleClass().add("spacing-extra");
+    }
+
     public final void setText(String value) {
+        initialized = false;
         if (value == null) value = "";
         textProperty().set(value);
+        layoutChildren(); // Re-render the underlying text.
     }
 
     public final String getText() {
@@ -54,7 +61,6 @@ public class StyledText extends VBox {
             String s = getText();
             getChildren().clear();
             getChildren().addAll(renderText(s));
-            getStyleClass().add("spacing-extra");
             initialized = true;
         }
         super.layoutChildren();
@@ -135,6 +141,8 @@ public class StyledText extends VBox {
                     hyperlink.setOnAction(event -> PerfinApp.instance.getHostServices().showDocument(link));
                 } else if (link.startsWith("help:")) {
                     hyperlink.setOnAction(event -> helpRouter.navigate(link.substring(5).strip()));
+                } else if (link.startsWith("app:")) {
+                    hyperlink.setOnAction(event -> router.navigate(link.substring(4).strip()));
                 }
             }
             hyperlink.setBorder(Border.EMPTY);
