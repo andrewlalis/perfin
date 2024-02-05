@@ -65,6 +65,10 @@
         and earnings. With **tags**, you can add custom text tags to your
         transaction, sort of like social media's "hashtag" phenomenon.
         --
+        **Pro-tip**: You can add the tag `!exclude` to a transaction to exclude
+        it from analytics and visuals. This is useful for things like transfers
+        between your accounts.
+        --
         **Line items** can be used to specify in more detail what was bought or sold
         in a transaction. For example, you bought a new computer and some
         accessories at an electronics store. You can record the exact purchase

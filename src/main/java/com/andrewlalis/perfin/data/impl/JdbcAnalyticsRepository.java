@@ -45,7 +45,17 @@ public record JdbcAnalyticsRepository(Connection conn) implements AnalyticsRepos
                 FROM transaction
                 LEFT JOIN transaction_vendor tv ON tv.id = transaction.vendor_id
                 LEFT JOIN account_entry ae ON ae.transaction_id = transaction.id
-                WHERE transaction.currency = ? AND ae.type = 'CREDIT' AND transaction.timestamp >= ? AND transaction.timestamp <= ?
+                WHERE
+                    transaction.currency = ? AND
+                    transaction.timestamp >= ? AND
+                    transaction.timestamp <= ? AND
+                    ae.type = 'CREDIT' AND
+                    '!exclude' NOT IN (
+                        SELECT tt.name
+                        FROM transaction_tag tt
+                        LEFT JOIN transaction_tag_join ttj ON tt.id = ttj.tag_id
+                        WHERE ttj.transaction_id = transaction.id
+                    )
                 GROUP BY tv.id
                 ORDER BY total DESC""",
                 List.of(currency.getCurrencyCode(), range.start(), range.end()),
@@ -75,7 +85,17 @@ public record JdbcAnalyticsRepository(Connection conn) implements AnalyticsRepos
                 FROM transaction
                 LEFT JOIN transaction_category tc ON tc.id = transaction.category_id
                 LEFT JOIN account_entry ae ON ae.transaction_id = transaction.id
-                WHERE transaction.currency = ? AND ae.type = ? AND transaction.timestamp >= ? AND transaction.timestamp <= ?
+                WHERE
+                    transaction.currency = ? AND
+                    ae.type = ? AND
+                    transaction.timestamp >= ? AND
+                    transaction.timestamp <= ? AND
+                    '!exclude' NOT IN (
+                        SELECT tt.name
+                        FROM transaction_tag tt
+                        LEFT JOIN transaction_tag_join ttj ON tt.id = ttj.tag_id
+                        WHERE ttj.transaction_id = transaction.id
+                    )
                 GROUP BY tc.id
                 ORDER BY total DESC;""",
                 List.of(currency.getCurrencyCode(), type.name(), range.start(), range.end()),

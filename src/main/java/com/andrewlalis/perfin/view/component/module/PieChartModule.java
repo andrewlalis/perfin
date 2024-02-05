@@ -11,10 +11,7 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Currency;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -39,7 +36,11 @@ public abstract class PieChartModule extends DashboardModule {
         this.getChildren().add(chart);
         currencyChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
-                getChartData(newValue).thenAccept(data -> Platform.runLater(() -> {
+                getChartData(newValue).exceptionally(throwable -> {
+                    throwable.printStackTrace(System.err);
+                    return Collections.emptyList();
+                })
+                .thenAccept(data -> Platform.runLater(() -> {
                     chartData.setAll(data);
                     if (!dataColors.isEmpty()) {
                         for (int i = 0; i < dataColors.size(); i++) {

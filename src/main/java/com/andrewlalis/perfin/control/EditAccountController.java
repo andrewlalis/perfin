@@ -58,7 +58,6 @@ public class EditAccountController implements RouteSelectionListener {
         var numberValid = new ValidationApplier<>(new PredicateValidator<String>()
                 .addTerminalPredicate(s -> s != null && !s.isBlank(), "Account number should not be empty.")
                 .addPredicate(s -> s.length() <= 255, "Account number is too long.")
-                .addPredicate(s -> s.matches("\\d+"), "Account number should contain only numeric digits.")
         ).attachToTextField(accountNumberField);
 
         var balanceValid = new ValidationApplier<>(
