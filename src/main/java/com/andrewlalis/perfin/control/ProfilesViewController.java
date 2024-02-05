@@ -21,16 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
@@ -129,31 +122,8 @@ public class ProfilesViewController {
     }
 
     private void makeBackup(String name) {
-        log.info("Making backup of profile \"{}\".", name);
-        final Path profileDir = Profile.getDir(name);
-        LocalDateTime now = LocalDateTime.now();
-        Path backupFile = profileDir.resolve(String.format(
-                "backup_%04d-%02d-%02d_%02d-%02d-%02d.zip",
-                now.getYear(), now.getMonthValue(), now.getDayOfMonth(),
-                now.getHour(), now.getMinute(), now.getSecond()
-        ));
         try {
-            ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(backupFile));
-            Files.walkFileTree(profileDir, new SimpleFileVisitor<>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    Path relativeFile = profileDir.relativize(file);
-                    if (relativeFile.toString().startsWith("backup_") || relativeFile.toString().equalsIgnoreCase("database.trace.db")) {
-                        return FileVisitResult.CONTINUE;
-                    }
-                    out.putNextEntry(new ZipEntry(relativeFile.toString()));
-                    byte[] bytes = Files.readAllBytes(file);
-                    out.write(bytes, 0, bytes.length);
-                    out.closeEntry();
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-            out.close();
+            Path backupFile = ProfileLoader.makeBackup(name);
             Popups.message(profilesVBox, "A new backup was created at " + backupFile.toAbsolutePath());
         } catch (IOException e) {
             Popups.error(profilesVBox, e);

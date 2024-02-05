@@ -11,11 +11,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static com.andrewlalis.perfin.data.util.FileUtil.copyResourceFile;
 
@@ -69,6 +76,17 @@ public class ProfileLoader {
         } catch (IOException e) {
             throw new ProfileLoadException("Failed to get profile's schema status.", e);
         }
+
+        // Check for a recent backup and make one if not present.
+        LocalDateTime lastBackup = getLastBackupTimestamp(name);
+        if (lastBackup == null || lastBackup.isBefore(LocalDateTime.now().minusDays(5))) {
+            try {
+                makeBackup(name);
+            } catch (IOException e) {
+                log.error("Failed to create backup for profile " + name + ".", e);
+            }
+        }
+
         return new Profile(name, settings, dataSourceFactory.getDataSource(name));
     }
 
@@ -103,6 +121,47 @@ public class ProfileLoader {
         } catch (IOException e) {
             log.error("Failed to write " + lastProfileFile, e);
         }
+    }
+
+    public static LocalDateTime getLastBackupTimestamp(String name) {
+        try (var files = Files.list(Profile.getDir(name))) {
+            return files.filter(p -> p.getFileName().toString().startsWith("backup_"))
+                    .map(p -> p.getFileName().toString().substring("backup_".length(), "backup_0000-00-00_00-00-00".length()))
+                    .map(s -> LocalDateTime.parse(s, DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")))
+                    .max(LocalDateTime::compareTo)
+                    .orElse(null);
+        } catch (IOException e) {
+            log.error("Failed to list files in profile " + name, e);
+            return null;
+        }
+    }
+
+    public static Path makeBackup(String name) throws IOException {
+        log.info("Making backup of profile \"{}\".", name);
+        final Path profileDir = Profile.getDir(name);
+        LocalDateTime now = LocalDateTime.now();
+        Path backupFile = profileDir.resolve(String.format(
+                "backup_%04d-%02d-%02d_%02d-%02d-%02d.zip",
+                now.getYear(), now.getMonthValue(), now.getDayOfMonth(),
+                now.getHour(), now.getMinute(), now.getSecond()
+        ));
+        try (var out = new ZipOutputStream(Files.newOutputStream(backupFile))) {
+            Files.walkFileTree(profileDir, new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Path relativeFile = profileDir.relativize(file);
+                    if (relativeFile.toString().startsWith("backup_") || relativeFile.toString().equalsIgnoreCase("database.trace.db")) {
+                        return FileVisitResult.CONTINUE;
+                    }
+                    out.putNextEntry(new ZipEntry(relativeFile.toString()));
+                    byte[] bytes = Files.readAllBytes(file);
+                    out.write(bytes, 0, bytes.length);
+                    out.closeEntry();
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        }
+        return backupFile;
     }
 
     @Deprecated
