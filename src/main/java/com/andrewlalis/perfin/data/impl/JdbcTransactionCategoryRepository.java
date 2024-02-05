@@ -53,6 +53,13 @@ public record JdbcTransactionCategoryRepository(Connection conn) implements Tran
     }
 
     @Override
+    public TransactionCategory findRoot(long categoryId) {
+        TransactionCategory category = findById(categoryId).orElse(null);
+        if (category == null || category.getParentId() == null) return category;
+        return findRoot(category.getParentId());
+    }
+
+    @Override
     public long insert(long parentId, String name, Color color) {
         return DbUtil.insertOne(
                 conn,
@@ -132,11 +139,11 @@ public record JdbcTransactionCategoryRepository(Connection conn) implements Tran
     }
 
     public static TransactionCategory parseCategory(ResultSet rs) throws SQLException {
-        return new TransactionCategory(
-                rs.getLong("id"),
-                rs.getObject("parent_id", Long.class),
-                rs.getString("name"),
-                Color.valueOf("#" + rs.getString("color"))
-        );
+        long id = rs.getLong("id");
+        Long parentId = rs.getLong("parent_id");
+        if (rs.wasNull()) parentId = null;
+        String name = rs.getString("name");
+        Color color = Color.valueOf("#" + rs.getString("color"));
+        return new TransactionCategory(id, parentId, name, color);
     }
 }

@@ -35,6 +35,8 @@ public interface DataSource {
     AttachmentRepository getAttachmentRepository();
     HistoryRepository getHistoryRepository();
 
+    AnalyticsRepository getAnalyticsRepository();
+
     // Repository helper methods:
 
     @SuppressWarnings("unchecked")
@@ -86,7 +88,8 @@ public interface DataSource {
                 TransactionVendorRepository.class, this::getTransactionVendorRepository,
                 TransactionCategoryRepository.class, this::getTransactionCategoryRepository,
                 AttachmentRepository.class, this::getAttachmentRepository,
-                HistoryRepository.class, this::getHistoryRepository
+                HistoryRepository.class, this::getHistoryRepository,
+                AnalyticsRepository.class, this::getAnalyticsRepository
         );
         return (Supplier<R>) repoSuppliers.get(type);
     }

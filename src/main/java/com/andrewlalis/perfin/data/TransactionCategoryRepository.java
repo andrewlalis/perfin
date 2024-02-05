@@ -11,6 +11,7 @@ public interface TransactionCategoryRepository extends Repository, AutoCloseable
     Optional<TransactionCategory> findByName(String name);
     List<TransactionCategory> findAllBaseCategories();
     List<TransactionCategory> findAll();
+    TransactionCategory findRoot(long categoryId);
     long insert(long parentId, String name, Color color);
     long insert(String name, Color color);
     void update(long id, String name, Color color);

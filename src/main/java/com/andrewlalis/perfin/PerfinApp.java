@@ -114,6 +114,7 @@ public class PerfinApp extends Application {
         if (Files.notExists(APP_DIR)) {
             msgConsumer.accept(APP_DIR + " doesn't exist yet. Creating it now.");
             Files.createDirectory(APP_DIR);
+            Files.createDirectory(Profile.getProfilesDir());
         } else if (Files.exists(APP_DIR) && Files.isRegularFile(APP_DIR)) {
             msgConsumer.accept(APP_DIR + " is a file, when it should be a directory. Deleting it and creating new directory.");
             Files.delete(APP_DIR);

@@ -5,11 +5,11 @@ import com.andrewlalis.perfin.data.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -39,13 +39,32 @@ public record Profile(String name, Properties settings, DataSource dataSource) {
     private static Profile current;
     private static final Set<WeakReference<Consumer<Profile>>> currentProfileListeners = new HashSet<>();
 
+    public void setSettingAndSave(String settingName, String value) {
+        String previous = settings.getProperty(settingName);
+        if (Objects.equals(previous, value)) return; // Value is already set.
+        settings.setProperty(settingName, value);
+        try (var out = Files.newOutputStream(getSettingsFile(name))) {
+            settings.store(out, null);
+        } catch (IOException e) {
+            log.error("Failed to save settings.", e);
+        }
+    }
+
+    public Optional<String> getSetting(String settingName) {
+        return Optional.ofNullable(settings.getProperty(settingName));
+    }
+
     @Override
     public String toString() {
         return name;
     }
 
+    public static Path getProfilesDir() {
+        return PerfinApp.APP_DIR.resolve("profiles");
+    }
+
     public static Path getDir(String name) {
-        return PerfinApp.APP_DIR.resolve(name);
+        return getProfilesDir().resolve(name);
     }
 
     public static Path getContentDir(String name) {

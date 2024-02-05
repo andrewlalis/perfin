@@ -4,6 +4,7 @@ import com.andrewlalis.perfin.PerfinApp;
 import com.andrewlalis.perfin.data.ProfileLoadException;
 import com.andrewlalis.perfin.data.util.FileUtil;
 import com.andrewlalis.perfin.model.Profile;
+import com.andrewlalis.perfin.model.ProfileBackups;
 import com.andrewlalis.perfin.model.ProfileLoader;
 import com.andrewlalis.perfin.view.ProfilesStage;
 import com.andrewlalis.perfin.view.component.validation.ValidationApplier;
@@ -123,7 +124,7 @@ public class ProfilesViewController {
 
     private void makeBackup(String name) {
         try {
-            Path backupFile = ProfileLoader.makeBackup(name);
+            Path backupFile = ProfileBackups.makeBackup(name);
             Popups.message(profilesVBox, "A new backup was created at " + backupFile.toAbsolutePath());
         } catch (IOException e) {
             Popups.error(profilesVBox, e);

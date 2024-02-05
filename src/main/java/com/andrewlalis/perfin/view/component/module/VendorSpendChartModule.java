@@ -5,36 +5,31 @@ import com.andrewlalis.perfin.data.TimestampRange;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.model.MoneyValue;
 import com.andrewlalis.perfin.model.Profile;
-import com.andrewlalis.perfin.model.TransactionCategory;
+import com.andrewlalis.perfin.model.TransactionVendor;
 import javafx.scene.chart.PieChart;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class SpendingCategoryChartModule extends PieChartModule {
-    public SpendingCategoryChartModule(Pane parent) {
-        super(parent, "Spending by Category", "charts.category-spend.default-currency");
+public class VendorSpendChartModule extends PieChartModule {
+    public VendorSpendChartModule(Pane parent) {
+        super(parent, "Spending by Vendor", "charts.vendor-spend.default-currency");
     }
 
     @Override
     protected CompletableFuture<List<PieChart.Data>> getChartData(Currency currency) {
         return Profile.getCurrent().dataSource().mapRepoAsync(AnalyticsRepository.class, repo -> {
-            var data = repo.getSpendByRootCategory(TimestampRange.unbounded(), currency);
-            dataColors.clear();
+            var data = repo.getSpendByVendor(TimestampRange.unbounded(), currency);
             return data.stream()
                     .map(pair -> {
-                        TransactionCategory category = pair.first();
+                        TransactionVendor vendor = pair.first();
                         BigDecimal amount = pair.second();
-                        String label = category == null ? "Uncategorized" : category.getName();
+                        String label = vendor == null ? "Uncategorized" : vendor.getName();
                         label += ": " + CurrencyUtil.formatMoney(new MoneyValue(amount, currency));
-                        var datum = new PieChart.Data(label, amount.doubleValue());
-                        Color color = category == null ? Color.GRAY : category.getColor();
-                        dataColors.add(color);
-                        return datum;
+                        return new PieChart.Data(label, amount.doubleValue());
                     })
                     .toList();
         });

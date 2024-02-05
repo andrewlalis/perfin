@@ -68,4 +68,9 @@ public class JdbcDataSource implements DataSource {
     public HistoryRepository getHistoryRepository() {
         return new JdbcHistoryRepository(getConnection());
     }
+
+    @Override
+    public AnalyticsRepository getAnalyticsRepository() {
+        return new JdbcAnalyticsRepository(getConnection());
+    }
 }
