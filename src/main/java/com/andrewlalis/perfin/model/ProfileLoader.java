@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
@@ -50,6 +51,8 @@ public class ProfileLoader {
         } catch (IOException e) {
             throw new ProfileLoadException("Failed to load profile settings.", e);
         }
+
+        // Try to check the profile's schema version and migrate if needed.
         try {
             DataSourceFactory.SchemaStatus status = dataSourceFactory.getSchemaStatus(name);
             if (status == DataSourceFactory.SchemaStatus.NEEDS_MIGRATION) {
@@ -72,11 +75,14 @@ public class ProfileLoader {
         }
 
         // Check for a recent backup and make one if not present.
-        try {
-            ProfileBackups.makeBackup(name);
-            ProfileBackups.cleanOldBackups(name);
-        } catch (IOException e) {
-            log.error("Failed to create backup for profile " + name + ".", e);
+        LocalDateTime lastBackup = ProfileBackups.getLastBackupTimestamp(name);
+        if (lastBackup == null || lastBackup.isBefore(LocalDateTime.now().minusDays(1))) {
+            try {
+                ProfileBackups.makeBackup(name);
+                ProfileBackups.cleanOldBackups(name);
+            } catch (IOException e) {
+                log.error("Failed to create backup for profile " + name + ".", e);
+            }
         }
 
         DataSource dataSource = dataSourceFactory.getDataSource(name);

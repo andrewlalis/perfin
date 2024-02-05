@@ -59,7 +59,11 @@ public class JdbcDataSourceFactory implements DataSourceFactory {
                 throw new ProfileLoadException("Profile " + profileName + " has a database with an unsupported schema version.");
             }
         }
-        return new JdbcDataSource(getJdbcUrl(profileName), Profile.getContentDir(profileName));
+        var dataSource = new JdbcDataSource(getJdbcUrl(profileName), Profile.getContentDir(profileName));
+        if (!testConnection(dataSource)) {
+            throw new ProfileLoadException("Unabled to connect to the profile's database.");
+        }
+        return dataSource;
     }
 
     public SchemaStatus getSchemaStatus(String profileName) throws IOException {
