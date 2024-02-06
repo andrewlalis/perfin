@@ -113,6 +113,7 @@ public class JdbcDataSourceFactory implements DataSourceFactory {
      */
     public void insertDefaultData(Connection conn) throws IOException, SQLException {
         insertDefaultCategories(conn);
+        insertDefaultTags(conn);
     }
 
     public void insertDefaultCategories(Connection conn) throws IOException, SQLException {
@@ -147,6 +148,18 @@ public class JdbcDataSourceFactory implements DataSourceFactory {
             long id = DbUtil.getGeneratedId(stmt);
             if (obj.hasNonNull("children") && obj.get("children").isArray()) {
                 insertCategoriesRecursive(stmt, obj.withArray("children"), id, colorHex);
+            }
+        }
+    }
+
+    private void insertDefaultTags(Connection conn) throws SQLException {
+        final List<String> defaultTags = List.of(
+                "!exclude"
+        );
+        try (var stmt = conn.prepareStatement("INSERT INTO transaction_tag (name) VALUES (?)")) {
+            for (var tag : defaultTags) {
+                stmt.setString(1, tag);
+                stmt.executeUpdate();
             }
         }
     }

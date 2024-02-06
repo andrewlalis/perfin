@@ -1,22 +1,21 @@
 package com.andrewlalis.perfin.view.component.module;
 
 import com.andrewlalis.perfin.control.TransactionsViewController;
+import com.andrewlalis.perfin.data.TransactionCategoryRepository;
 import com.andrewlalis.perfin.data.TransactionRepository;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.model.Transaction;
 import com.andrewlalis.perfin.view.BindingUtil;
+import com.andrewlalis.perfin.view.component.CategoryLabel;
 import com.andrewlalis.perfin.view.component.StyledText;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
@@ -45,6 +44,16 @@ public class RecentTransactionsModule extends DashboardModule {
                 refreshButton
         ));
         this.getChildren().add(scrollPane);
+
+        Button viewVendorsButton = new Button("View Vendors");
+        viewVendorsButton.setOnAction(event -> router.navigate("vendors"));
+        Button viewCategoriesButton = new Button("View Categories");
+        viewCategoriesButton.setOnAction(event -> router.navigate("categories"));
+        Button viewTagsButton = new Button("View Tags");
+        viewTagsButton.setOnAction(event -> router.navigate("tags"));
+        HBox footerButtonBox = new HBox(viewVendorsButton, viewCategoriesButton, viewTagsButton);
+        footerButtonBox.getStyleClass().addAll("std-padding", "std-spacing", "small-font");
+        this.getChildren().add(footerButtonBox);
     }
 
     @Override
@@ -87,12 +96,22 @@ public class RecentTransactionsModule extends DashboardModule {
         Label descriptionLabel = new Label(tx.getDescription());
         BindingUtil.bindManagedAndVisible(descriptionLabel, descriptionLabel.textProperty().isNotEmpty());
 
+
         Label balanceLabel = new Label(CurrencyUtil.formatMoneyWithCurrencyPrefix(tx.getMoneyAmount()));
         balanceLabel.getStyleClass().addAll("mono-font");
+        VBox rightPanel = new VBox(balanceLabel);
+        if (tx.getCategoryId() != null) {
+            Profile.getCurrent().dataSource().mapRepoAsync(
+                    TransactionCategoryRepository.class,
+                    repo -> repo.findById(tx.getCategoryId()).orElse(null)
+            ).thenAccept(category -> {
+                if (category != null) Platform.runLater(() -> rightPanel.getChildren().add(new CategoryLabel(category)));
+            });
+        }
 
         VBox contentBox = new VBox(dateLabel, descriptionLabel, linkedAccountsLabel);
         borderPane.setCenter(contentBox);
-        borderPane.setRight(balanceLabel);
+        borderPane.setRight(rightPanel);
 
         return borderPane;
     }

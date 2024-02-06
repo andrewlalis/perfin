@@ -1,7 +1,6 @@
 package com.andrewlalis.perfin.data.impl;
 
 import com.andrewlalis.perfin.data.AccountEntryRepository;
-import com.andrewlalis.perfin.data.HistoryRepository;
 import com.andrewlalis.perfin.data.util.DbUtil;
 import com.andrewlalis.perfin.model.AccountEntry;
 
@@ -12,11 +11,12 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.Currency;
 import java.util.List;
+import java.util.Optional;
 
 public record JdbcAccountEntryRepository(Connection conn) implements AccountEntryRepository {
     @Override
     public long insert(LocalDateTime timestamp, long accountId, long transactionId, BigDecimal amount, AccountEntry.Type type, Currency currency) {
-        long entryId = DbUtil.insertOne(
+        return DbUtil.insertOne(
                 conn,
                 """
                         INSERT INTO account_entry (timestamp, account_id, transaction_id, amount, type, currency)
@@ -30,11 +30,16 @@ public record JdbcAccountEntryRepository(Connection conn) implements AccountEntr
                         currency.getCurrencyCode()
                 )
         );
-        // Insert an entry into the account's history.
-        HistoryRepository historyRepo = new JdbcHistoryRepository(conn);
-        long historyId = historyRepo.getOrCreateHistoryForAccount(accountId);
-        historyRepo.addTextItem(historyId, timestamp, "Entry #" + entryId + " added as a " + type.name() + " from Transaction #" + transactionId + ".");
-        return entryId;
+    }
+
+    @Override
+    public Optional<AccountEntry> findById(long id) {
+        return DbUtil.findById(
+                conn,
+                "SELECT * FROM account_entry WHERE id = ?",
+                id,
+                JdbcAccountEntryRepository::parse
+        );
     }
 
     @Override

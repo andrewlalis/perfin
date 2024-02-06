@@ -6,7 +6,7 @@ public class HistoryTextItem extends HistoryItem {
     private final String description;
 
     public HistoryTextItem(long id, long historyId, LocalDateTime timestamp, String description) {
-        super(id, historyId, timestamp, HistoryItem.TYPE_TEXT);
+        super(id, historyId, timestamp, HistoryItem.Type.TEXT);
         this.description = description;
     }
 

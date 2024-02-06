@@ -4,10 +4,12 @@ import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.AccountType;
+import com.andrewlalis.perfin.model.Timestamped;
 
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
@@ -32,4 +34,5 @@ public interface AccountRepository extends Repository, AutoCloseable {
         return deriveBalance(accountId, Instant.now(Clock.systemUTC()));
     }
     Set<Currency> findAllUsedCurrencies();
+    List<Timestamped> findEventsBefore(long accountId, LocalDateTime utcTimestamp, int maxResults);
 }

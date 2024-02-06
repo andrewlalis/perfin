@@ -1,6 +1,7 @@
 package com.andrewlalis.perfin.model.history;
 
 import com.andrewlalis.perfin.model.IdEntity;
+import com.andrewlalis.perfin.model.Timestamped;
 
 import java.time.LocalDateTime;
 
@@ -8,14 +9,16 @@ import java.time.LocalDateTime;
  * Represents a single polymorphic history item. The item's "type" attribute
  * tells where to find additional type-specific data.
  */
-public abstract class HistoryItem extends IdEntity {
-    public static final String TYPE_TEXT = "TEXT";
+public abstract class HistoryItem extends IdEntity implements Timestamped {
+    public enum Type {
+        TEXT
+    }
 
     private final long historyId;
     private final LocalDateTime timestamp;
-    private final String type;
+    private final Type type;
 
-    public HistoryItem(long id, long historyId, LocalDateTime timestamp, String type) {
+    public HistoryItem(long id, long historyId, LocalDateTime timestamp, Type type) {
         super(id);
         this.historyId = historyId;
         this.timestamp = timestamp;
@@ -30,7 +33,7 @@ public abstract class HistoryItem extends IdEntity {
         return timestamp;
     }
 
-    public String getType() {
+    public Type getType() {
         return type;
     }
 }

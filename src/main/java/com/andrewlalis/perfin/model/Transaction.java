@@ -12,7 +12,7 @@ import java.util.Currency;
  * actual positive/negative effect is determined by the associated account
  * entries that apply this transaction's amount to one or more accounts.
  */
-public class Transaction extends IdEntity {
+public class Transaction extends IdEntity implements Timestamped {
     private final LocalDateTime timestamp;
     private final BigDecimal amount;
     private final Currency currency;

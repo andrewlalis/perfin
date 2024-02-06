@@ -2,24 +2,17 @@ package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
 import com.andrewlalis.perfin.data.AccountRepository;
-import com.andrewlalis.perfin.data.HistoryRepository;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.Profile;
-import com.andrewlalis.perfin.model.history.HistoryItem;
-import com.andrewlalis.perfin.view.component.AccountHistoryItemTile;
-import javafx.application.Platform;
+import com.andrewlalis.perfin.view.component.AccountHistoryView;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
@@ -35,10 +28,7 @@ public class AccountViewController implements RouteSelectionListener {
     @FXML public Label accountBalanceLabel;
     @FXML public BooleanProperty accountArchivedProperty = new SimpleBooleanProperty(false);
 
-    @FXML public VBox historyItemsVBox;
-    @FXML public Button loadMoreHistoryButton;
-    private LocalDateTime loadHistoryFrom;
-    private final int historyLoadSize = 5;
+    @FXML public AccountHistoryView accountHistory;
 
     @FXML public VBox actionsVBox;
 
@@ -66,15 +56,9 @@ public class AccountViewController implements RouteSelectionListener {
         accountCreatedAtLabel.setText(DateUtil.formatUTCAsLocalWithZone(account.getCreatedAt()));
         Profile.getCurrent().dataSource().getAccountBalanceText(account)
                 .thenAccept(accountBalanceLabel::setText);
-
-        reloadHistory();
-    }
-
-    public void reloadHistory() {
-        loadHistoryFrom = DateUtil.nowAsUTC();
-        historyItemsVBox.getChildren().clear();
-        loadMoreHistoryButton.setDisable(false);
-        loadMoreHistory();
+        accountHistory.clear();
+        accountHistory.setAccountId(account.id);
+        accountHistory.loadMoreHistory();
     }
 
     @FXML
@@ -128,19 +112,5 @@ public class AccountViewController implements RouteSelectionListener {
             Profile.getCurrent().dataSource().useRepo(AccountRepository.class, repo -> repo.delete(account));
             router.replace("accounts");
         }
-    }
-
-    @FXML public void loadMoreHistory() {
-        Profile.getCurrent().dataSource().useRepoAsync(HistoryRepository.class, repo -> {
-            long historyId = repo.getOrCreateHistoryForAccount(account.id);
-            List<HistoryItem> items = repo.getNItemsBefore(historyId, historyLoadSize, loadHistoryFrom);
-            if (items.size() < historyLoadSize) {
-                Platform.runLater(() -> loadMoreHistoryButton.setDisable(true));
-            } else {
-                loadHistoryFrom = items.getLast().getTimestamp();
-            }
-            List<? extends Node> nodes = items.stream().map(AccountHistoryItemTile::forItem).toList();
-            Platform.runLater(() -> historyItemsVBox.getChildren().addAll(nodes));
-        });
     }
 }

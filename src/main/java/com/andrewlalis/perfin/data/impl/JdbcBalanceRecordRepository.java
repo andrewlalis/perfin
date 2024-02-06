@@ -37,10 +37,6 @@ public record JdbcBalanceRecordRepository(Connection conn, Path contentDir) impl
                     stmt.executeUpdate();
                 }
             }
-            // Add a history item entry.
-            HistoryRepository historyRepo = new JdbcHistoryRepository(conn);
-            long historyId = historyRepo.getOrCreateHistoryForAccount(accountId);
-            historyRepo.addTextItem(historyId, utcTimestamp, "Balance Record #" + recordId + " added with a value of " + CurrencyUtil.formatMoneyWithCurrencyPrefix(new MoneyValue(balance, currency)));
             return recordId;
         });
     }
@@ -53,6 +49,16 @@ public record JdbcBalanceRecordRepository(Connection conn, Path contentDir) impl
                 List.of(accountId),
                 JdbcBalanceRecordRepository::parse
         ).orElse(null);
+    }
+
+    @Override
+    public Optional<BalanceRecord> findById(long id) {
+        return DbUtil.findById(
+                conn,
+                "SELECT * FROM balance_record WHERE id = ?",
+                id,
+                JdbcBalanceRecordRepository::parse
+        );
     }
 
     @Override

@@ -30,7 +30,7 @@ import java.util.Currency;
  *     all those extra accounts would be a burden to casual users.
  * </p>
  */
-public class AccountEntry extends IdEntity {
+public class AccountEntry extends IdEntity implements Timestamped {
     public enum Type {
         CREDIT,
         DEBIT

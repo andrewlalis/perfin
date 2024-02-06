@@ -9,7 +9,7 @@ import java.util.Currency;
  * used as a sanity check for ensuring that an account's entries add up to the
  * correct balance.
  */
-public class BalanceRecord extends IdEntity {
+public class BalanceRecord extends IdEntity implements Timestamped {
     private final LocalDateTime timestamp;
     private final long accountId;
     private final BigDecimal balance;

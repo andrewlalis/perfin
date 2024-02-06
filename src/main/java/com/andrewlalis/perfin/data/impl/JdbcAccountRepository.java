@@ -5,10 +5,7 @@ import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.data.util.DbUtil;
-import com.andrewlalis.perfin.model.Account;
-import com.andrewlalis.perfin.model.AccountEntry;
-import com.andrewlalis.perfin.model.AccountType;
-import com.andrewlalis.perfin.model.BalanceRecord;
+import com.andrewlalis.perfin.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -167,6 +164,54 @@ public record JdbcAccountRepository(Connection conn, Path contentDir) implements
                 "SELECT currency FROM account WHERE NOT archived ORDER BY currency ASC",
                 rs -> Currency.getInstance(rs.getString(1))
         ));
+    }
+
+    @Override
+    public List<Timestamped> findEventsBefore(long accountId, LocalDateTime utcTimestamp, int maxResults) {
+        var entryRepo = new JdbcAccountEntryRepository(conn);
+        var historyRepo = new JdbcHistoryRepository(conn);
+        var balanceRecordRepo = new JdbcBalanceRecordRepository(conn, contentDir);
+        String query = """
+                SELECT id, type
+                FROM (
+                    SELECT id, timestamp, 'ACCOUNT_ENTRY' AS type, account_id
+                    FROM account_entry
+                        UNION ALL
+                    SELECT id, timestamp, 'HISTORY_ITEM' AS type, account_id
+                    FROM history_item
+                    LEFT JOIN history_account ha ON history_item.history_id = ha.history_id
+                        UNION ALL
+                    SELECT id, timestamp, 'BALANCE_RECORD' AS type, account_id
+                    FROM balance_record
+                )
+                WHERE account_id = ? AND timestamp <= ?
+                ORDER BY timestamp DESC
+                LIMIT\s""" + maxResults;
+        try (var stmt = conn.prepareStatement(query)) {
+            stmt.setLong(1, accountId);
+            stmt.setTimestamp(2, DbUtil.timestampFromUtcLDT(utcTimestamp));
+            ResultSet rs = stmt.executeQuery();
+            List<Timestamped> entities = new ArrayList<>();
+            while (rs.next()) {
+                long id = rs.getLong(1);
+                String type = rs.getString(2);
+                Timestamped entity = switch (type) {
+                    case "HISTORY_ITEM" -> historyRepo.getItem(id).orElse(null);
+                    case "ACCOUNT_ENTRY" -> entryRepo.findById(id).orElse(null);
+                    case "BALANCE_RECORD" -> balanceRecordRepo.findById(id).orElse(null);
+                    default -> null;
+                };
+                if (entity == null) {
+                    log.warn("Failed to find entity with id {} and type {}.", id, type);
+                } else {
+                    entities.add(entity);
+                }
+            }
+            return entities;
+        } catch (SQLException e) {
+            log.error("Failed to find account events.", e);
+            return Collections.emptyList();
+        }
     }
 
     @Override

@@ -9,6 +9,7 @@ import com.andrewlalis.perfin.model.history.HistoryTextItem;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 
 public interface HistoryRepository extends Repository, AutoCloseable {
     long getOrCreateHistoryForAccount(long accountId);
@@ -20,6 +21,7 @@ public interface HistoryRepository extends Repository, AutoCloseable {
     default HistoryTextItem addTextItem(long historyId, String description) {
         return addTextItem(historyId, DateUtil.nowAsUTC(), description);
     }
+    Optional<HistoryItem> getItem(long id);
     Page<HistoryItem> getItems(long historyId, PageRequest pagination);
     List<HistoryItem> getNItemsBefore(long historyId, int n, LocalDateTime timestamp);
     default List<HistoryItem> getNItemsBeforeNow(long historyId, int n) {

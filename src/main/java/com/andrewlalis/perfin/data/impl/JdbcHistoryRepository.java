@@ -13,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public record JdbcHistoryRepository(Connection conn) implements HistoryRepository {
     @Override
@@ -56,7 +57,7 @@ public record JdbcHistoryRepository(Connection conn) implements HistoryRepositor
 
     @Override
     public HistoryTextItem addTextItem(long historyId, LocalDateTime utcTimestamp, String description) {
-        long itemId = insertHistoryItem(historyId, utcTimestamp, HistoryItem.TYPE_TEXT);
+        long itemId = insertHistoryItem(historyId, utcTimestamp, HistoryItem.Type.TEXT.name());
         DbUtil.updateOne(
                 conn,
                 "INSERT INTO history_item_text (id, description) VALUES (?, ?)",
@@ -64,6 +65,16 @@ public record JdbcHistoryRepository(Connection conn) implements HistoryRepositor
                 description
         );
         return new HistoryTextItem(itemId, historyId, utcTimestamp, description);
+    }
+
+    @Override
+    public Optional<HistoryItem> getItem(long id) {
+        return DbUtil.findById(
+                conn,
+                "SELECT * FROM history_item WHERE id = ?",
+                id,
+                JdbcHistoryRepository::parseItem
+        );
     }
 
     private long insertHistoryItem(long historyId, LocalDateTime timestamp, String type) {
@@ -111,7 +122,7 @@ public record JdbcHistoryRepository(Connection conn) implements HistoryRepositor
         long historyId = rs.getLong(2);
         LocalDateTime timestamp = DbUtil.utcLDTFromTimestamp(rs.getTimestamp(3));
         String type = rs.getString(4);
-        if (type.equalsIgnoreCase(HistoryItem.TYPE_TEXT)) {
+        if (type.equalsIgnoreCase(HistoryItem.Type.TEXT.name())) {
             String description = DbUtil.findOne(
                     rs.getStatement().getConnection(),
                     "SELECT description FROM history_item_text WHERE id = ?",

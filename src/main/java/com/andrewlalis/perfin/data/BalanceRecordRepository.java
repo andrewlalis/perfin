@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface BalanceRecordRepository extends Repository, AutoCloseable {
     long insert(LocalDateTime utcTimestamp, long accountId, BigDecimal balance, Currency currency, List<Path> attachments);
     BalanceRecord findLatestByAccountId(long accountId);
+    Optional<BalanceRecord> findById(long id);
     Optional<BalanceRecord> findClosestBefore(long accountId, LocalDateTime utcTimestamp);
     Optional<BalanceRecord> findClosestAfter(long accountId, LocalDateTime utcTimestamp);
     List<Attachment> findAttachments(long recordId);

@@ -1,10 +1,10 @@
 package com.andrewlalis.perfin.view.component;
 
+import com.andrewlalis.perfin.data.TransactionCategoryRepository;
 import com.andrewlalis.perfin.data.TransactionRepository;
+import com.andrewlalis.perfin.data.TransactionVendorRepository;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DateUtil;
-import com.andrewlalis.perfin.model.CreditAndDebitAccounts;
-import com.andrewlalis.perfin.model.MoneyValue;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.model.Transaction;
 import javafx.application.Platform;
@@ -16,10 +16,9 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
-
-import java.util.concurrent.CompletableFuture;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
@@ -35,6 +34,7 @@ public class TransactionTile extends BorderPane {
         setTop(getHeader(transaction));
         setCenter(getBody(transaction));
         setBottom(getFooter(transaction));
+        setRight(getExtra(transaction));
 
         selected.addListener((observable, oldValue, newValue) -> {
             if (newValue) {
@@ -71,7 +71,10 @@ public class TransactionTile extends BorderPane {
         VBox bodyVBox = new VBox(
                 propertiesPane
         );
-        getCreditAndDebitAccounts(transaction).thenAccept(accounts -> {
+        Profile.getCurrent().dataSource().mapRepoAsync(
+                TransactionRepository.class,
+                repo -> repo.findLinkedAccounts(transaction.id)
+        ).thenAccept(accounts -> {
             accounts.ifCredit(acc -> {
                 Hyperlink link = new Hyperlink(acc.getShortName());
                 link.setOnAction(event -> router.navigate("account", acc));
@@ -99,10 +102,26 @@ public class TransactionTile extends BorderPane {
         return footerHBox;
     }
 
-    private CompletableFuture<CreditAndDebitAccounts> getCreditAndDebitAccounts(Transaction transaction) {
-        return Profile.getCurrent().dataSource().mapRepoAsync(
-                TransactionRepository.class,
-                repo -> repo.findLinkedAccounts(transaction.id)
-        );
+    private Node getExtra(Transaction transaction) {
+        VBox content = new VBox();
+        if (transaction.getCategoryId() != null) {
+            Profile.getCurrent().dataSource().mapRepoAsync(
+                    TransactionCategoryRepository.class,
+                    repo -> repo.findById(transaction.getCategoryId()).orElse(null)
+            ).thenAccept(category -> {
+                if (category == null) return;
+                Platform.runLater(() -> content.getChildren().add(new CategoryLabel(category)));
+            });
+        }
+        if (transaction.getVendorId() != null) {
+            Profile.getCurrent().dataSource().mapRepoAsync(
+                    TransactionVendorRepository.class,
+                    repo -> repo.findById(transaction.getVendorId()).orElse(null)
+            ).thenAccept(vendor -> {
+                if (vendor == null) return;
+                Platform.runLater(() -> content.getChildren().addLast(new Text("@ " + vendor.getName())));
+            });
+        }
+        return content;
     }
 }

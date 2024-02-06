@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
@@ -56,16 +57,17 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
         balanceWarningLabel.managedProperty().bind(balanceWarningLabel.visibleProperty());
         balanceWarningLabel.visibleProperty().set(false);
         balanceField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (!balanceValidator.validate(newValue).isValid()) {
+            if (!balanceValidator.validate(newValue).isValid() || !timestampValid.get()) {
                 balanceWarningLabel.visibleProperty().set(false);
                 return;
             }
             BigDecimal reportedBalance = new BigDecimal(newValue);
+            LocalDateTime localTimestamp = LocalDateTime.parse(timestampField.getText(), DateUtil.DEFAULT_DATETIME_FORMAT);
+            LocalDateTime utcTimestamp = DateUtil.localToUTC(localTimestamp);
             Profile.getCurrent().dataSource().useRepoAsync(AccountRepository.class, repo -> {
-                BigDecimal derivedBalance = repo.deriveCurrentBalance(account.id);
-                Platform.runLater(() -> balanceWarningLabel.visibleProperty().set(
-                        !reportedBalance.setScale(derivedBalance.scale(), RoundingMode.HALF_UP).equals(derivedBalance)
-                ));
+                BigDecimal derivedBalance = repo.deriveBalance(account.id, utcTimestamp.toInstant(ZoneOffset.UTC));
+                boolean balancesMatch = reportedBalance.setScale(derivedBalance.scale(), RoundingMode.HALF_UP).equals(derivedBalance);
+                Platform.runLater(() -> balanceWarningLabel.visibleProperty().set(!balancesMatch));
             });
         });
 
@@ -95,7 +97,7 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
                 CurrencyUtil.formatMoneyWithCurrencyPrefix(new MoneyValue(reportedBalance, account.getCurrency())),
                 localTimestamp.atZone(ZoneId.systemDefault()).format(DateUtil.DEFAULT_DATETIME_FORMAT_WITH_ZONE)
         ));
-        if (confirm && confirmIfInconsistentBalance(reportedBalance)) {
+        if (confirm && confirmIfInconsistentBalance(reportedBalance, DateUtil.localToUTC(localTimestamp))) {
             Profile.getCurrent().dataSource().useRepo(BalanceRecordRepository.class, repo -> {
                 repo.insert(
                         DateUtil.localToUTC(localTimestamp),
@@ -113,10 +115,10 @@ public class CreateBalanceRecordController implements RouteSelectionListener {
         router.navigateBackAndClear();
     }
 
-    private boolean confirmIfInconsistentBalance(BigDecimal reportedBalance) {
+    private boolean confirmIfInconsistentBalance(BigDecimal reportedBalance, LocalDateTime utcTimestamp) {
         BigDecimal currentDerivedBalance = Profile.getCurrent().dataSource().mapRepo(
                 AccountRepository.class,
-                repo -> repo.deriveCurrentBalance(account.id)
+                repo -> repo.deriveBalance(account.id, utcTimestamp.toInstant(ZoneOffset.UTC))
         );
         if (!reportedBalance.setScale(currentDerivedBalance.scale(), RoundingMode.HALF_UP).equals(currentDerivedBalance)) {
             String msg = "The balance you reported (%s) doesn't match the balance that Perfin derived from your account's transactions (%s). It's encouraged to go back and add any missing transactions first, but you may proceed now if you understand the consequences of an inconsistent account balance history.\n\nAre you absolutely sure you want to create this balance record?".formatted(

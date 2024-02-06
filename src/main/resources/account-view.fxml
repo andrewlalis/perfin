@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.andrewlalis.perfin.view.component.AccountHistoryView?>
 <?import com.andrewlalis.perfin.view.component.PropertiesPane?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
@@ -49,11 +50,11 @@
                     <VBox styleClass="std-padding,std-spacing">
                         <Label text="Actions" styleClass="bold-text"/>
                         <VBox fx:id="actionsVBox" styleClass="std-spacing">
-                            <Button text="Edit" onAction="#goToEditPage"/>
-                            <Button text="Record Balance" onAction="#goToCreateBalanceRecord"/>
-                            <Button text="Archive" onAction="#archiveAccount"/>
-                            <Button text="Delete" onAction="#deleteAccount"/>
-                            <Button text="Unarchive" onAction="#unarchiveAccount"/>
+                            <Button text="Edit" onAction="#goToEditPage" maxWidth="Infinity"/>
+                            <Button text="Record Balance" onAction="#goToCreateBalanceRecord" maxWidth="Infinity"/>
+                            <Button text="Archive" onAction="#archiveAccount" maxWidth="Infinity"/>
+                            <Button text="Delete" onAction="#deleteAccount" maxWidth="Infinity"/>
+                            <Button text="Unarchive" onAction="#unarchiveAccount" maxWidth="Infinity"/>
                         </VBox>
                     </VBox>
                 </right>
@@ -62,20 +63,7 @@
             <!-- Account history -->
             <VBox VBox.vgrow="ALWAYS">
                 <Label text="History" styleClass="bold-text,std-padding"/>
-                <VBox>
-                    <ScrollPane styleClass="tile-container-scroll">
-                        <VBox fx:id="historyItemsVBox" styleClass="tile-container"/>
-                    </ScrollPane>
-                    <AnchorPane>
-                        <Button
-                                fx:id="loadMoreHistoryButton"
-                                text="Load more history"
-                                onAction="#loadMoreHistory"
-                                AnchorPane.leftAnchor="0.0"
-                                AnchorPane.rightAnchor="0.0"
-                        />
-                    </AnchorPane>
-                </VBox>
+                <AccountHistoryView fx:id="accountHistory" initialItemsToLoad="10"/>
             </VBox>
         </VBox>
     </center>
