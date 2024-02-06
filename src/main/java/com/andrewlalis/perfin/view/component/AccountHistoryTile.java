@@ -3,7 +3,6 @@ package com.andrewlalis.perfin.view.component;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 
 import java.time.LocalDateTime;
