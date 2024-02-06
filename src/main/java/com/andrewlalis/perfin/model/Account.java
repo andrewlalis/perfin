@@ -11,10 +11,10 @@ public class Account extends IdEntity {
     private final LocalDateTime createdAt;
     private final boolean archived;
 
-    private AccountType type;
-    private String accountNumber;
-    private String name;
-    private Currency currency;
+    private final AccountType type;
+    private final String accountNumber;
+    private final String name;
+    private final Currency currency;
 
     public Account(long id, LocalDateTime createdAt, boolean archived, AccountType type, String accountNumber, String name, Currency currency) {
         super(id);
@@ -60,22 +60,6 @@ public class Account extends IdEntity {
 
     public Currency getCurrency() {
         return currency;
-    }
-
-    public void setType(AccountType type) {
-        this.type = type;
-    }
-
-    public void setAccountNumber(String accountNumber) {
-        this.accountNumber = accountNumber;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setCurrency(Currency currency) {
-        this.currency = currency;
     }
 
     public LocalDateTime getCreatedAt() {

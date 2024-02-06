@@ -70,7 +70,7 @@ public class AccountsModule extends DashboardModule {
 
         Label nameLabel = new Label(account.getName());
         nameLabel.getStyleClass().addAll("bold-text");
-        Label numberLabel = new Label(account.getAccountNumber());
+        Label numberLabel = new Label(account.getAccountNumberSuffix());
         numberLabel.getStyleClass().addAll("mono-font");
         Label typeLabel = new Label(account.getType().toString());
         typeLabel.getStyleClass().add("bold-text");

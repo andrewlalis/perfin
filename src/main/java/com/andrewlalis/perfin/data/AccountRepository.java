@@ -23,8 +23,7 @@ public interface AccountRepository extends Repository, AutoCloseable {
     List<Account> findTopNRecentlyActive(int n, int daysSinceLastActive);
     List<Account> findAllByCurrency(Currency currency);
     Optional<Account> findById(long id);
-    void updateName(long id, String name);
-    void update(Account account);
+    void update(long accountId, AccountType type, String accountNumber, String name, Currency currency);
     void delete(Account account);
     void archive(long accountId);
     void unarchive(long accountId);

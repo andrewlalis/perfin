@@ -114,11 +114,6 @@ public record JdbcAccountRepository(Connection conn, Path contentDir) implements
     }
 
     @Override
-    public void updateName(long id, String name) {
-        DbUtil.updateOne(conn, "UPDATE account SET name = ? WHERE id = ? AND NOT archived", List.of(name, id));
-    }
-
-    @Override
     public BigDecimal deriveBalance(long accountId, Instant timestamp) {
         // First find the account itself, since its properties influence the balance.
         Account account = findById(accountId).orElse(null);
@@ -215,18 +210,33 @@ public record JdbcAccountRepository(Connection conn, Path contentDir) implements
     }
 
     @Override
-    public void update(Account account) {
-        DbUtil.updateOne(
-                conn,
-                "UPDATE account SET name = ?, account_number = ?, currency = ?, account_type = ? WHERE id = ?",
-                List.of(
-                        account.getName(),
-                        account.getAccountNumber(),
-                        account.getCurrency().getCurrencyCode(),
-                        account.getType().name(),
-                        account.id
-                )
-        );
+    public void update(long accountId, AccountType type, String accountNumber, String name, Currency currency) {
+        DbUtil.doTransaction(conn, () -> {
+            Account account = findById(accountId).orElse(null);
+            if (account == null) return;
+            List<String> updateMessages = new ArrayList<>();
+            if (account.getType() != type) {
+                DbUtil.updateOne(conn, "UPDATE account SET account_type = ? WHERE id = ?", type, accountId);
+                updateMessages.add(String.format("Updated account type from %s to %s.", account.getType().toString(), type.toString()));
+            }
+            if (!account.getAccountNumber().equals(accountNumber)) {
+                DbUtil.updateOne(conn, "UPDATE account SET account_number = ? WHERE id = ?", accountNumber, accountId);
+                updateMessages.add(String.format("Updated account number from %s to %s.", account.getAccountNumber(), accountNumber));
+            }
+            if (!account.getName().equals(name)) {
+                DbUtil.updateOne(conn, "UPDATE account SET name = ? WHERE id = ?", name, accountId);
+                updateMessages.add(String.format("Updated account name from \"%s\" to \"%s\".", account.getName(), name));
+            }
+            if (account.getCurrency() != currency) {
+                DbUtil.updateOne(conn, "UPDATE account SET currency = ? WHERE id = ?", currency.getCurrencyCode(), accountId);
+                updateMessages.add(String.format("Updated account currency from %s to %s.", account.getCurrency(), currency));
+            }
+            if (!updateMessages.isEmpty()) {
+                var historyRepo = new JdbcHistoryRepository(conn);
+                long historyId = historyRepo.getOrCreateHistoryForAccount(accountId);
+                historyRepo.addTextItem(historyId, String.join("\n", updateMessages));
+            }
+        });
     }
 
     @Override
