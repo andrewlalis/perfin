@@ -30,6 +30,8 @@ public class DashboardModule extends VBox {
         this.minHeightProperty().bind(rowHeightProperty);
         this.prefHeightProperty().bind(rowHeightProperty);
         this.maxHeightProperty().bind(rowHeightProperty);
+
+        this.getStyleClass().add("std-padding");
     }
 
     public void refreshContents() {}

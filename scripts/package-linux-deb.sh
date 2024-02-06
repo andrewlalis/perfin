@@ -24,7 +24,7 @@ module_path="$module_path:target/modules/h2-2.2.224.jar"
 
 jpackage \
   --name "Perfin" \
-  --app-version "1.6.1" \
+  --app-version "1.7.0" \
   --description "Desktop application for personal finance. Add your accounts, track transactions, and store receipts, invoices, and more." \
   --icon design/perfin-logo_256.png \
   --vendor "Andrew Lalis" \
