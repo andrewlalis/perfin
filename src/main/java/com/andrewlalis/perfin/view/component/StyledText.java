@@ -81,6 +81,7 @@ public class StyledText extends VBox {
             idx = 0;
             currentRun.setLength(0);
             currentParagraph = new TextFlow();
+            currentParagraph.setStyle("-fx-text-fill: inherit;");
 
             while (idx < text.length()) {
                 if (text.startsWith("**", idx)) {
@@ -118,6 +119,7 @@ public class StyledText extends VBox {
             int endIdx = text.indexOf(marker, idx + marker.length());
             Text textItem = new Text(text.substring(idx + marker.length(), endIdx));
             textItem.getStyleClass().add(styleClass);
+            textItem.setStyle("-fx-text-fill: inherit;");
             currentParagraph.getChildren().add(textItem);
             idx = endIdx + marker.length();
         }
@@ -183,6 +185,7 @@ public class StyledText extends VBox {
             if (!currentParagraph.getChildren().isEmpty()) {
                 flows.add(currentParagraph);
                 currentParagraph = new TextFlow();
+                currentParagraph.setStyle("-fx-text-fill: inherit;");
             }
         }
     }

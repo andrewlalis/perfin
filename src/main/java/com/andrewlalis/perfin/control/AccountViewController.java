@@ -2,17 +2,25 @@ package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
 import com.andrewlalis.perfin.data.AccountRepository;
+import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.model.Account;
+import com.andrewlalis.perfin.model.MoneyValue;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.view.component.AccountHistoryView;
+import com.andrewlalis.perfin.view.component.validation.ValidationApplier;
+import com.andrewlalis.perfin.view.component.validation.validators.PredicateValidator;
+import javafx.application.Platform;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
+
+import java.time.*;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
@@ -30,10 +38,13 @@ public class AccountViewController implements RouteSelectionListener {
 
     @FXML public AccountHistoryView accountHistory;
 
-    @FXML public VBox actionsVBox;
+    @FXML public HBox actionsBox;
+
+    @FXML public DatePicker balanceCheckerDatePicker;
+    @FXML public Button balanceCheckerButton;
 
     @FXML public void initialize() {
-        actionsVBox.getChildren().forEach(node -> {
+        actionsBox.getChildren().forEach(node -> {
             Button button = (Button) node;
             BooleanExpression buttonActive = accountArchivedProperty;
             if (button.getText().equalsIgnoreCase("Unarchive")) {
@@ -42,6 +53,28 @@ public class AccountViewController implements RouteSelectionListener {
             button.disableProperty().bind(buttonActive);
             button.managedProperty().bind(button.visibleProperty());
             button.visibleProperty().bind(button.disableProperty().not());
+        });
+
+        var datePickerValid = new ValidationApplier<>(new PredicateValidator<LocalDate>()
+                .addPredicate(date -> date.isBefore(LocalDate.now()), "Date must be in the past.")
+        ).attach(balanceCheckerDatePicker, balanceCheckerDatePicker.valueProperty());
+        balanceCheckerButton.disableProperty().bind(datePickerValid.not());
+        balanceCheckerButton.setOnAction(event -> {
+            LocalDate date = balanceCheckerDatePicker.getValue();
+            final Instant timestamp = date.atStartOfDay(ZoneId.systemDefault())
+                    .withZoneSameInstant(ZoneOffset.UTC)
+                    .toInstant();
+            Profile.getCurrent().dataSource().mapRepoAsync(
+                    AccountRepository.class,
+                    repo -> repo.deriveBalance(account.id, timestamp)
+            ).thenAccept(balance -> Platform.runLater(() -> {
+                String msg = String.format(
+                        "Your balance as of %s is %s, according to Perfin's data.",
+                        date,
+                        CurrencyUtil.formatMoney(new MoneyValue(balance, account.getCurrency()))
+                );
+                Popups.message(balanceCheckerButton, msg);
+            }));
         });
     }
 
