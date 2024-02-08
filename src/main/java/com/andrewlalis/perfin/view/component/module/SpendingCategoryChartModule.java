@@ -17,13 +17,18 @@ import java.util.concurrent.CompletableFuture;
 
 public class SpendingCategoryChartModule extends PieChartModule {
     public SpendingCategoryChartModule(Pane parent) {
-        super(parent, "Spending by Category", "charts.category-spend.default-currency");
+        super(
+                parent,
+                "Spending by Category",
+                "charts.category-spend.default-currency",
+                "charts.category-spend.default-time-range"
+        );
     }
 
     @Override
-    protected CompletableFuture<List<PieChart.Data>> getChartData(Currency currency) {
+    protected CompletableFuture<List<PieChart.Data>> getChartData(Currency currency, TimestampRange range) {
         return Profile.getCurrent().dataSource().mapRepoAsync(AnalyticsRepository.class, repo -> {
-            var data = repo.getSpendByRootCategory(TimestampRange.unbounded(), currency);
+            var data = repo.getSpendByRootCategory(range, currency);
             dataColors.clear();
             return data.stream()
                     .map(pair -> {

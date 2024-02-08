@@ -16,13 +16,18 @@ import java.util.concurrent.CompletableFuture;
 
 public class VendorSpendChartModule extends PieChartModule {
     public VendorSpendChartModule(Pane parent) {
-        super(parent, "Spending by Vendor", "charts.vendor-spend.default-currency");
+        super(
+                parent,
+                "Spending by Vendor",
+                "charts.vendor-spend.default-currency",
+                "charts.vendor-spend.default-time-range"
+        );
     }
 
     @Override
-    protected CompletableFuture<List<PieChart.Data>> getChartData(Currency currency) {
+    protected CompletableFuture<List<PieChart.Data>> getChartData(Currency currency, TimestampRange range) {
         return Profile.getCurrent().dataSource().mapRepoAsync(AnalyticsRepository.class, repo -> {
-            var data = repo.getSpendByVendor(TimestampRange.unbounded(), currency);
+            var data = repo.getSpendByVendor(range, currency);
             return data.stream()
                     .map(pair -> {
                         TransactionVendor vendor = pair.first();
