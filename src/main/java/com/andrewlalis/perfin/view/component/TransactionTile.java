@@ -16,6 +16,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
@@ -55,12 +56,13 @@ public class TransactionTile extends BorderPane {
         Label amountLabel = new Label("Amount");
         amountLabel.getStyleClass().add("bold-text");
         Label amountValue = new Label(CurrencyUtil.formatMoneyWithCurrencyPrefix(transaction.getMoneyAmount()));
-        amountValue.getStyleClass().add("mono-font");
+        amountValue.getStyleClass().addAll("mono-font");
 
         Label descriptionLabel = new Label("Description");
-        descriptionLabel.getStyleClass().add("bold-text");
+        descriptionLabel.getStyleClass().addAll("bold-text");
         Label descriptionValue = new Label(transaction.getDescription());
         descriptionValue.setWrapText(true);
+        descriptionValue.setMaxWidth(500.0);
 
         propertiesPane.getChildren().addAll(
                 amountLabel, amountValue,

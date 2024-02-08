@@ -31,6 +31,10 @@ Text {
     -fx-fill: -fx-theme-text;
 }
 
+Label {
+    -fx-text-fill: -fx-theme-text;
+}
+
 /* Font/text styles */
 .mono-font {
     -fx-font-family: "JetBrains Mono", monospace;
