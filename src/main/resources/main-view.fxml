@@ -27,7 +27,7 @@
             <!-- App footer -->
             <bottom>
                 <HBox styleClass="std-padding,std-spacing">
-                    <Label text="Perfin Version 1.7.1"/>
+                    <Label text="Perfin Version 1.8.0"/>
                     <AnchorPane>
                         <Label text="© 2024 Andrew Lalis" styleClass="small-font,secondary-color-text-fill" AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"/>
                     </AnchorPane>
