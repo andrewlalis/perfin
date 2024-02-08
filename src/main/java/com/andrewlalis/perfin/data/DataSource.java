@@ -106,19 +106,27 @@ public interface DataSource {
         return cf;
     }
 
-    default Map<Currency, BigDecimal> getCombinedAccountBalances() {
-        try (var accountRepo = getAccountRepository()) {
-            List<Account> accounts = accountRepo.findAll(PageRequest.unpaged()).items();
+    /**
+     * Gets a list of combined total assets for each currency that's tracked,
+     * ordered with highest assets first.
+     * @return A future that resolves to the list of amounts for each currency.
+     */
+    default CompletableFuture<List<MoneyValue>> getCombinedAccountBalances() {
+        return mapRepoAsync(AccountRepository.class, repo -> {
+            List<Account> accounts = repo.findAll(PageRequest.unpaged()).items();
             Map<Currency, BigDecimal> totals = new HashMap<>();
             for (var account : accounts) {
                 BigDecimal currencyTotal = totals.computeIfAbsent(account.getCurrency(), c -> BigDecimal.ZERO);
-                BigDecimal accountBalance = accountRepo.deriveCurrentBalance(account.id);
+                BigDecimal accountBalance = repo.deriveCurrentBalance(account.id);
                 if (account.getType() == AccountType.CREDIT_CARD) accountBalance = accountBalance.negate();
                 totals.put(account.getCurrency(), currencyTotal.add(accountBalance));
             }
-            return totals;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+            List<MoneyValue> values = new ArrayList<>(totals.size());
+            for (var entry : totals.entrySet()) {
+                values.add(new MoneyValue(entry.getValue(), entry.getKey()));
+            }
+            values.sort((m1, m2) -> m2.amount().compareTo(m1.amount()));
+            return values;
+        });
     }
 }

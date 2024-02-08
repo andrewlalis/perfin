@@ -86,6 +86,7 @@ public class EditAccountController implements RouteSelectionListener {
         accountTypeChoiceBox.getItems().add(AccountType.CHECKING);
         accountTypeChoiceBox.getItems().add(AccountType.SAVINGS);
         accountTypeChoiceBox.getItems().add(AccountType.CREDIT_CARD);
+        accountTypeChoiceBox.getItems().add(AccountType.BROKERAGE);
         accountTypeChoiceBox.getSelectionModel().select(AccountType.CHECKING);
 
         initialBalanceContent.visibleProperty().bind(creatingNewAccount);

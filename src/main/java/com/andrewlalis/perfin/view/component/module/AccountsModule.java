@@ -11,10 +11,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 
 import java.math.BigDecimal;
 
@@ -25,6 +22,7 @@ import static com.andrewlalis.perfin.PerfinApp.router;
  */
 public class AccountsModule extends DashboardModule {
     private final VBox accountsVBox = new VBox();
+    private final Label totalAssetsLabel = new Label();
 
     public AccountsModule(Pane parent) {
         super(parent);
@@ -48,6 +46,16 @@ public class AccountsModule extends DashboardModule {
                 refreshButton
         ));
         this.getChildren().add(scrollPane);
+
+        HBox footer = new HBox();
+        footer.getStyleClass().addAll("std-padding", "std-spacing");
+
+        totalAssetsLabel.getStyleClass().addAll("mono-font");
+        HBox totalAssetsBox = new HBox(new Label("Total Tracked Assets: "), totalAssetsLabel);
+        totalAssetsBox.getStyleClass().addAll("std-spacing");
+        footer.getChildren().add(totalAssetsBox);
+
+        this.getChildren().add(footer);
     }
 
     @Override
@@ -61,6 +69,14 @@ public class AccountsModule extends DashboardModule {
                 accountsVBox.getChildren().clear();
                 accountsVBox.getChildren().addAll(nodes);
             }));
+        totalAssetsLabel.setText("Computing...");
+        totalAssetsLabel.setDisable(true);
+        Profile.getCurrent().dataSource().getCombinedAccountBalances()
+                .thenApply(CurrencyUtil::formatMoneyValues)
+                .thenAccept(s -> Platform.runLater(() -> {
+                    totalAssetsLabel.setText(s);
+                    totalAssetsLabel.setDisable(false);
+                }));
     }
 
     private static Node buildMiniAccountTile(Account account) {

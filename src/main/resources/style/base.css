@@ -17,6 +17,7 @@ rather than with your own CSS.
     -fx-theme-account-type-checking: rgb(3, 127, 252);
     -fx-theme-account-type-savings: rgb(57, 158, 74);
     -fx-theme-account-type-credit-card: rgb(207, 8, 68);
+    -fx-theme-account-type-brokerage: rgb(130, 17, 242);
 }
 
 .root {

@@ -5,6 +5,7 @@ import com.andrewlalis.perfin.model.MoneyValue;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
+import java.util.List;
 import java.util.Locale;
 
 public class CurrencyUtil {
@@ -25,5 +26,15 @@ public class CurrencyUtil {
     public static String formatMoneyAsBasicNumber(MoneyValue money) {
         BigDecimal displayValue = money.amount().setScale(money.currency().getDefaultFractionDigits(), RoundingMode.HALF_UP);
         return displayValue.toString();
+    }
+
+    public static String formatMoneyValues(List<MoneyValue> values) {
+        StringBuilder sb = new StringBuilder();
+        final int len = values.size();
+        for (int i = 0; i < len; i++) {
+            sb.append(formatMoneyWithCurrencyPrefix(values.get(i)));
+            if (i < len - 1) sb.append(", ");
+        }
+        return sb.toString();
     }
 }

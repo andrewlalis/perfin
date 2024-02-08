@@ -4,7 +4,6 @@ import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
 import com.andrewlalis.perfin.data.AccountRepository;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
 import com.andrewlalis.perfin.model.Account;
-import com.andrewlalis.perfin.model.MoneyValue;
 import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.view.component.AccountTile;
 import javafx.application.Platform;
@@ -57,15 +56,9 @@ public class AccountsViewController implements RouteSelectionListener {
                                 .toList()
                         ));
             });
-            // Compute grand totals!
-            Thread.ofVirtual().start(() -> {
-                var totals = profile.dataSource().getCombinedAccountBalances();
-                StringBuilder sb = new StringBuilder("Totals: ");
-                for (var entry : totals.entrySet()) {
-                    sb.append(CurrencyUtil.formatMoneyWithCurrencyPrefix(new MoneyValue(entry.getValue(), entry.getKey())));
-                }
-                Platform.runLater(() -> totalLabel.setText(sb.toString().strip()));
-            });
+            profile.dataSource().getCombinedAccountBalances()
+                    .thenApply(CurrencyUtil::formatMoneyValues)
+                    .thenAccept(s -> Platform.runLater(() -> totalLabel.setText("Totals: " + s)));
         });
 
     }

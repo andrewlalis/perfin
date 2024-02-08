@@ -28,7 +28,8 @@ public class AccountTile extends BorderPane {
     public static final Map<AccountType, String> ACCOUNT_TYPE_COLORS = Map.of(
             AccountType.CHECKING, "-fx-theme-account-type-checking",
             AccountType.SAVINGS, "-fx-theme-account-type-savings",
-            AccountType.CREDIT_CARD, "-fx-theme-account-type-credit-card"
+            AccountType.CREDIT_CARD, "-fx-theme-account-type-credit-card",
+            AccountType.BROKERAGE, "-fx-theme-account-type-brokerage"
     );
 
     public AccountTile(Account account) {

@@ -6,7 +6,8 @@ package com.andrewlalis.perfin.model;
 public enum AccountType {
     CHECKING("Checking", true),
     SAVINGS("Savings", true),
-    CREDIT_CARD("Credit Card", false);
+    CREDIT_CARD("Credit Card", false),
+    BROKERAGE("Brokerage", true);
 
     private final String name;
     private final boolean debitsPositive;
@@ -23,15 +24,5 @@ public enum AccountType {
     @Override
     public String toString() {
         return name;
-    }
-
-    public static AccountType parse(String s) {
-        s = s.strip().toUpperCase();
-        return switch (s) {
-            case "CHECKING" -> CHECKING;
-            case "SAVINGS" -> SAVINGS;
-            case "CREDIT CARD", "CREDITCARD" -> CREDIT_CARD;
-            default -> throw new IllegalArgumentException("Invalid AccountType string: " + s);
-        };
     }
 }

@@ -216,8 +216,8 @@ public record JdbcAccountRepository(Connection conn, Path contentDir) implements
             if (account == null) return;
             List<String> updateMessages = new ArrayList<>();
             if (account.getType() != type) {
-                DbUtil.updateOne(conn, "UPDATE account SET account_type = ? WHERE id = ?", type, accountId);
-                updateMessages.add(String.format("Updated account type from %s to %s.", account.getType().toString(), type.toString()));
+                DbUtil.updateOne(conn, "UPDATE account SET account_type = ? WHERE id = ?", type.name(), accountId);
+                updateMessages.add(String.format("Updated account type from %s to %s.", account.getType(), type));
             }
             if (!account.getAccountNumber().equals(accountNumber)) {
                 DbUtil.updateOne(conn, "UPDATE account SET account_number = ? WHERE id = ?", accountNumber, accountId);
