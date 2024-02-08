@@ -104,14 +104,16 @@ public class TransactionTile extends BorderPane {
     }
 
     private Node getExtra(Transaction transaction) {
-        VBox content = new VBox();
+        VBox categoryContainer = new VBox();
+        VBox vendorContainer = new VBox();
+        VBox content = new VBox(categoryContainer, vendorContainer);
         if (transaction.getCategoryId() != null) {
             Profile.getCurrent().dataSource().mapRepoAsync(
                     TransactionCategoryRepository.class,
                     repo -> repo.findById(transaction.getCategoryId()).orElse(null)
             ).thenAccept(category -> {
                 if (category == null) return;
-                Platform.runLater(() -> content.getChildren().add(new CategoryLabel(category)));
+                Platform.runLater(() -> categoryContainer.getChildren().add(new CategoryLabel(category)));
             });
         }
         if (transaction.getVendorId() != null) {
@@ -120,7 +122,7 @@ public class TransactionTile extends BorderPane {
                     repo -> repo.findById(transaction.getVendorId()).orElse(null)
             ).thenAccept(vendor -> {
                 if (vendor == null) return;
-                Platform.runLater(() -> content.getChildren().addLast(new Text("@ " + vendor.getName())));
+                Platform.runLater(() -> vendorContainer.getChildren().add(new Text("@ " + vendor.getName())));
             });
         }
         return content;
