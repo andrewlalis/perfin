@@ -35,7 +35,8 @@ public class AccountTest {
                 AccountType.CHECKING,
                 num,
                 "Testing Account",
-                Currency.getInstance("USD")
+                Currency.getInstance("USD"),
+                "Description"
         );
     }
 }
