@@ -272,7 +272,8 @@ public record JdbcAccountRepository(Connection conn, Path contentDir) implements
         String accountNumber = rs.getString("account_number");
         String name = rs.getString("name");
         Currency currency = Currency.getInstance(rs.getString("currency"));
-        return new Account(id, createdAt, archived, type, accountNumber, name, currency);
+        String description = rs.getString("description");
+        return new Account(id, createdAt, archived, type, accountNumber, name, currency, description);
     }
 
     @Override

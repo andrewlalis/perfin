@@ -74,6 +74,12 @@
                         <Hyperlink fx:id="creditAccountLink"/>
                     </TextFlow>
                 </VBox>
+
+                <VBox styleClass="std-spacing">
+                    <Label text="Line Items" styleClass="bold-text"/>
+                    <VBox fx:id="lineItemsVBox" styleClass="std-spacing"/>
+                </VBox>
+
                 <AttachmentsViewPane fx:id="attachmentsViewPane"/>
                 <HBox styleClass="std-padding,std-spacing" alignment="CENTER_LEFT">
                     <Button text="Edit" onAction="#editTransaction"/>

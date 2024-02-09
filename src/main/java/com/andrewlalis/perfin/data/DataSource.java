@@ -32,6 +32,7 @@ public interface DataSource {
     TransactionRepository getTransactionRepository();
     TransactionVendorRepository getTransactionVendorRepository();
     TransactionCategoryRepository getTransactionCategoryRepository();
+    TransactionLineItemRepository getTransactionLineItemRepository();
     AttachmentRepository getAttachmentRepository();
     HistoryRepository getHistoryRepository();
 
@@ -87,6 +88,7 @@ public interface DataSource {
                 TransactionRepository.class, this::getTransactionRepository,
                 TransactionVendorRepository.class, this::getTransactionVendorRepository,
                 TransactionCategoryRepository.class, this::getTransactionCategoryRepository,
+                TransactionLineItemRepository.class, this::getTransactionLineItemRepository,
                 AttachmentRepository.class, this::getAttachmentRepository,
                 HistoryRepository.class, this::getHistoryRepository,
                 AnalyticsRepository.class, this::getAnalyticsRepository

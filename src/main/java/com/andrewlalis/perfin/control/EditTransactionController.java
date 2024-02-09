@@ -12,15 +12,14 @@ import com.andrewlalis.perfin.view.BindingUtil;
 import com.andrewlalis.perfin.view.component.AccountSelectionBox;
 import com.andrewlalis.perfin.view.component.CategorySelectionBox;
 import com.andrewlalis.perfin.view.component.FileSelectionArea;
+import com.andrewlalis.perfin.view.component.TransactionLineItemTile;
 import com.andrewlalis.perfin.view.component.validation.ValidationApplier;
+import com.andrewlalis.perfin.view.component.validation.ValidationResult;
 import com.andrewlalis.perfin.view.component.validation.validators.CurrencyAmountValidator;
 import com.andrewlalis.perfin.view.component.validation.validators.PredicateValidator;
 import javafx.application.Platform;
 import javafx.beans.binding.BooleanExpression;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -75,11 +74,15 @@ public class EditTransactionController implements RouteSelectionListener {
     @FXML public Spinner<Integer> lineItemQuantitySpinner;
     @FXML public TextField lineItemValueField;
     @FXML public TextField lineItemDescriptionField;
+    @FXML public CategorySelectionBox lineItemCategoryComboBox;
     @FXML public Button addLineItemButton;
     @FXML public VBox addLineItemForm;
     @FXML public Button addLineItemAddButton;
     @FXML public Button addLineItemCancelButton;
+    @FXML public VBox lineItemsVBox;
     @FXML public final BooleanProperty addingLineItemProperty = new SimpleBooleanProperty(false);
+    private final ObservableList<TransactionLineItem> lineItems = FXCollections.observableArrayList();
+    private static long tmpLineItemId = -1L;
 
     @FXML public FileSelectionArea attachmentsSelectionArea;
 
@@ -96,38 +99,39 @@ public class EditTransactionController implements RouteSelectionListener {
                     return ts != null && ts.isBefore(LocalDateTime.now());
                 }, "Timestamp cannot be in the future.")
         ).validatedInitially().attachToTextField(timestampField);
-        var amountValid = new ValidationApplier<>(
-                new CurrencyAmountValidator(() -> currencyChoiceBox.getValue(), false, false)
-        ).validatedInitially().attachToTextField(amountField, currencyChoiceBox.valueProperty());
+        var amountValid = new ValidationApplier<>(new CurrencyAmountValidator(() -> currencyChoiceBox.getValue(), false, false) {
+            @Override
+            public ValidationResult validate(String input) {
+                var r = super.validate(input);
+                if (!r.isValid()) return r;
+                // Check that this amount is enough to cover the total of any line items.
+                BigDecimal lineItemsTotal = lineItems.stream().map(TransactionLineItem::getTotalValue)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                BigDecimal transactionAmount = new BigDecimal(input);
+                if (transactionAmount.compareTo(lineItemsTotal) < 0) {
+                    String msg = String.format(
+                            "Amount must be at least %s to account for line items.",
+                            CurrencyUtil.formatMoney(new MoneyValue(lineItemsTotal, currencyChoiceBox.getValue()))
+                    );
+                    return ValidationResult.of(msg);
+                }
+                return ValidationResult.valid();
+            }
+        }).validatedInitially().attachToTextField(
+                amountField,
+                currencyChoiceBox.valueProperty(),
+                new SimpleListProperty<>(lineItems)
+        );
         var descriptionValid = new ValidationApplier<>(new PredicateValidator<String>()
                 .addTerminalPredicate(s -> s == null || s.length() <= 255, "Description is too long.")
         ).validatedInitially().attach(descriptionField, descriptionField.textProperty());
         var linkedAccountsValid = initializeLinkedAccountsValidationUi();
         initializeTagSelectionUi();
+        initializeLineItemsUi();
 
         vendorsHyperlink.setOnAction(event -> router.navigate("vendors"));
         categoriesHyperlink.setOnAction(event -> router.navigate("categories"));
         tagsHyperlink.setOnAction(event -> router.navigate("tags"));
-
-        // Initialize line item stuff.
-        addLineItemButton.setOnAction(event -> addingLineItemProperty.set(true));
-        addLineItemCancelButton.setOnAction(event -> {
-            lineItemQuantitySpinner.getValueFactory().setValue(1);
-            lineItemValueField.setText(null);
-            lineItemDescriptionField.setText(null);
-            addingLineItemProperty.set(false);
-        });
-        BindingUtil.bindManagedAndVisible(addLineItemButton, addingLineItemProperty.not());
-        BindingUtil.bindManagedAndVisible(addLineItemForm, addingLineItemProperty);
-        lineItemQuantitySpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE, 1, 1));
-        var lineItemValueValid = new ValidationApplier<>(
-                new CurrencyAmountValidator(() -> currencyChoiceBox.getValue(), false, false)
-        ).attachToTextField(lineItemValueField, currencyChoiceBox.valueProperty());
-        var lineItemDescriptionValid = new ValidationApplier<>(new PredicateValidator<String>()
-                .addTerminalPredicate(s -> s != null && !s.isBlank(), "A description is required.")
-        ).attachToTextField(lineItemDescriptionField);
-        var lineItemFormValid = lineItemValueValid.and(lineItemDescriptionValid);
-        addLineItemAddButton.disableProperty().bind(lineItemFormValid.not());
 
         var formValid = timestampValid.and(amountValid).and(descriptionValid).and(linkedAccountsValid);
         saveButton.disableProperty().bind(formValid.not());
@@ -157,6 +161,7 @@ public class EditTransactionController implements RouteSelectionListener {
                     vendor,
                     category,
                     tags,
+                    lineItems,
                     newAttachmentPaths
                 )
             );
@@ -173,6 +178,7 @@ public class EditTransactionController implements RouteSelectionListener {
                         vendor,
                         category,
                         tags,
+                        lineItems,
                         existingAttachments,
                         newAttachmentPaths
                 )
@@ -195,6 +201,8 @@ public class EditTransactionController implements RouteSelectionListener {
         vendorComboBox.setValue(null);
         categoryComboBox.select(null);
 
+        addingLineItemProperty.set(false);
+
         if (transaction == null) {
             titleLabel.setText("Create New Transaction");
             timestampField.setText(LocalDateTime.now().format(DateUtil.DEFAULT_DATETIME_FORMAT));
@@ -215,7 +223,8 @@ public class EditTransactionController implements RouteSelectionListener {
                     var accountRepo = ds.getAccountRepository();
                     var transactionRepo = ds.getTransactionRepository();
                     var vendorRepo = ds.getTransactionVendorRepository();
-                    var categoryRepo = ds.getTransactionCategoryRepository()
+                    var categoryRepo = ds.getTransactionCategoryRepository();
+                    var lineItemRepo = ds.getTransactionLineItemRepository()
             ) {
                 // First fetch all the data.
                 List<Currency> currencies = accountRepo.findAllUsedCurrencies().stream()
@@ -229,12 +238,14 @@ public class EditTransactionController implements RouteSelectionListener {
                 final CreditAndDebitAccounts linkedAccounts;
                 final String vendorName;
                 final TransactionCategory category;
+                final List<TransactionLineItem> existingLineItems;
                 if (transaction == null) {
                     attachments = Collections.emptyList();
                     tags = Collections.emptyList();
                     linkedAccounts = new CreditAndDebitAccounts(null, null);
                     vendorName = null;
                     category = null;
+                    existingLineItems = Collections.emptyList();
                 } else {
                     attachments = transactionRepo.findAttachments(transaction.id);
                     tags = transactionRepo.findTags(transaction.id);
@@ -250,6 +261,7 @@ public class EditTransactionController implements RouteSelectionListener {
                     } else {
                         category = null;
                     }
+                    existingLineItems = lineItemRepo.findItems(transaction.id);
                 }
                 final List<TransactionVendor> availableVendors = vendorRepo.findAll();
                 // Then make updates to the view.
@@ -275,6 +287,9 @@ public class EditTransactionController implements RouteSelectionListener {
                         creditAccountSelector.select(linkedAccounts.creditAccount());
                         debitAccountSelector.select(linkedAccounts.debitAccount());
                     }
+                    lineItemCategoryComboBox.loadCategories(categoryTreeNodes);
+                    lineItemCategoryComboBox.select(null);
+                    lineItems.setAll(existingLineItems);
                     container.setDisable(false);
                 });
             } catch (Exception e) {
@@ -291,7 +306,7 @@ public class EditTransactionController implements RouteSelectionListener {
         creditAccountSelector.valueProperty().addListener((observable, oldValue, newValue) -> linkedAccountsProperty.setValue(getSelectedAccounts()));
         return new ValidationApplier<>(getLinkedAccountsValidator())
                 .validatedInitially()
-                .attach(linkedAccountsContainer, linkedAccountsProperty);
+                .attach(linkedAccountsContainer, linkedAccountsProperty, currencyChoiceBox.valueProperty());
     }
 
     private void initializeTagSelectionUi() {
@@ -323,6 +338,73 @@ public class EditTransactionController implements RouteSelectionListener {
         tile.setRight(removeButton);
         tile.getStyleClass().addAll("std-spacing");
         BorderPane.setAlignment(label, Pos.CENTER_LEFT);
+        return tile;
+    }
+
+    private void initializeLineItemsUi() {
+        addLineItemButton.setOnAction(event -> addingLineItemProperty.set(true));
+        addLineItemCancelButton.setOnAction(event -> addingLineItemProperty.set(false));
+        addingLineItemProperty.addListener((observable, oldValue, newValue) -> {
+            if (!newValue) { // The form has been closed.
+                lineItemQuantitySpinner.getValueFactory().setValue(1);
+                lineItemValueField.setText(null);
+                lineItemDescriptionField.setText(null);
+                lineItemCategoryComboBox.setValue(categoryComboBox.getValue());
+            }
+        });
+        BindingUtil.bindManagedAndVisible(addLineItemButton, addingLineItemProperty.not());
+        BindingUtil.bindManagedAndVisible(addLineItemForm, addingLineItemProperty);
+        BindingUtil.mapContent(lineItemsVBox.getChildren(), lineItems, this::createLineItemTile);
+        lineItemQuantitySpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE, 1, 1));
+        var lineItemValueValid = new ValidationApplier<>(new CurrencyAmountValidator(() -> currencyChoiceBox.getValue(), false, false))
+                .validatedInitially().attachToTextField(lineItemValueField, currencyChoiceBox.valueProperty());
+        var lineItemDescriptionValid = new ValidationApplier<>(new PredicateValidator<String>()
+                .addTerminalPredicate(s -> s != null && !s.isBlank(), "A description is required.")
+                .addPredicate(s -> s.strip().length() <= TransactionLineItem.DESCRIPTION_MAX_LENGTH, "Description is too long.")
+                .addPredicate(
+                        s -> lineItems.stream().map(TransactionLineItem::getDescription).noneMatch(d -> d.equalsIgnoreCase(s)),
+                        "Description must be unique."
+                )
+        ).validatedInitially().attachToTextField(lineItemDescriptionField);
+        var lineItemFormValid = lineItemValueValid.and(lineItemDescriptionValid);
+        addLineItemAddButton.disableProperty().bind(lineItemFormValid.not());
+        addLineItemAddButton.setOnAction(event -> {
+            int quantity = lineItemQuantitySpinner.getValue();
+            BigDecimal valuePerItem = new BigDecimal(lineItemValueField.getText());
+            String description = lineItemDescriptionField.getText().strip();
+            TransactionCategory category = lineItemCategoryComboBox.getValue();
+            Long categoryId = category == null ? null : category.id;
+            long tmpId = tmpLineItemId--;
+            TransactionLineItem tmpItem = new TransactionLineItem(tmpId, -1L, valuePerItem, quantity, -1, description, categoryId);
+            lineItems.add(tmpItem);
+            addingLineItemProperty.set(false);
+        });
+    }
+
+    private Node createLineItemTile(TransactionLineItem item) {
+        TransactionLineItemTile tile = TransactionLineItemTile.build(item, currencyChoiceBox.valueProperty(), categoryComboBox.getItems()).join();
+        Button removeButton = new Button("Remove");
+        removeButton.setMaxWidth(Double.POSITIVE_INFINITY);
+        removeButton.setOnAction(event -> lineItems.remove(item));
+        Button moveUpButton = new Button("Move Up");
+        moveUpButton.setMaxWidth(Double.POSITIVE_INFINITY);
+        moveUpButton.disableProperty().bind(new SimpleListProperty<>(lineItems).map(items -> items.isEmpty() || items.getFirst().equals(item)));
+        moveUpButton.setOnAction(event -> {
+            int currentIdx = lineItems.indexOf(item);
+            lineItems.remove(currentIdx);
+            lineItems.add(currentIdx - 1, item);
+        });
+        Button moveDownButton = new Button("Move Down");
+        moveDownButton.setMaxWidth(Double.POSITIVE_INFINITY);
+        moveDownButton.disableProperty().bind(new SimpleListProperty<>(lineItems).map(items -> items.isEmpty() || items.getLast().equals(item)));
+        moveDownButton.setOnAction(event -> {
+            int currentIdx = lineItems.indexOf(item);
+            lineItems.remove(currentIdx);
+            lineItems.add(currentIdx + 1, item);
+        });
+        VBox buttonsBox = new VBox(removeButton, moveUpButton, moveDownButton);
+        buttonsBox.getStyleClass().addAll("std-spacing");
+        tile.setRight(buttonsBox);
         return tile;
     }
 

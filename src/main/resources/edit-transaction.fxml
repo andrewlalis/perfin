@@ -85,37 +85,38 @@
                         </HBox>
                         <VBox fx:id="tagsVBox" styleClass="std-spacing,std-padding"/>
                     </VBox>
-
-                    <Label text="Line Items" styleClass="bold-text"/>
-                    <VBox maxWidth="Infinity">
-                        <Button text="Add Line Item" fx:id="addLineItemButton" disable="true"/>
-                        <StyledText styleClass="small-font">
-                            Line items aren't yet supported. I'm working on it!
-                        </StyledText>
-                        <VBox styleClass="std-spacing" fx:id="addLineItemForm">
-                            <HBox styleClass="std-spacing">
-                                <VBox>
-                                    <Label text="Quantity" styleClass="bold-text,small-font"/>
-                                    <Spinner fx:id="lineItemQuantitySpinner" minWidth="60" maxWidth="60"/>
-                                </VBox>
-                                <VBox HBox.hgrow="ALWAYS">
-                                    <Label text="Value per Item" styleClass="bold-text,small-font"/>
-                                    <TextField fx:id="lineItemValueField"/>
-                                </VBox>
-                            </HBox>
-                            <VBox>
-                                <Label text="Description" styleClass="bold-text,small-font"/>
-                                <TextField fx:id="lineItemDescriptionField"/>
-                            </VBox>
-                            <HBox styleClass="std-spacing" alignment="CENTER_RIGHT">
-                                <Button text="Add" fx:id="addLineItemAddButton"/>
-                                <Button text="Cancel" fx:id="addLineItemCancelButton"/>
-                            </HBox>
-                        </VBox>
-
-                        <VBox fx:id="lineItemsVBox"/>
-                    </VBox>
                 </PropertiesPane>
+                <!-- Container for line items -->
+                <VBox styleClass="std-padding">
+                    <Label text="Line Items" styleClass="bold-text"/>
+                    <Button text="Add Line Item" fx:id="addLineItemButton"/>
+                    <VBox styleClass="std-spacing" fx:id="addLineItemForm">
+                        <HBox styleClass="std-spacing">
+                            <VBox>
+                                <Label text="Quantity" styleClass="bold-text,small-font"/>
+                                <Spinner fx:id="lineItemQuantitySpinner" minWidth="60" maxWidth="60"/>
+                            </VBox>
+                            <VBox HBox.hgrow="ALWAYS">
+                                <Label text="Value per Item" styleClass="bold-text,small-font"/>
+                                <TextField fx:id="lineItemValueField"/>
+                            </VBox>
+                        </HBox>
+                        <VBox>
+                            <Label text="Description" styleClass="bold-text,small-font"/>
+                            <TextField fx:id="lineItemDescriptionField"/>
+                        </VBox>
+                        <VBox>
+                            <Label text="Category" styleClass="bold-text,small-font"/>
+                            <CategorySelectionBox fx:id="lineItemCategoryComboBox" maxWidth="Infinity"/>
+                        </VBox>
+                        <HBox styleClass="std-spacing" alignment="CENTER_RIGHT">
+                            <Button text="Add" fx:id="addLineItemAddButton"/>
+                            <Button text="Cancel" fx:id="addLineItemCancelButton"/>
+                        </HBox>
+                    </VBox>
+
+                    <VBox fx:id="lineItemsVBox" styleClass="std-padding, std-spacing"/>
+                </VBox>
 
                 <!-- Container for attachments -->
                 <VBox styleClass="std-padding">

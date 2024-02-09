@@ -7,20 +7,27 @@ import com.andrewlalis.perfin.model.*;
 import com.andrewlalis.perfin.view.BindingUtil;
 import com.andrewlalis.perfin.view.component.AttachmentsViewPane;
 import com.andrewlalis.perfin.view.component.PropertiesPane;
+import com.andrewlalis.perfin.view.component.TransactionLineItemTile;
 import javafx.application.Platform;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.TextFlow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Currency;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
@@ -28,11 +35,14 @@ public class TransactionViewController {
     private static final Logger log = LoggerFactory.getLogger(TransactionViewController.class);
 
     private final ObjectProperty<Transaction> transactionProperty = new SimpleObjectProperty<>(null);
+    private final ObservableValue<Currency> observableCurrency = transactionProperty.map(Transaction::getCurrency);
     private final ObjectProperty<CreditAndDebitAccounts> linkedAccountsProperty = new SimpleObjectProperty<>(null);
     private final ObjectProperty<TransactionVendor> vendorProperty = new SimpleObjectProperty<>(null);
     private final ObjectProperty<TransactionCategory> categoryProperty = new SimpleObjectProperty<>(null);
     private final ObservableList<String> tagsList = FXCollections.observableArrayList();
     private final ListProperty<String> tagsListProperty = new SimpleListProperty<>(tagsList);
+    private final ObservableList<TransactionLineItem> lineItemsList = FXCollections.observableArrayList();
+    private final ListProperty<TransactionLineItem> lineItemsProperty = new SimpleListProperty<>(lineItemsList);
     private final ObservableList<Attachment> attachmentsList = FXCollections.observableArrayList();
 
     @FXML public Label titleLabel;
@@ -48,6 +58,8 @@ public class TransactionViewController {
 
     @FXML public Hyperlink debitAccountLink;
     @FXML public Hyperlink creditAccountLink;
+
+    @FXML public VBox lineItemsVBox;
 
     @FXML public AttachmentsViewPane attachmentsViewPane;
 
@@ -89,6 +101,26 @@ public class TransactionViewController {
             return event -> {};
         }));
 
+        VBox lineItemsContainer = (VBox) lineItemsVBox.getParent();
+        BindingUtil.bindManagedAndVisible(lineItemsContainer, lineItemsProperty.emptyProperty().not());
+        lineItemsProperty.addListener((observable, oldValue, newValue) -> {
+            lineItemsVBox.getChildren().clear();
+            Label loadingLabel = new Label("Loading line items...");
+            loadingLabel.getStyleClass().addAll("secondary-color-text-fill");
+            lineItemsVBox.getChildren().add(loadingLabel);
+            List<CompletableFuture<TransactionLineItemTile>> tileFutures = lineItemsList.stream()
+                    .map(item -> TransactionLineItemTile.build(item, observableCurrency, null))
+                    .toList();
+            Thread.ofVirtual().start(() -> {
+                List<TransactionLineItemTile> tiles = tileFutures.stream()
+                        .map(CompletableFuture::join).toList();
+                Platform.runLater(() -> {
+                    lineItemsVBox.getChildren().remove(loadingLabel);
+                    lineItemsVBox.getChildren().addAll(tiles);
+                });
+            });
+        });
+
         attachmentsViewPane.hideIfEmpty();
         attachmentsViewPane.listProperty().bindContent(attachmentsList);
 
@@ -98,6 +130,7 @@ public class TransactionViewController {
                 vendorProperty.set(null);
                 categoryProperty.set(null);
                 tagsList.clear();
+                lineItemsList.clear();
                 attachmentsList.clear();
             } else {
                 updateLinkedData(newValue);
@@ -115,19 +148,22 @@ public class TransactionViewController {
             try (
                 var transactionRepo = ds.getTransactionRepository();
                 var vendorRepo = ds.getTransactionVendorRepository();
-                var categoryRepo = ds.getTransactionCategoryRepository()
+                var categoryRepo = ds.getTransactionCategoryRepository();
+                var lineItemsRepo = ds.getTransactionLineItemRepository()
             ) {
                 final var linkedAccounts = transactionRepo.findLinkedAccounts(tx.id);
                 final var vendor = tx.getVendorId() == null ? null : vendorRepo.findById(tx.getVendorId()).orElse(null);
                 final var category = tx.getCategoryId() == null ? null : categoryRepo.findById(tx.getCategoryId()).orElse(null);
                 final var attachments = transactionRepo.findAttachments(tx.id);
                 final var tags = transactionRepo.findTags(tx.id);
+                final var lineItems = lineItemsRepo.findItems(tx.id);
                 Platform.runLater(() -> {
                     linkedAccountsProperty.set(linkedAccounts);
                     vendorProperty.set(vendor);
                     categoryProperty.set(category);
                     attachmentsList.setAll(attachments);
                     tagsList.setAll(tags);
+                    lineItemsList.setAll(lineItems);
                 });
             } catch (Exception e) {
                 log.error("Failed to fetch additional transaction data.", e);

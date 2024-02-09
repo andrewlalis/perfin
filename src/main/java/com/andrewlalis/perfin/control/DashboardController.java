@@ -1,6 +1,7 @@
 package com.andrewlalis.perfin.control;
 
 import com.andrewlalis.javafx_scene_router.RouteSelectionListener;
+import com.andrewlalis.perfin.model.Profile;
 import com.andrewlalis.perfin.view.component.module.*;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
@@ -34,9 +35,11 @@ public class DashboardController implements RouteSelectionListener {
 
     @Override
     public void onRouteSelected(Object context) {
-        for (var child : modulesFlowPane.getChildren()) {
-            DashboardModule module = (DashboardModule) child;
-            module.refreshContents();
-        }
+        Profile.whenLoaded(profile -> {
+            for (var child : modulesFlowPane.getChildren()) {
+                DashboardModule module = (DashboardModule) child;
+                module.refreshContents();
+            }
+        });
     }
 }

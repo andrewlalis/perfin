@@ -35,7 +35,7 @@ public class JdbcDataSourceFactory implements DataSourceFactory {
      * the profile has a newer schema version, we'll exit and prompt the user
      * to update their app.
      */
-    public static final int SCHEMA_VERSION = 3;
+    public static final int SCHEMA_VERSION = 4;
 
     public DataSource getDataSource(String profileName) throws ProfileLoadException {
         final boolean dbExists = Files.exists(getDatabaseFile(profileName));

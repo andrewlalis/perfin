@@ -60,6 +60,11 @@ public class JdbcDataSource implements DataSource {
     }
 
     @Override
+    public TransactionLineItemRepository getTransactionLineItemRepository() {
+        return new JdbcTransactionLineItemRepository(getConnection());
+    }
+
+    @Override
     public AttachmentRepository getAttachmentRepository() {
         return new JdbcAttachmentRepository(getConnection(), contentDir);
     }

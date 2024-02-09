@@ -8,6 +8,8 @@ import java.util.Currency;
  * credit-card, etc.).
  */
 public class Account extends IdEntity {
+    public static final int DESCRIPTION_MAX_LENGTH = 255;
+
     private final LocalDateTime createdAt;
     private final boolean archived;
 
@@ -15,8 +17,9 @@ public class Account extends IdEntity {
     private final String accountNumber;
     private final String name;
     private final Currency currency;
+    private final String description;
 
-    public Account(long id, LocalDateTime createdAt, boolean archived, AccountType type, String accountNumber, String name, Currency currency) {
+    public Account(long id, LocalDateTime createdAt, boolean archived, AccountType type, String accountNumber, String name, Currency currency, String description) {
         super(id);
         this.createdAt = createdAt;
         this.archived = archived;
@@ -24,6 +27,7 @@ public class Account extends IdEntity {
         this.accountNumber = accountNumber;
         this.name = name;
         this.currency = currency;
+        this.description = description;
     }
 
     public AccountType getType() {
@@ -60,6 +64,10 @@ public class Account extends IdEntity {
 
     public Currency getCurrency() {
         return currency;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public LocalDateTime getCreatedAt() {

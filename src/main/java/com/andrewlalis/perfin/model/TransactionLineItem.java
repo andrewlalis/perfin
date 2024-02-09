@@ -16,14 +16,16 @@ public class TransactionLineItem extends IdEntity {
     private final int quantity;
     private final int idx;
     private final String description;
+    private final Long categoryId;
 
-    public TransactionLineItem(long id, long transactionId, BigDecimal valuePerItem, int quantity, int idx, String description) {
+    public TransactionLineItem(long id, long transactionId, BigDecimal valuePerItem, int quantity, int idx, String description, Long categoryId) {
         super(id);
         this.transactionId = transactionId;
         this.valuePerItem = valuePerItem;
         this.quantity = quantity;
         this.idx = idx;
         this.description = description;
+        this.categoryId = categoryId;
     }
 
     public long getTransactionId() {
@@ -44,6 +46,10 @@ public class TransactionLineItem extends IdEntity {
 
     public String getDescription() {
         return description;
+    }
+
+    public Long getCategoryId() {
+        return categoryId;
     }
 
     public BigDecimal getTotalValue() {

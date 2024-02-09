@@ -7,6 +7,10 @@ import javafx.scene.shape.Circle;
 
 public class CategoryLabel extends HBox {
     public CategoryLabel(TransactionCategory category) {
+        this(category, 8);
+    }
+
+    public CategoryLabel(TransactionCategory category, double indicatorSize) {
         Circle colorIndicator = new Circle(8, category.getColor());
         Label label = new Label(category.getName());
         this.getChildren().addAll(colorIndicator, label);

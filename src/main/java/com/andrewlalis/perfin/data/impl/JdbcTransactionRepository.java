@@ -1,9 +1,6 @@
 package com.andrewlalis.perfin.data.impl;
 
-import com.andrewlalis.perfin.data.AccountEntryRepository;
-import com.andrewlalis.perfin.data.AttachmentRepository;
-import com.andrewlalis.perfin.data.HistoryRepository;
-import com.andrewlalis.perfin.data.TransactionRepository;
+import com.andrewlalis.perfin.data.*;
 import com.andrewlalis.perfin.data.pagination.Page;
 import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.data.util.CurrencyUtil;
@@ -32,6 +29,7 @@ public record JdbcTransactionRepository(Connection conn, Path contentDir) implem
             String vendor,
             String category,
             Set<String> tags,
+            List<TransactionLineItem> lineItems,
             List<Path> attachments
     ) {
         return DbUtil.doTransaction(conn, () -> {
@@ -93,6 +91,10 @@ public record JdbcTransactionRepository(Connection conn, Path contentDir) implem
                 }
 
             }
+            // Add Line Items.
+            TransactionLineItemRepository lineItemRepo = new JdbcTransactionLineItemRepository(conn);
+            lineItemRepo.saveItems(txId, lineItems);
+
             return txId;
         });
     }
@@ -297,6 +299,7 @@ public record JdbcTransactionRepository(Connection conn, Path contentDir) implem
             String vendor,
             String category,
             Set<String> tags,
+            List<TransactionLineItem> lineItems,
             List<Attachment> existingAttachments,
             List<Path> newAttachmentPaths
     ) {
@@ -392,6 +395,13 @@ public record JdbcTransactionRepository(Connection conn, Path contentDir) implem
                 Attachment attachment = attachmentRepo.insert(attachmentPath);
                 insertAttachmentLink(tx.id, attachment.id);
                 updateMessages.add("Added attachment \"" + attachment.getFilename() + "\".");
+            }
+            // Manage line item changes.
+            TransactionLineItemRepository lineItemRepo = new JdbcTransactionLineItemRepository(conn);
+            List<TransactionLineItem> existingLineItems = lineItemRepo.findItems(tx.id);
+            if (!existingLineItems.equals(lineItems)) {
+                lineItemRepo.saveItems(tx.id, lineItems);
+                updateMessages.add("Updated line items.");
             }
 
             // Add a text history item to any linked accounts detailing the changes.

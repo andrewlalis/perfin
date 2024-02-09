@@ -5,7 +5,8 @@ CREATE TABLE account (
     account_type VARCHAR(31) NOT NULL,
     account_number VARCHAR(255) NOT NULL UNIQUE,
     name VARCHAR(63) NOT NULL,
-    currency VARCHAR(3) NOT NULL
+    currency VARCHAR(3) NOT NULL,
+    description VARCHAR(255) DEFAULT NULL
 );
 
 CREATE TABLE attachment (
@@ -102,8 +103,12 @@ CREATE TABLE transaction_line_item (
     quantity INT NOT NULL DEFAULT 1,
     idx INT NOT NULL DEFAULT 0,
     description VARCHAR(255) NOT NULL,
+    category_id BIGINT DEFAULT NULL,
     CONSTRAINT fk_transaction_line_item_transaction
         FOREIGN KEY (transaction_id) REFERENCES transaction(id)
+            ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT fk_transaction_line_item_category
+        FOREIGN KEY (category_id) REFERENCES transaction_category(id)
             ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT ck_transaction_line_item_quantity_positive
         CHECK quantity > 0

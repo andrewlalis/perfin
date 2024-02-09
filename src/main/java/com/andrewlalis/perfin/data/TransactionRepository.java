@@ -5,6 +5,7 @@ import com.andrewlalis.perfin.data.pagination.PageRequest;
 import com.andrewlalis.perfin.model.Attachment;
 import com.andrewlalis.perfin.model.CreditAndDebitAccounts;
 import com.andrewlalis.perfin.model.Transaction;
+import com.andrewlalis.perfin.model.TransactionLineItem;
 
 import java.math.BigDecimal;
 import java.nio.file.Path;
@@ -24,6 +25,7 @@ public interface TransactionRepository extends Repository, AutoCloseable {
             String vendor,
             String category,
             Set<String> tags,
+            List<TransactionLineItem> lineItems,
             List<Path> attachments
     );
     Optional<Transaction> findById(long id);
@@ -50,6 +52,7 @@ public interface TransactionRepository extends Repository, AutoCloseable {
             String vendor,
             String category,
             Set<String> tags,
+            List<TransactionLineItem> lineItems,
             List<Attachment> existingAttachments,
             List<Path> newAttachmentPaths
     );
