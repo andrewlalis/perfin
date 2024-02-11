@@ -32,6 +32,13 @@
 
                 <Label text="Account Type" styleClass="bold-text"/>
                 <ChoiceBox fx:id="accountTypeChoiceBox"/>
+
+                <Label text="Description" styleClass="bold-text"/>
+                <TextArea
+                        fx:id="descriptionField"
+                        wrapText="true"
+                        style="-fx-pref-height: 100px;-fx-min-height: 100px;"
+                />
             </PropertiesPane>
 
             <!-- Initial balance content that's only visible when creating a new account. -->

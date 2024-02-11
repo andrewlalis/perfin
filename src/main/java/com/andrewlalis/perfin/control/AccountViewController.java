@@ -7,34 +7,39 @@ import com.andrewlalis.perfin.data.util.DateUtil;
 import com.andrewlalis.perfin.model.Account;
 import com.andrewlalis.perfin.model.MoneyValue;
 import com.andrewlalis.perfin.model.Profile;
+import com.andrewlalis.perfin.view.BindingUtil;
 import com.andrewlalis.perfin.view.component.AccountHistoryView;
+import com.andrewlalis.perfin.view.component.PropertiesPane;
 import com.andrewlalis.perfin.view.component.validation.ValidationApplier;
 import com.andrewlalis.perfin.view.component.validation.validators.PredicateValidator;
 import javafx.application.Platform;
 import javafx.beans.binding.BooleanExpression;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.*;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
 
 import java.time.*;
 
 import static com.andrewlalis.perfin.PerfinApp.router;
 
 public class AccountViewController implements RouteSelectionListener {
-    private Account account;
+    private final ObjectProperty<Account> accountProperty = new SimpleObjectProperty<>(null);
+    private final ObservableValue<Boolean> accountArchived = accountProperty.map(a -> a != null && a.isArchived());
+    private final StringProperty balanceTextProperty = new SimpleStringProperty(null);
 
     @FXML public Label titleLabel;
-
     @FXML public Label accountNameLabel;
     @FXML public Label accountNumberLabel;
     @FXML public Label accountCurrencyLabel;
     @FXML public Label accountCreatedAtLabel;
     @FXML public Label accountBalanceLabel;
-    @FXML public BooleanProperty accountArchivedProperty = new SimpleBooleanProperty(false);
+    @FXML public PropertiesPane descriptionPane;
+    @FXML public Text accountDescriptionText;
 
     @FXML public AccountHistoryView accountHistory;
 
@@ -44,11 +49,21 @@ public class AccountViewController implements RouteSelectionListener {
     @FXML public Button balanceCheckerButton;
 
     @FXML public void initialize() {
+        titleLabel.textProperty().bind(accountProperty.map(a -> "Account #" + a.id));
+        accountNameLabel.textProperty().bind(accountProperty.map(Account::getName));
+        accountNumberLabel.textProperty().bind(accountProperty.map(Account::getAccountNumber));
+        accountCurrencyLabel.textProperty().bind(accountProperty.map(a -> a.getCurrency().getDisplayName()));
+        accountCreatedAtLabel.textProperty().bind(accountProperty.map(a -> DateUtil.formatUTCAsLocalWithZone(a.getCreatedAt())));
+        accountDescriptionText.textProperty().bind(accountProperty.map(Account::getDescription));
+        var hasDescription = accountProperty.map(a -> a.getDescription() != null);
+        BindingUtil.bindManagedAndVisible(descriptionPane, hasDescription);
+        accountBalanceLabel.textProperty().bind(balanceTextProperty);
+
         actionsBox.getChildren().forEach(node -> {
             Button button = (Button) node;
-            BooleanExpression buttonActive = accountArchivedProperty;
+            ObservableValue<Boolean> buttonActive = accountArchived;
             if (button.getText().equalsIgnoreCase("Unarchive")) {
-                buttonActive = buttonActive.not();
+                buttonActive = BooleanExpression.booleanExpression(buttonActive).not();
             }
             button.disableProperty().bind(buttonActive);
             button.managedProperty().bind(button.visibleProperty());
@@ -66,41 +81,42 @@ public class AccountViewController implements RouteSelectionListener {
                     .toInstant();
             Profile.getCurrent().dataSource().mapRepoAsync(
                     AccountRepository.class,
-                    repo -> repo.deriveBalance(account.id, timestamp)
+                    repo -> repo.deriveBalance(getAccount().id, timestamp)
             ).thenAccept(balance -> Platform.runLater(() -> {
                 String msg = String.format(
                         "Your balance as of %s is %s, according to Perfin's data.",
                         date,
-                        CurrencyUtil.formatMoney(new MoneyValue(balance, account.getCurrency()))
+                        CurrencyUtil.formatMoney(new MoneyValue(balance, getAccount().getCurrency()))
                 );
                 Popups.message(balanceCheckerButton, msg);
             }));
+        });
+
+        accountProperty.addListener((observable, oldValue, newValue) -> {
+            accountHistory.clear();
+            if (newValue == null) {
+                balanceTextProperty.set(null);
+            } else {
+                accountHistory.setAccountId(newValue.id);
+                accountHistory.loadMoreHistory();
+                Profile.getCurrent().dataSource().getAccountBalanceText(newValue)
+                        .thenAccept(s -> Platform.runLater(() -> balanceTextProperty.set(s)));
+            }
         });
     }
 
     @Override
     public void onRouteSelected(Object context) {
-        account = (Account) context;
-        accountArchivedProperty.set(account.isArchived());
-        titleLabel.setText("Account #" + account.id);
-        accountNameLabel.setText(account.getName());
-        accountNumberLabel.setText(account.getAccountNumber());
-        accountCurrencyLabel.setText(account.getCurrency().getDisplayName());
-        accountCreatedAtLabel.setText(DateUtil.formatUTCAsLocalWithZone(account.getCreatedAt()));
-        Profile.getCurrent().dataSource().getAccountBalanceText(account)
-                .thenAccept(accountBalanceLabel::setText);
-        accountHistory.clear();
-        accountHistory.setAccountId(account.id);
-        accountHistory.loadMoreHistory();
+        this.accountProperty.set((Account) context);
     }
 
     @FXML
     public void goToEditPage() {
-        router.navigate("edit-account", account);
+        router.navigate("edit-account", getAccount());
     }
 
     @FXML public void goToCreateBalanceRecord() {
-        router.navigate("create-balance-record", account);
+        router.navigate("create-balance-record", getAccount());
     }
 
     @FXML
@@ -114,7 +130,7 @@ public class AccountViewController implements RouteSelectionListener {
                         "later if you need to."
         );
         if (confirmResult) {
-            Profile.getCurrent().dataSource().useRepo(AccountRepository.class, repo -> repo.archive(account.id));
+            Profile.getCurrent().dataSource().useRepo(AccountRepository.class, repo -> repo.archive(getAccount().id));
             router.replace("accounts");
         }
     }
@@ -126,7 +142,7 @@ public class AccountViewController implements RouteSelectionListener {
                         "status?"
         );
         if (confirm) {
-            Profile.getCurrent().dataSource().useRepo(AccountRepository.class, repo -> repo.unarchive(account.id));
+            Profile.getCurrent().dataSource().useRepo(AccountRepository.class, repo -> repo.unarchive(getAccount().id));
             router.replace("accounts");
         }
     }
@@ -142,8 +158,12 @@ public class AccountViewController implements RouteSelectionListener {
                         "want to hide it."
         );
         if (confirm) {
-            Profile.getCurrent().dataSource().useRepo(AccountRepository.class, repo -> repo.delete(account));
+            Profile.getCurrent().dataSource().useRepo(AccountRepository.class, repo -> repo.delete(getAccount()));
             router.replace("accounts");
         }
+    }
+
+    private Account getAccount() {
+        return accountProperty.get();
     }
 }

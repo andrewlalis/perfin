@@ -44,6 +44,11 @@
                 </PropertiesPane>
             </FlowPane>
 
+            <PropertiesPane vgap="5" hgap="5" fx:id="descriptionPane">
+                <Label text="Description" styleClass="bold-text" labelFor="${accountDescriptionText}"/>
+                <TextFlow maxWidth="500"><Text fx:id="accountDescriptionText"/></TextFlow>
+            </PropertiesPane>
+
             <!-- Action buttons -->
             <HBox fx:id="actionsBox" styleClass="std-padding,std-spacing,small-font">
                 <Button text="Edit" onAction="#goToEditPage"/>

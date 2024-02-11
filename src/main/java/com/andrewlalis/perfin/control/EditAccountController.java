@@ -33,20 +33,14 @@ public class EditAccountController implements RouteSelectionListener {
     private Account account;
     private final BooleanProperty creatingNewAccount = new SimpleBooleanProperty(false);
 
-    @FXML
-    public Label titleLabel;
-    @FXML
-    public TextField accountNameField;
-    @FXML
-    public TextField accountNumberField;
-    @FXML
-    public ComboBox<Currency> accountCurrencyComboBox;
-    @FXML
-    public ChoiceBox<AccountType> accountTypeChoiceBox;
-    @FXML
-    public PropertiesPane initialBalanceContent;
-    @FXML
-    public TextField initialBalanceField;
+    @FXML public Label titleLabel;
+    @FXML public TextField accountNameField;
+    @FXML public TextField accountNumberField;
+    @FXML public ComboBox<Currency> accountCurrencyComboBox;
+    @FXML public ChoiceBox<AccountType> accountTypeChoiceBox;
+    @FXML public TextArea descriptionField;
+    @FXML public PropertiesPane initialBalanceContent;
+    @FXML public TextField initialBalanceField;
 
     @FXML public Button saveButton;
 
@@ -66,8 +60,12 @@ public class EditAccountController implements RouteSelectionListener {
                 new CurrencyAmountValidator(() -> accountCurrencyComboBox.getValue(), true, false)
         ).attachToTextField(initialBalanceField, accountCurrencyComboBox.valueProperty());
 
+        var descriptionValid = new ValidationApplier<>(new PredicateValidator<String>()
+                .addPredicate(s -> s == null || s.strip().length() <= Account.DESCRIPTION_MAX_LENGTH, "Description is too long.")
+        ).attach(descriptionField, descriptionField.textProperty());
+
         // Combine validity of all fields for an expression that determines if the whole form is valid.
-        BooleanExpression formValid = nameValid.and(numberValid).and(balanceValid.or(creatingNewAccount.not()));
+        BooleanExpression formValid = nameValid.and(numberValid).and(balanceValid.or(creatingNewAccount.not())).and(descriptionValid);
         saveButton.disableProperty().bind(formValid.not());
 
         List<Currency> priorityCurrencies = Stream.of("USD", "EUR", "GBP", "CAD", "AUD")
@@ -111,6 +109,11 @@ public class EditAccountController implements RouteSelectionListener {
         String number = accountNumberField.getText().strip();
         AccountType type = accountTypeChoiceBox.getValue();
         Currency currency = accountCurrencyComboBox.getValue();
+        String description = descriptionField.getText();
+        if (description != null) {
+            description = description.strip();
+            if (description.isBlank()) description = null;
+        }
         try (
                 var accountRepo = Profile.getCurrent().dataSource().getAccountRepository();
                 var balanceRepo = Profile.getCurrent().dataSource().getBalanceRecordRepository()
@@ -128,14 +131,14 @@ public class EditAccountController implements RouteSelectionListener {
                 );
                 boolean success = Popups.confirm(accountNameField, prompt);
                 if (success) {
-                    long id = accountRepo.insert(type, number, name, currency);
+                    long id = accountRepo.insert(type, number, name, currency, description);
                     balanceRepo.insert(LocalDateTime.now(ZoneOffset.UTC), id, initialBalance, currency, attachments);
                     // Once we create the new account, go to the account.
                     Account newAccount = accountRepo.findById(id).orElseThrow();
                     router.replace("account", newAccount);
                 }
             } else {
-                accountRepo.update(account.id, type, number, name, currency);
+                accountRepo.update(account.id, type, number, name, currency, description);
                 Account updatedAccount = accountRepo.findById(account.id).orElseThrow();
                 router.replace("account", updatedAccount);
             }
@@ -157,11 +160,13 @@ public class EditAccountController implements RouteSelectionListener {
             accountTypeChoiceBox.getSelectionModel().selectFirst();
             accountCurrencyComboBox.getSelectionModel().select(Currency.getInstance("USD"));
             initialBalanceField.setText(String.format("%.02f", 0f));
+            descriptionField.setText(null);
         } else {
             accountNameField.setText(account.getName());
             accountNumberField.setText(account.getAccountNumber());
             accountTypeChoiceBox.getSelectionModel().select(account.getType());
             accountCurrencyComboBox.getSelectionModel().select(account.getCurrency());
+            descriptionField.setText(account.getDescription());
         }
     }
 }

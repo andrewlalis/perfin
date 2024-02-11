@@ -28,7 +28,13 @@ public final class DbUtil {
     }
 
     public static void setArgs(PreparedStatement stmt, Object... args) {
-        setArgs(stmt, List.of(args));
+        for (int i = 0; i < args.length; i++) {
+            try {
+                stmt.setObject(i + 1, args[i]);
+            } catch (SQLException e) {
+                throw new UncheckedSqlException("Failed to set parameter " + (i + 1) + " to " + args[i], e);
+            }
+        }
     }
 
     public static long getGeneratedId(PreparedStatement stmt) {
@@ -107,6 +113,11 @@ public final class DbUtil {
     }
 
     public static void updateOne(Connection conn, String query, List<Object> args) {
+        Object[] argsArray = args.toArray();
+        updateOne(conn, query, argsArray);
+    }
+
+    public static void updateOne(Connection conn, String query, Object... args) {
         try (var stmt = conn.prepareStatement(query)) {
             setArgs(stmt, args);
             int updateCount = stmt.executeUpdate();
@@ -116,11 +127,12 @@ public final class DbUtil {
         }
     }
 
-    public static void updateOne(Connection conn, String query, Object... args) {
-        updateOne(conn, query, List.of(args));
+    public static long insertOne(Connection conn, String query, List<Object> args) {
+        Object[] argsArray = args.toArray();
+        return insertOne(conn, query, argsArray);
     }
 
-    public static long insertOne(Connection conn, String query, List<Object> args) {
+    public static long insertOne(Connection conn, String query, Object... args) {
         try (var stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             setArgs(stmt, args);
             int result = stmt.executeUpdate();
@@ -129,10 +141,6 @@ public final class DbUtil {
         } catch (SQLException e) {
             throw new UncheckedSqlException(e);
         }
-    }
-
-    public static long insertOne(Connection conn, String query, Object... args) {
-        return insertOne(conn, query, List.of(args));
     }
 
     public static Timestamp timestampFromUtcLDT(LocalDateTime utc) {

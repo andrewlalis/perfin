@@ -23,18 +23,18 @@ public record JdbcAccountRepository(Connection conn, Path contentDir) implements
     private static final Logger log = LoggerFactory.getLogger(JdbcAccountRepository.class);
 
     @Override
-    public long insert(AccountType type, String accountNumber, String name, Currency currency) {
+    public long insert(AccountType type, String accountNumber, String name, Currency currency, String description) {
         return DbUtil.doTransaction(conn, () -> {
+
             long accountId = DbUtil.insertOne(
                     conn,
-                    "INSERT INTO account (created_at, account_type, account_number, name, currency) VALUES (?, ?, ?, ?, ?)",
-                    List.of(
-                            DbUtil.timestampFromUtcNow(),
-                            type.name(),
-                            accountNumber,
-                            name,
-                            currency.getCurrencyCode()
-                    )
+                    "INSERT INTO account (created_at, account_type, account_number, name, currency, description) VALUES (?, ?, ?, ?, ?, ?)",
+                    DbUtil.timestampFromUtcNow(),
+                    type.name(),
+                    accountNumber,
+                    name,
+                    currency.getCurrencyCode(),
+                    description
             );
             // Insert a history item indicating the creation of the account.
             HistoryRepository historyRepo = new JdbcHistoryRepository(conn);
@@ -210,7 +210,7 @@ public record JdbcAccountRepository(Connection conn, Path contentDir) implements
     }
 
     @Override
-    public void update(long accountId, AccountType type, String accountNumber, String name, Currency currency) {
+    public void update(long accountId, AccountType type, String accountNumber, String name, Currency currency, String description) {
         DbUtil.doTransaction(conn, () -> {
             Account account = findById(accountId).orElse(null);
             if (account == null) return;
@@ -230,6 +230,10 @@ public record JdbcAccountRepository(Connection conn, Path contentDir) implements
             if (account.getCurrency() != currency) {
                 DbUtil.updateOne(conn, "UPDATE account SET currency = ? WHERE id = ?", currency.getCurrencyCode(), accountId);
                 updateMessages.add(String.format("Updated account currency from %s to %s.", account.getCurrency(), currency));
+            }
+            if (!Objects.equals(account.getDescription(), description)) {
+                DbUtil.updateOne(conn, "UPDATE account SET description = ? WHERE id = ?", description, accountId);
+                updateMessages.add("Updated account's description.");
             }
             if (!updateMessages.isEmpty()) {
                 var historyRepo = new JdbcHistoryRepository(conn);
