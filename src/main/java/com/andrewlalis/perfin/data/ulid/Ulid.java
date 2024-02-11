@@ -24,6 +24,7 @@
 
 package com.andrewlalis.perfin.data.ulid;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Arrays;
@@ -50,6 +51,7 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public final class Ulid implements Serializable, Comparable<Ulid> {
 
+    @Serial
     private static final long serialVersionUID = 2625269413446854731L;
 
     private final long msb; // most significant bits
@@ -209,7 +211,7 @@ public final class Ulid implements Serializable, Comparable<Ulid> {
      * pseudo-random generator should use {@link UlidCreator#getUlid()}.
      *
      * @return a ULID
-     * @see {@link ThreadLocalRandom}
+     * @see ThreadLocalRandom
      * @since 5.1.0
      */
     public static Ulid fast() {
@@ -236,7 +238,7 @@ public final class Ulid implements Serializable, Comparable<Ulid> {
      * @since 5.2.0
      */
     public static Ulid min(long time) {
-        return new Ulid((time << 16) | 0x0000L, 0x0000000000000000L);
+        return new Ulid((time << 16), 0x0000000000000000L);
     }
 
     /**
