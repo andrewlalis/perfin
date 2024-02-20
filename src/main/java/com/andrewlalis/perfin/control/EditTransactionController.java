@@ -18,8 +18,10 @@ import com.andrewlalis.perfin.view.component.validation.ValidationResult;
 import com.andrewlalis.perfin.view.component.validation.validators.CurrencyAmountValidator;
 import com.andrewlalis.perfin.view.component.validation.validators.PredicateValidator;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.*;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -80,6 +82,8 @@ public class EditTransactionController implements RouteSelectionListener {
     @FXML public Button addLineItemAddButton;
     @FXML public Button addLineItemCancelButton;
     @FXML public VBox lineItemsVBox;
+    @FXML public Label lineItemsValueMatchLabel;
+    @FXML public Button lineItemsAmountSyncButton;
     @FXML public final BooleanProperty addingLineItemProperty = new SimpleBooleanProperty(false);
     private final ObservableList<TransactionLineItem> lineItems = FXCollections.observableArrayList();
     private static long tmpLineItemId = -1L;
@@ -379,6 +383,42 @@ public class EditTransactionController implements RouteSelectionListener {
             lineItems.add(tmpItem);
             addingLineItemProperty.set(false);
         });
+
+        // Logic for showing an indicator when the line items total exactly matches the entered amount.
+        ListProperty<TransactionLineItem> lineItemsProperty = new SimpleListProperty<>(lineItems);
+        ObservableValue<BigDecimal> lineItemsTotalValue = lineItemsProperty.map(items -> items.stream()
+                .map(TransactionLineItem::getTotalValue)
+                .reduce(BigDecimal.ZERO, BigDecimal::add));
+        ObjectProperty<BigDecimal> amountFieldValue = new SimpleObjectProperty<>(BigDecimal.ZERO);
+        amountField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue == null) {
+                amountFieldValue.set(BigDecimal.ZERO);
+            } else {
+                try {
+                    BigDecimal amount = new BigDecimal(newValue);
+                    amountFieldValue.set(amount.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : amount);
+                } catch (NumberFormatException e) {
+                    amountFieldValue.set(BigDecimal.ZERO);
+                }
+            }
+        });
+        BooleanProperty lineItemsTotalMatchesAmount = new SimpleBooleanProperty(false);
+        lineItemsTotalValue.addListener((observable, oldValue, newValue) -> {
+            lineItemsTotalMatchesAmount.set(newValue.compareTo(amountFieldValue.getValue()) == 0);
+        });
+        amountFieldValue.addListener((observable, oldValue, newValue) -> {
+            lineItemsTotalMatchesAmount.set(newValue.compareTo(lineItemsTotalValue.getValue()) == 0);
+        });
+        BindingUtil.bindManagedAndVisible(lineItemsValueMatchLabel, lineItemsTotalMatchesAmount.and(lineItemsProperty.emptyProperty().not()));
+
+        // Logic for button that syncs line items total to the amount field.
+        BindingUtil.bindManagedAndVisible(lineItemsAmountSyncButton, lineItemsTotalMatchesAmount.not().and(lineItemsProperty.emptyProperty().not()));
+        lineItemsAmountSyncButton.setOnAction(event -> amountField.setText(
+            CurrencyUtil.formatMoneyAsBasicNumber(new MoneyValue(
+                lineItemsTotalValue.getValue(),
+                currencyChoiceBox.getValue()
+            ))
+        ));
     }
 
     private Node createLineItemTile(TransactionLineItem item) {

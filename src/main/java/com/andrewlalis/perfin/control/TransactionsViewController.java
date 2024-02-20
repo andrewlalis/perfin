@@ -213,6 +213,13 @@ public class TransactionsViewController implements RouteSelectionListener {
         return filters;
     }
 
+    // Temporary utility to try out the new filter builder.
+    private List<SearchFilter> tmpFilter() {
+        return new JdbcTransactionSearcher.FilterBuilder()
+                .byHasLineItems(true)
+                .build();
+    }
+
     private TransactionTile makeTile(Transaction transaction) {
         var tile = new TransactionTile(transaction);
         tile.setOnMouseClicked(event -> {

@@ -86,6 +86,7 @@
                         <VBox fx:id="tagsVBox" styleClass="std-spacing,std-padding"/>
                     </VBox>
                 </PropertiesPane>
+
                 <!-- Container for line items -->
                 <VBox styleClass="std-padding">
                     <Label text="Line Items" styleClass="bold-text"/>
@@ -116,6 +117,13 @@
                     </VBox>
 
                     <VBox fx:id="lineItemsVBox" styleClass="std-padding, std-spacing"/>
+
+                    <Label
+                            fx:id="lineItemsValueMatchLabel"
+                            text="Total value of line items equals the transaction amount."
+                            styleClass="positive-color-text-fill"
+                    />
+                    <Button fx:id="lineItemsAmountSyncButton" text="Set transaction amount to line items total" styleClass="small-font"/>
                 </VBox>
 
                 <!-- Container for attachments -->

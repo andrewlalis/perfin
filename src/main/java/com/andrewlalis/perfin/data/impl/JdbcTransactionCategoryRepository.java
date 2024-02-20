@@ -119,6 +119,11 @@ public record JdbcTransactionCategoryRepository(Connection conn) implements Tran
         return rootNodes;
     }
 
+    @Override
+    public CategoryTreeNode findTree(TransactionCategory root) {
+        return findTreeRecursive(root);
+    }
+
     private CategoryTreeNode findTreeRecursive(TransactionCategory root) {
         CategoryTreeNode node = new CategoryTreeNode(root, new ArrayList<>());
         List<TransactionCategory> childCategories = DbUtil.findAll(

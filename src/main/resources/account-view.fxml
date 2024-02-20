@@ -4,9 +4,7 @@
 <?import com.andrewlalis.perfin.view.component.PropertiesPane?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Text?>
-<?import com.andrewlalis.perfin.view.component.StyledText?>
-<?import javafx.scene.text.TextFlow?>
+<?import javafx.scene.text.*?>
 <BorderPane
         xmlns="http://javafx.com/javafx"
         xmlns:fx="http://javafx.com/fxml"
